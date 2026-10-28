@@ -1,0 +1,523 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>盒子法：逐点定位坡屋顶</title>
+  <style>
+    :root {
+      --ink: #101828;
+      --muted: #667085;
+      --line: #dfe4ea;
+      --blue: #1677ff;
+      --orange: #f08a24;
+      --red: #ef476f;
+      --green: #20a464;
+      --violet: #8854d0;
+      --paper: #fff;
+    }
+
+    * { box-sizing: border-box; }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: "Microsoft YaHei", "微软雅黑", "PingFang SC", Arial, sans-serif;
+    }
+
+    button,
+    input { font: inherit; }
+
+    .app {
+      min-height: 100%;
+      height: 100%;
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr) auto;
+      gap: clamp(10px, 1.6vh, 18px);
+      padding: clamp(18px, 2.8vh, 30px) clamp(18px, 3vw, 42px) clamp(16px, 2.2vh, 24px);
+      background: #fff;
+    }
+
+    header {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 24px;
+      max-width: 1480px;
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(24px, 2.2vw, 34px);
+      line-height: 1.2;
+      letter-spacing: -.035em;
+      font-weight: 700;
+    }
+
+    .stage-readout {
+      display: flex;
+      align-items: baseline;
+      gap: 12px;
+      white-space: nowrap;
+    }
+
+    .stage-index {
+      color: var(--blue);
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: .12em;
+    }
+
+    .stage-title {
+      color: var(--muted);
+      font-size: 15px;
+      font-weight: 600;
+    }
+
+    .board {
+      position: relative;
+      min-height: 0;
+      max-width: 1480px;
+      width: 100%;
+      margin: 0 auto;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      overflow: hidden;
+      background: #fff;
+    }
+
+    .board::before {
+      content: "";
+      position: absolute;
+      left: 41%;
+      top: 4%;
+      bottom: 4%;
+      width: 1px;
+      background: #edf0f3;
+      pointer-events: none;
+    }
+
+    svg {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    svg text {
+      font-family: "Microsoft YaHei", "微软雅黑", "PingFang SC", Arial, sans-serif;
+      user-select: none;
+    }
+
+    .view-tag {
+      fill: var(--muted);
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: .12em;
+    }
+
+    .source-line,
+    .object-line,
+    .axis,
+    .guide-line,
+    .highlight-line {
+      vector-effect: non-scaling-stroke;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .source-line { stroke: #27364a; stroke-width: 2.35; }
+    .object-line { stroke: #111827; stroke-width: 2.65; }
+    .axis { stroke: var(--blue); stroke-width: 1.6; }
+    .guide-line { stroke: #98a2b3; stroke-width: 1.35; }
+    .highlight-line { stroke-width: 3.1; }
+    .orange { stroke: var(--orange); }
+    .red { stroke: var(--red); }
+    .green { stroke: var(--green); }
+
+    .axis-label {
+      fill: var(--blue);
+      font-size: 18px;
+      font-weight: 700;
+      font-style: italic;
+    }
+
+    .point {
+      fill: #fff;
+      stroke: #e4572e;
+      stroke-width: 2.4;
+      vector-effect: non-scaling-stroke;
+    }
+
+    .target-point {
+      fill: var(--red);
+      stroke: #fff;
+      stroke-width: 2;
+      vector-effect: non-scaling-stroke;
+    }
+
+    .origin-point {
+      fill: #fff;
+      stroke: var(--violet);
+      stroke-width: 2.4;
+      vector-effect: non-scaling-stroke;
+    }
+
+    .point-label {
+      fill: #e4572e;
+      font-size: 16px;
+      font-weight: 700;
+      font-style: italic;
+    }
+
+    .target-label {
+      fill: #344054;
+      font-size: 17px;
+      font-weight: 700;
+      font-style: italic;
+    }
+
+    .origin-label {
+      fill: var(--violet);
+      font-size: 16px;
+      font-weight: 700;
+      font-style: italic;
+    }
+
+    [data-draw],
+    [data-show],
+    [data-hide] { opacity: 0; }
+
+    .controls {
+      max-width: 1480px;
+      width: 100%;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr);
+      gap: 18px;
+      align-items: center;
+    }
+
+    .play {
+      width: 46px;
+      height: 46px;
+      border: 1px solid #cfd6df;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: #fff;
+      color: var(--ink);
+      cursor: pointer;
+      transition: border-color .18s ease, color .18s ease, background .18s ease;
+    }
+
+    .play:hover,
+    .play:focus-visible {
+      border-color: var(--blue);
+      color: var(--blue);
+      background: #f7fbff;
+      outline: none;
+    }
+
+    .play svg { width: 18px; height: 18px; }
+    .timeline { min-width: 0; }
+
+    .range-wrap {
+      position: relative;
+      height: 22px;
+      display: flex;
+      align-items: center;
+    }
+
+    .track,
+    .track-fill {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 10px;
+      height: 4px;
+      border-radius: 99px;
+      pointer-events: none;
+    }
+
+    .track { background: #e6eaf0; }
+    .track-fill { right: auto; width: 0; background: var(--blue); }
+
+    input[type="range"] {
+      position: relative;
+      z-index: 2;
+      width: 100%;
+      margin: 0;
+      height: 22px;
+      appearance: none;
+      -webkit-appearance: none;
+      background: transparent;
+      cursor: ew-resize;
+    }
+
+    input[type="range"]::-webkit-slider-runnable-track { height: 4px; background: transparent; }
+    input[type="range"]::-moz-range-track { height: 4px; background: transparent; }
+
+    input[type="range"]::-webkit-slider-thumb {
+      appearance: none;
+      -webkit-appearance: none;
+      width: 18px;
+      height: 18px;
+      margin-top: -7px;
+      border: 3px solid var(--blue);
+      border-radius: 50%;
+      background: #fff;
+    }
+
+    input[type="range"]::-moz-range-thumb {
+      width: 13px;
+      height: 13px;
+      border: 3px solid var(--blue);
+      border-radius: 50%;
+      background: #fff;
+    }
+
+    input[type="range"]:focus-visible { outline: none; }
+
+    .ticks {
+      column-gap: 3px;
+      display: grid;
+      grid-template-columns: repeat(14, 1fr);
+      margin-top: 6px;
+    }
+
+    .tick {
+      position: relative;
+      min-width: 0;
+      padding-top: 10px;
+      border: 0;
+      background: transparent;
+      color: #98a2b3;
+      font-size: 11px;
+      line-height: 1.25;
+      text-align: center;
+      cursor: pointer;
+      transition: color .18s ease;
+    }
+
+    .tick::before {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 0;
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      transform: translateX(-50%);
+      background: #cfd6df;
+    }
+
+    .tick:first-child { text-align: left; }
+    .tick:first-child::before { left: 0; transform: none; }
+    .tick:last-child { text-align: right; }
+    .tick:last-child::before { left: auto; right: 0; transform: none; }
+    .tick.done,
+    .tick.active { color: var(--blue); }
+    .tick.done::before,
+    .tick.active::before { background: var(--blue); }
+    .tick.active { font-weight: 700; }
+
+    @media (max-width: 820px) {
+      .app { padding-inline: 12px; }
+      header { align-items: flex-start; flex-direction: column; gap: 5px; }
+      .stage-readout { width: 100%; justify-content: space-between; }
+      .board::before { display: none; }
+      .controls { grid-template-columns: 40px minmax(0, 1fr); gap: 10px; }
+      .play { width: 40px; height: 40px; }
+      .tick span { display: none; }
+      .tick { min-height: 18px; }
+    }
+  .projection-control{display:flex;align-items:center;gap:8px;font-size:13px;color:#667085;white-space:nowrap}.projection-control select{font:inherit;color:#344054;background:#fff;border:1px solid #dfe4ea;border-radius:7px;padding:8px;max-width:100%}header{flex-wrap:wrap;gap:10px 20px}h1{font-size:clamp(21px,2vw,30px)}@media(max-width:700px){.projection-control{width:100%}.projection-control select{min-width:0;flex:1}}
+</style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <h1>盒子法：逐点定位坡屋顶</h1><label class="projection-control">投影 <select id="projectionSelect"><option value="iso">标准正等测</option><option value="military">水平斜等轴测 / 60°水平斜投影</option><option value="cabinet">正面斜二等轴测 / 柜式投影[最常用]</option></select></label>
+      <div class="stage-readout" aria-live="polite">
+        <span class="stage-index" id="stageIndex">01 / 14</span>
+        <span class="stage-title" id="stageTitle">读取三视图</span>
+      </div>
+    </header>
+
+    <section class="board" aria-label="盒子法：逐点定位坡屋顶">
+      <svg viewBox="0 0 1280 650" role="img" aria-labelledby="svgTitle svgDesc" preserveAspectRatio="xMidYMid meet">
+        <title id="svgTitle">盒子法：逐点定位坡屋顶</title>
+        <desc id="svgDesc">从主体盒子顶面沿两轴取出檐，先定位屋顶下底面，再沿竖向取厚度得到上顶面，然后定位屋脊并连接坡面。</desc>
+
+<text class="view-tag" x="60" y="83">正视图</text><text class="view-tag" x="330" y="83">右视图</text><text class="view-tag" x="60" y="317">俯视图</text><text class="view-tag" x="570" y="52" id="projectionCaption">正等轴测图</text><path class="source-line" d="M 71.00 177.00 L 71.00 265.00 L 291.00 265.00 L 291.00 177.00" /><path class="source-line" d="M 60.00 177.00 L 302.00 177.00 L 302.00 127.50 L 60.00 127.50 L 60.00 177.00" /><path class="source-line" d="M 60.00 166.00 L 302.00 166.00" /><path class="source-line" d="M 478.50 167.06 L 478.50 265.00 L 352.00 265.00 L 352.00 167.06" /><path class="source-line" d="M 500.50 177.00 L 415.25 138.50 L 330.00 177.00 L 330.00 166.00 L 415.25 127.50 L 500.50 166.00 L 500.50 177.00" /><path class="source-line" d="M 60.00 515.50 L 302.00 515.50 L 302.00 345.00 L 60.00 345.00 L 60.00 515.50" /><path class="source-line" d="M 60.00 430.25 L 302.00 430.25" /><path class="source-line" d="M 71.00 493.50 L 291.00 493.50 L 291.00 367.00 L 71.00 367.00 L 71.00 493.50" stroke-dasharray="8 6" style="stroke-width:1.3" /><path class="object-line" d="M 862.70 528.70 L 1108.65 386.70" pathLength="1" data-draw="2.000,3.000" id="projected0" /><path class="object-line" d="M 862.70 528.70 L 721.28 447.05" pathLength="1" data-draw="3.000,4.000" id="projected1" /><path class="object-line" d="M 862.70 528.70 L 862.70 422.89" pathLength="1" data-draw="4.000,7.000" id="projected2" /><path class="object-line" d="M 862.70 422.89 L 862.70 415.10" pathLength="1" data-draw="80,84" id="projected3" /><path class="object-line" d="M 1108.65 386.70 L 1108.65 301.50" pathLength="1" data-draw="4.000,7.000" id="projected4" /><path class="object-line" d="M 1108.65 301.50 L 1108.65 273.10" pathLength="1" data-draw="80,84" id="projected5" /><path class="object-line" d="M 721.28 447.05 L 721.28 333.45" pathLength="1" data-draw="4.000,7.000" id="projected6" /><path class="object-line" d="M 721.28 333.45 L 721.28 328.41" pathLength="1" data-draw="80,84" id="projected7" /><path class="guide-line" d="M 862.70 415.10 L 1108.65 273.10" pathLength="1" data-draw="6.000,6.750" data-erase="88.000,96.000" id="projected8" /><path class="guide-line" d="M 1108.65 273.10 L 967.23 191.45" pathLength="1" data-draw="6.750,7.500" data-erase="88.000,96.000" id="projected9" /><path class="guide-line" d="M 967.23 191.45 L 721.28 333.45" pathLength="1" data-draw="7.500,8.250" data-erase="88.000,96.000" id="projected10" /><path class="guide-line" d="M 721.28 333.45 L 862.70 415.10" pathLength="1" data-draw="8.250,9.000" data-erase="88.000,96.000" id="projected11" /><g data-show="2,4" data-hide="10,12"><path class="axis" d="M 40 177 H 48 M 44 177 V 265 M 40 265 H 48" /><text class="axis-label" x="24" y="225">H</text></g><g data-show="10,12" data-hide="32,35"><circle class="target-point" cx="862.70" cy="415.10" r="4.5" id="projected12" /><text class="point-label" x="871.70" y="432.10" id="projected13">P₁</text></g><g data-show="10,12" data-hide="32,35"><circle class="target-point" cx="1108.65" cy="273.10" r="4.5" id="projected14" /><text class="point-label" x="1117.65" y="289.10" id="projected15">P₂</text></g><g data-show="10,12" data-hide="32,35"><circle class="target-point" cx="967.23" cy="191.45" r="4.5" id="projected16" /><text class="point-label" x="975.23" y="182.45" id="projected17">P₃</text></g><g data-show="10,12" data-hide="32,35"><circle class="target-point" cx="721.28" cy="333.45" r="4.5" id="projected18" /><text class="point-label" x="692.28" y="325.45" id="projected19">P₄</text></g><g data-show="10,12" data-hide="88,96"><g id="projectionTriad" /></g><path class="guide-line" d="M 862.70 415.10 L 850.40 422.20" pathLength="1" data-draw="15.000,16.250" data-erase="88.000,96.000" id="projected20" /><g data-show="16.0,16.3" data-hide="31,34"><circle class="target-point" cx="850.40" cy="422.20" r="4.5" id="projected21" /></g><path class="guide-line" d="M 850.40 422.20 L 875.00 436.40" pathLength="1" data-draw="23.000,24.250" data-erase="88.000,96.000" id="projected22" /><g data-show="24.0,24.3" data-hide="46,49"><circle class="target-point" cx="875.00" cy="436.40" r="4.5" id="projected23" /><text class="point-label" x="884.00" y="454.40" id="projected24">A</text></g><path class="guide-line" d="M 1108.65 273.10 L 1120.95 266.00" pathLength="1" data-draw="16.450,17.700" data-erase="88.000,96.000" id="projected25" /><g data-show="17.45,17.75" data-hide="31,34"><circle class="target-point" cx="1120.95" cy="266.00" r="4.5" id="projected26" /></g><path class="guide-line" d="M 1120.95 266.00 L 1145.55 280.20" pathLength="1" data-draw="24.450,25.700" data-erase="88.000,96.000" id="projected27" /><g data-show="25.45,25.75" data-hide="46,49"><circle class="target-point" cx="1145.55" cy="280.20" r="4.5" id="projected28" /><text class="point-label" x="1155.55" y="298.20" id="projected29">B</text></g><path class="guide-line" d="M 967.23 191.45 L 979.53 184.35" pathLength="1" data-draw="17.900,19.150" data-erase="88.000,96.000" id="projected30" /><g data-show="18.9,19.2" data-hide="31,34"><circle class="target-point" cx="979.53" cy="184.35" r="4.5" id="projected31" /></g><path class="guide-line" d="M 979.53 184.35 L 954.93 170.15" pathLength="1" data-draw="25.900,27.150" data-erase="88.000,96.000" id="projected32" /><g data-show="26.9,27.2" data-hide="46,49"><circle class="target-point" cx="954.93" cy="170.15" r="4.5" id="projected33" /><text class="point-label" x="961.93" y="188.15" id="projected34">C</text></g><path class="guide-line" d="M 721.28 333.45 L 708.98 340.55" pathLength="1" data-draw="19.350,20.600" data-erase="88.000,96.000" id="projected35" /><g data-show="20.35,20.65" data-hide="31,34"><circle class="target-point" cx="708.98" cy="340.55" r="4.5" id="projected36" /></g><path class="guide-line" d="M 708.98 340.55 L 684.39 326.35" pathLength="1" data-draw="27.350,28.600" data-erase="88.000,96.000" id="projected37" /><g data-show="28.35,28.65" data-hide="46,49"><circle class="target-point" cx="684.39" cy="326.35" r="4.5" id="projected38" /><text class="point-label" x="664.39" y="344.35" id="projected39">D</text></g><g data-show="15,17" data-hide="31,34"><path class="highlight-line orange" d="M 60 535 H 71 M 60 529 V 541 M 71 529 V 541" /><path class="guide-line" d="M 60 515.5 V 541 M 71 493.5 V 541" /><text class="point-label" x="60" y="560">a</text></g><g data-show="23,25" data-hide="31,34"><path class="highlight-line orange" d="M 40 493.5 V 515.5 M 34 493.5 H 46 M 34 515.5 H 46" /><path class="guide-line" d="M 40 493.5 H 71 M 40 515.5 H 60" /><text class="point-label" x="23" y="510">b</text></g><path class="object-line" d="M 875.00 436.40 L 1145.55 280.20" pathLength="1" data-draw="31.000,32.100" id="projected40" /><path class="guide-line" d="M 1145.55 280.20 L 954.93 170.15" pathLength="1" data-draw="32.250,33.350" data-erase="88.000,96.000" id="projected41" /><path class="object-line" d="M 954.93 170.15 L 684.39 326.35" pathLength="1" data-draw="33.500,34.600" id="projected42" /><path class="guide-line" d="M 684.39 326.35 L 875.00 436.40" pathLength="1" data-draw="34.750,35.850" data-erase="88.000,96.000" id="projected43" /><path class="object-line" d="M 875.00 436.40 L 875.00 422.20" pathLength="1" data-draw="38.000,39.350" id="projected44" /><g data-show="39.0,39.3" data-hide="52,55"><circle class="target-point" cx="875.00" cy="422.20" r="4.5" id="projected45" /><text class="point-label" x="884.00" y="413.20" id="projected46">A′</text></g><path class="object-line" d="M 1145.55 280.20 L 1145.55 266.00" pathLength="1" data-draw="39.600,40.950" id="projected47" /><g data-show="40.6,40.9" data-hide="52,55"><circle class="target-point" cx="1145.55" cy="266.00" r="4.5" id="projected48" /><text class="point-label" x="1154.55" y="257.00" id="projected49">B′</text></g><path class="object-line" d="M 954.93 170.15 L 954.93 155.95" pathLength="1" data-draw="41.200,42.550" id="projected50" /><g data-show="42.2,42.5" data-hide="52,55"><circle class="target-point" cx="954.93" cy="155.95" r="4.5" id="projected51" /><text class="point-label" x="961.93" y="146.95" id="projected52">C′</text></g><path class="object-line" d="M 684.39 326.35 L 684.39 312.15" pathLength="1" data-draw="42.800,44.150" id="projected53" /><g data-show="43.8,44.099999999999994" data-hide="52,55"><circle class="target-point" cx="684.39" cy="312.15" r="4.5" id="projected54" /><text class="point-label" x="661.39" y="303.15" id="projected55">D′</text></g><g data-show="38,40" data-hide="52,55"><path class="highlight-line orange" d="M 312 166 V 177 M 307 166 H 317 M 307 177 H 317" /><text class="point-label" x="315" y="187">t</text></g><path class="object-line" d="M 875.00 422.20 L 1145.55 266.00" pathLength="1" data-draw="46.000,47.000" id="projected56" /><path class="guide-line" d="M 1145.55 266.00 L 954.93 155.95" pathLength="1" data-draw="47.100,48.100" data-erase="88.000,96.000" id="projected57" /><path class="object-line" d="M 954.93 155.95 L 684.39 312.15" pathLength="1" data-draw="48.200,49.200" id="projected58" /><path class="guide-line" d="M 684.39 312.15 L 875.00 422.20" pathLength="1" data-draw="49.300,50.300" data-erase="88.000,96.000" id="projected59" /><path class="guide-line" d="M 779.69 367.18 L 1050.24 210.98" pathLength="1" data-draw="53.000,57.000" data-erase="88.000,96.000" id="projected60" /><g data-show="53,55" data-hide="70,73"><circle class="target-point" cx="779.69" cy="367.18" r="4.5" id="projected61" /><circle class="target-point" cx="1050.24" cy="210.98" r="4.5" id="projected62" /><text class="point-label" x="756.69" y="380.18" id="projected63">M</text><text class="point-label" x="1058.24" y="227.98" id="projected64">N</text></g><g data-show="53,55" data-hide="58,60"><path class="highlight-line orange" d="M 875.00 422.20 L 779.69 367.18 L 684.39 312.15" id="projected65" /><path class="highlight-line orange" d="M 1145.55 266.00 L 1050.24 210.98 L 954.93 155.95" id="projected66" /></g><path class="guide-line" d="M 779.69 367.18 L 779.69 317.48" pathLength="1" data-draw="60.000,62.500" data-erase="88.000,96.000" id="projected67" /><path class="guide-line" d="M 1050.24 210.98 L 1050.24 161.28" pathLength="1" data-draw="62.500,65.000" data-erase="88.000,96.000" id="projected68" /><g data-show="61,65" data-hide="87,91"><circle class="target-point" cx="779.69" cy="317.48" r="4.5" id="projected69" /><circle class="target-point" cx="1050.24" cy="161.28" r="4.5" id="projected70" /><text class="point-label" x="759.69" y="309.48" id="projected71">R</text><text class="point-label" x="1058.24" y="153.28" id="projected72">S</text><text class="axis-label" x="791.69" y="341.62" id="projected73">h</text></g><g data-show="59,61" data-hide="72,75"><path class="axis" d="M 415.25 127.5 V 166.0 M 410.25 127.5 H 420.25 M 410.25 166.0 H 420.25" /><text class="axis-label" x="425.25" y="151.75">h</text></g><path class="object-line" d="M 779.69 317.48 L 1050.24 161.28" pathLength="1" data-draw="67.000,70.000" id="projected74" /><path class="object-line" d="M 875.00 422.20 L 779.69 317.48" pathLength="1" data-draw="72.000,74.000" id="projected75" /><path class="object-line" d="M 779.69 317.48 L 684.39 312.15" pathLength="1" data-draw="74.000,76.000" id="projected76" /><path class="object-line" d="M 1145.55 266.00 L 1050.24 161.28" pathLength="1" data-draw="76.000,78.000" id="projected77" /><path class="object-line" d="M 1050.24 161.28 L 954.93 155.95" pathLength="1" data-draw="78.000,80.000" id="projected78" /><path class="object-line" d="M 779.69 317.48 L 779.69 331.68" pathLength="1" data-draw="80.000,81.667" id="projected79" /><path class="object-line" d="M 875.00 436.40 L 779.69 331.68" pathLength="1" data-draw="81.667,83.333" id="projected80" /><path class="object-line" d="M 779.69 331.68 L 684.39 326.35" pathLength="1" data-draw="83.333,85.000" id="projected81" /><g data-show="81,82" data-hide="87,91"><circle class="target-point" cx="779.69" cy="331.68" r="4.5" id="projected82" /><text class="point-label" x="789.69" y="347.68" id="projected83">R′</text></g><text id="stepNote" x="555" y="595" style="font-size:15px;fill:#344054" /><text id="stepHint" x="555" y="621" style="font-size:14px;fill:#667085" />
+        <g id="axisAngles" data-show="7,9" data-hide="12,14" aria-label="轴间角"><circle cx="1110" cy="130" r="2.3" fill="#ed8b33" /><path d="M1110 130L1147.24 108.50" fill="none" stroke="#dc862f" stroke-width="1.3" /><text x="1156.77" y="107.00" text-anchor="start" fill="#c17128" font-size="13" font-weight="600">X</text><path d="M1110 130L1110.00 173.00" fill="none" stroke="#dc862f" stroke-width="1.3" /><text x="1110.00" y="188.00" text-anchor="middle" fill="#c17128" font-size="13" font-weight="600">Z</text><path d="M1110 130L1072.76 108.50" fill="none" stroke="#dc862f" stroke-width="1.3" /><text x="1063.23" y="107.00" text-anchor="end" fill="#c17128" font-size="13" font-weight="600">Y</text><path d="M1110.00 152.00L1108.08 151.92L1106.18 151.67L1104.31 151.25L1102.48 150.67L1100.70 149.94L1099.00 149.05L1097.38 148.02L1095.86 146.85L1094.44 145.56L1093.15 144.14L1091.98 142.62L1090.95 141.00L1090.06 139.30L1089.33 137.52L1088.75 135.69L1088.33 133.82L1088.08 131.92L1088.00 130.00L1088.08 128.08L1088.33 126.18L1088.75 124.31L1089.33 122.48L1090.06 120.70L1090.95 119.00" fill="none" stroke="#e3a96e" stroke-width="1.15" /><text x="1078.82" y="151.00" text-anchor="middle" fill="#a66327" font-size="11.2" font-weight="600">120°</text><path d="M1090.95 119.00L1091.98 117.38L1093.15 115.86L1094.44 114.44L1095.86 113.15L1097.38 111.98L1099.00 110.95L1100.70 110.06L1102.48 109.33L1104.31 108.75L1106.18 108.33L1108.08 108.08L1110.00 108.00L1111.92 108.08L1113.82 108.33L1115.69 108.75L1117.52 109.33L1119.30 110.06L1121.00 110.95L1122.62 111.98L1124.14 113.15L1125.56 114.44L1126.85 115.86L1128.02 117.38L1129.05 119.00" fill="none" stroke="#e3a96e" stroke-width="1.15" /><text x="1110.00" y="97.00" text-anchor="middle" fill="#a66327" font-size="11.2" font-weight="600">120°</text><path d="M1129.05 119.00L1129.94 120.70L1130.67 122.48L1131.25 124.31L1131.67 126.18L1131.92 128.08L1132.00 130.00L1131.92 131.92L1131.67 133.82L1131.25 135.69L1130.67 137.52L1129.94 139.30L1129.05 141.00L1128.02 142.62L1126.85 144.14L1125.56 145.56L1124.14 146.85L1122.62 148.02L1121.00 149.05L1119.30 149.94L1117.52 150.67L1115.69 151.25L1113.82 151.67L1111.92 151.92L1110.00 152.00" fill="none" stroke="#e3a96e" stroke-width="1.15" /><text x="1141.18" y="151.00" text-anchor="middle" fill="#a66327" font-size="11.2" font-weight="600">120°</text></g>
+      <path id="rearWall" d="M0 0" pathLength="1" data-draw="80,84" class="object-line" /><path id="rearBaseX" d="M0 0" pathLength="1" data-draw="3,4" class="object-line" /><path id="rearBaseY" d="M0 0" pathLength="1" data-draw="3,4" class="object-line" /><path id="rearRoofLowerA" d="M0 0" pathLength="1" data-draw="81.667,83.333" class="object-line" /><path id="rearRoofLowerB" d="M0 0" pathLength="1" data-draw="83.333,85" class="object-line" /><path id="rearRidgeThickness" d="M0 0" pathLength="1" data-draw="80,81.667" class="object-line" /><path id="lowerRidge" d="M0 0" pathLength="1" data-draw="83.333,85" class="object-line" /><path id="projected0Hidden" d="M0 0" class="object-line" pathLength="1" data-draw="2.000,3.000" data-erase="88,96" /><path id="projected1Hidden" d="M0 0" class="object-line" pathLength="1" data-draw="3.000,4.000" data-erase="88,96" /><path id="projected40Hidden" d="M0 0" class="object-line" pathLength="1" data-draw="31.000,32.100" data-erase="88,96" /><path id="projected42Hidden" d="M0 0" class="object-line" pathLength="1" data-draw="33.500,34.600" data-erase="88,96" /><path id="projected44Hidden" d="M0 0" class="object-line" pathLength="1" data-draw="38.000,39.350" data-erase="88,96" /><path id="projected47Hidden" d="M0 0" class="object-line" pathLength="1" data-draw="39.600,40.950" data-erase="88,96" /><path id="projected50Hidden" d="M0 0" class="object-line" pathLength="1" data-draw="41.200,42.550" data-erase="88,96" /><path id="projected53Hidden" d="M0 0" class="object-line" pathLength="1" data-draw="42.800,44.150" data-erase="88,96" /><path id="projected56Hidden" d="M0 0" class="object-line" pathLength="1" data-draw="46.000,47.000" data-erase="88,96" /><path id="projected58Hidden" d="M0 0" class="object-line" pathLength="1" data-draw="48.200,49.200" data-erase="88,96" /><path id="projected74Hidden" d="M0 0" class="object-line" pathLength="1" data-draw="67.000,70.000" data-erase="88,96" /><path id="projected75Hidden" d="M0 0" class="object-line" pathLength="1" data-draw="72.000,74.000" data-erase="88,96" /><path id="projected76Hidden" d="M0 0" class="object-line" pathLength="1" data-draw="74.000,76.000" data-erase="88,96" /><path id="projected77Hidden" d="M0 0" class="object-line" pathLength="1" data-draw="76.000,78.000" data-erase="88,96" /><path id="projected78Hidden" d="M0 0" class="object-line" pathLength="1" data-draw="78.000,80.000" data-erase="88,96" /><path id="projected79Hidden" d="M0 0" class="object-line" pathLength="1" data-draw="80.000,81.667" data-erase="88,96" /><path id="projected80Hidden" d="M0 0" class="object-line" pathLength="1" data-draw="81.667,83.333" data-erase="88,96" /><path id="projected81Hidden" d="M0 0" class="object-line" pathLength="1" data-draw="83.333,85.000" data-erase="88,96" /><path id="projected2Hidden" d="M0 0" class="object-line" pathLength="1" data-draw="4.000,7.000" data-erase="88,96" /><path id="projected3Hidden" d="M0 0" class="object-line" pathLength="1" data-draw="80,84" data-erase="88,96" /><path id="projected4Hidden" d="M0 0" class="object-line" pathLength="1" data-draw="4.000,7.000" data-erase="88,96" /><path id="projected5Hidden" d="M0 0" class="object-line" pathLength="1" data-draw="80,84" data-erase="88,96" /><path id="projected6Hidden" d="M0 0" class="object-line" pathLength="1" data-draw="4.000,7.000" data-erase="88,96" /><path id="projected7Hidden" d="M0 0" class="object-line" pathLength="1" data-draw="80,84" data-erase="88,96" /><path id="rearWallHidden" d="M0 0" class="object-line" pathLength="1" data-draw="80,84" data-erase="88,96" /><path id="rearBaseXHidden" d="M0 0" class="object-line" pathLength="1" data-draw="3,4" data-erase="88,96" /><path id="rearBaseYHidden" d="M0 0" class="object-line" pathLength="1" data-draw="3,4" data-erase="88,96" /><path id="rearRoofLowerAHidden" d="M0 0" class="object-line" pathLength="1" data-draw="81.667,83.333" data-erase="88,96" /><path id="rearRoofLowerBHidden" d="M0 0" class="object-line" pathLength="1" data-draw="83.333,85" data-erase="88,96" /><path id="rearRidgeThicknessHidden" d="M0 0" class="object-line" pathLength="1" data-draw="80,81.667" data-erase="88,96" /><path id="lowerRidgeHidden" d="M0 0" class="object-line" pathLength="1" data-draw="83.333,85" data-erase="88,96" /></svg>
+    </section>
+
+    <div class="controls">
+      <button class="play" id="playButton" type="button" aria-label="播放作图过程" aria-pressed="false">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path id="playIcon" fill="currentColor" d="M8 5.8v12.4c0 .8.9 1.3 1.6.8l9-6.2a1 1 0 0 0 0-1.6l-9-6.2A1 1 0 0 0 8 5.8Z"/>
+        </svg>
+      </button>
+
+      <div class="timeline">
+        <div class="range-wrap">
+          <div class="track"></div>
+          <div class="track-fill" id="trackFill"></div>
+          <input id="progress" type="range" min="0" max="100" step="0.1" value="0" aria-label="拖动作图时间轴" />
+        </div>
+        <div class="ticks"><button class="tick" data-value="0" type="button"><span>读取三视图</span></button><button class="tick" data-value="9" type="button"><span>画主体盒子</span></button><button class="tick" data-value="14" type="button"><span>标顶面四角</span></button><button class="tick" data-value="22" type="button"><span>沿 X 取出檐</span></button><button class="tick" data-value="30" type="button"><span>沿 Y 取出檐</span></button><button class="tick" data-value="37" type="button"><span>连接下底面</span></button><button class="tick" data-value="45" type="button"><span>竖向取厚度</span></button><button class="tick" data-value="51" type="button"><span>连接上顶面</span></button><button class="tick" data-value="58" type="button"><span>取两端中点</span></button><button class="tick" data-value="66" type="button"><span>量屋脊高度</span></button><button class="tick" data-value="71" type="button"><span>连接屋脊</span></button><button class="tick" data-value="86" type="button"><span>连接坡屋面</span></button><button class="tick" data-value="96" type="button"><span>擦除辅助线</span></button><button class="tick" data-value="100" type="button"><span>整理成图</span></button></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (() => {
+      const range = document.getElementById('progress');
+      const fill = document.getElementById('trackFill');
+      const playButton = document.getElementById('playButton');
+      const playIcon = document.getElementById('playIcon');
+      const stageIndex = document.getElementById('stageIndex');
+      const stageTitle = document.getElementById('stageTitle');
+      const ticks = [...document.querySelectorAll('.tick')];
+      const animated = [...document.querySelectorAll('[data-show], [data-hide]')];
+      const sourceOutlines = [...document.querySelectorAll('.source-line')];
+      const objectOutlines = [...document.querySelectorAll('.object-line')];
+
+      const stages = [{"at": 0, "title": "读取三视图", "note": "先读出檐口下缘高度 H、出檐 a 和 b、竖向厚度 t、起坡高度 h。", "hint": "X、Y、Z 方向按相同比例取长；同向线始终平行。"}, {"at": 2, "title": "画主体盒子", "note": "先画主体辅助盒子，顶面取檐口下缘高度 H。", "hint": "该顶面是取点基准，坡屋顶和山墙轮廓随后补齐。"}, {"at": 10, "title": "标顶面四角", "note": "标出盒子顶面 P₁、P₂、P₃、P₄，四点高度相同。", "hint": "屋顶下底面也在这个高度上，先不增加高度。"}, {"at": 15, "title": "沿 X 取出檐", "note": "P₁、P₄ 沿 −X，P₂、P₃ 沿 +X，各取出檐距离 a。", "hint": "只改变 X 坐标，Y 坐标和高度不变。"}, {"at": 23, "title": "沿 Y 取出檐", "note": "前侧两点沿 −Y，后侧两点沿 +Y，各取出檐距离 b。", "hint": "得到 A、B、C、D；例如 A = P₁ − aX − bY。"}, {"at": 31, "title": "连接下底面", "note": "依次连接 A—B—C—D，得到平屋顶下底面。", "hint": "AB、CD 平行 X；AD、BC 平行 Y；四点高度仍为 H。"}, {"at": 38, "title": "竖向取厚度", "note": "从 A、B、C、D 分别沿 +Z 取竖向厚度 t。", "hint": "得到 A′、B′、C′、D′；平面坐标不变，高度为 H + t。"}, {"at": 46, "title": "连接上顶面", "note": "依次连接 A′—B′—C′—D′，得到平屋顶上顶面。", "hint": "它是下底面整体竖直上移 t，长、宽和出檐都不变。"}, {"at": 53, "title": "取两端中点", "note": "取 A′D′ 的中点 M、B′C′ 的中点 N。", "hint": "两边各分成相等两段；MN 是屋脊在平屋顶上的位置。"}, {"at": 59, "title": "量屋脊高度", "note": "从 M、N 沿 +Z 量取侧视图中的起坡高度 h，得到 R、S。", "hint": "R、S 高度为 H + t + h，平面位置与 M、N 相同。"}, {"at": 67, "title": "连接屋脊", "note": "连接 R、S，得到屋脊。", "hint": "RS 与 MN 平行，也与屋檐的长度方向平行。"}, {"at": 72, "title": "连接坡屋面", "note": "R 连 A′、D′；S 连 B′、C′，形成两个坡屋面。", "hint": "再从 R 向下取 t 得 R′，连接 R′A、R′D，补出檐口厚度。"}, {"at": 88, "title": "擦除辅助线", "note": "擦除取点线、原平屋顶横线和被屋檐遮挡的墙体线。", "hint": "保留屋脊、坡屋面、檐口和可见墙体轮廓。"}, {"at": 97, "title": "整理成图", "note": "同一轴向的线始终平行，远近位置不改变长度比例。", "hint": "这是正等轴测图，不设透视消失点。"}];
+
+      const clamp01 = value => Math.max(0, Math.min(1, value));
+      const smooth = value => {
+        const t = clamp01(value);
+        return t * t * (3 - 2 * t);
+      };
+
+      const parsePair = (value, fallbackSpan = 5) => {
+        if (!value) return null;
+        const parts = value.split(',').map(Number);
+        return parts.length > 1 ? parts : [parts[0], parts[0] + fallbackSpan];
+      };
+
+      function render(value) {
+        const p = Number(value);
+        range.value = p;
+        fill.style.width = `${p}%`;
+
+        animated.forEach(element => {
+          const show = parsePair(element.dataset.show);
+          const hide = parsePair(element.dataset.hide);
+          let opacity = 1;
+          if (show) opacity *= smooth((p - show[0]) / (show[1] - show[0] || 1));
+          if (hide) opacity *= 1 - smooth((p - hide[0]) / (hide[1] - hide[0] || 1));
+          element.style.opacity = String(clamp01(opacity));
+        });
+
+        document.querySelectorAll('[data-draw]').forEach(line => {
+          const [a,b] = line.dataset.draw.split(',').map(Number);
+          const draw = smooth((p-a)/(b-a));
+          let erase = 0;
+          if (line.dataset.erase) {
+            const [c,d] = line.dataset.erase.split(',').map(Number);
+            erase = smooth((p-c)/(d-c));
+          }
+          const length = Math.max(0,draw-erase);
+          line.style.strokeDasharray = length >= 0.99999 ? 'none' : `${length} 2`;
+          line.style.strokeDashoffset = String(-erase);
+          line.style.opacity = length > 0.00001 ? '1' : '0';
+          line.style.stroke = p > a && p < b ? '#f08a24' : '';
+        });
+        const finalT = smooth((p - 90) / 10);
+        sourceOutlines.forEach(line => {
+          line.style.strokeWidth = String(2.35 + (2.8 - 2.35) * finalT);
+        });
+        objectOutlines.forEach(line => {
+          line.style.strokeWidth = String(2.65 + (3.15 - 2.65) * finalT);
+        });
+
+        let active = 0;
+        stages.forEach((stage, index) => { if (p >= stage.at) active = index; });
+        stageIndex.textContent = `${String(active + 1).padStart(2, '0')} / 14`;
+        stageTitle.textContent = stages[active].title;
+        document.getElementById('stepNote').textContent = stages[active].note;
+        document.getElementById('stepHint').textContent = stages[active].hint;
+        ticks.forEach((tick, index) => {
+          tick.classList.toggle('active', index === active);
+          tick.classList.toggle('done', index < active);
+        });
+      }
+
+      let playing = false;
+      let animationFrame = 0;
+      let lastTime = 0;
+      let playbackValue = 0;
+
+      function setPlaying(next) {
+        playing = next;
+        playButton.setAttribute('aria-pressed', String(next));
+        playButton.setAttribute('aria-label', next ? '暂停作图过程' : '播放作图过程');
+        playIcon.setAttribute('d', next
+          ? 'M7 5.5h3.5v13H7zM13.5 5.5H17v13h-3.5z'
+          : 'M8 5.8v12.4c0 .8.9 1.3 1.6.8l9-6.2a1 1 0 0 0 0-1.6l-9-6.2A1 1 0 0 0 8 5.8Z');
+        if (next) {
+          if (Number(range.value) >= 99.9) render(0);
+          playbackValue = Number(range.value);
+          lastTime = performance.now();
+          animationFrame = requestAnimationFrame(step);
+        } else {
+          cancelAnimationFrame(animationFrame);
+        }
+      }
+
+      function step(now) {
+        if (!playing) return;
+        const delta = now - lastTime;
+        lastTime = now;
+        const next = playbackValue + Math.min(delta, 80) / 360;
+        playbackValue = next;
+        if (next >= 100) {
+          render(100);
+          setPlaying(false);
+          return;
+        }
+        render(next);
+        animationFrame = requestAnimationFrame(step);
+      }
+
+      range.addEventListener('input', event => {
+        if (playing) setPlaying(false);
+        render(event.target.value);
+      });
+      playButton.addEventListener('click', () => setPlaying(!playing));
+      ticks.forEach(tick => tick.addEventListener('click', () => {
+        if (playing) setPlaying(false);
+        render(tick.dataset.value);
+      }));
+      window.addEventListener('keydown', event => {
+if(event.target.matches('select'))return;
+        if (event.code === 'Space') {
+          event.preventDefault();
+          setPlaying(!playing);
+        }
+        if (event.code === 'ArrowLeft' || event.code === 'ArrowRight') {
+          event.preventDefault();
+          if (playing) setPlaying(false);
+          const direction = event.code === 'ArrowLeft' ? -1 : 1;
+          render(Math.max(0, Math.min(100, Number(range.value) + direction * 2)));
+        }
+      });
+      render(0);
+    })();
+  </script>
+<script>(()=>{const records=[{"kind":"path","points":[[0,0,0],[284,0,0]],"id":"projected0","modePaths":{"iso":[[[0.0,0.0,0.0],[284.0,0.0,0.0]]],"military":[[[0.0,0.0,0.0],[284.0,0.0,0.0]]],"cabinet":[[[0.0,0.0,0.0],[284.0,0.0,0.0]]]}},{"kind":"path","points":[[0,0,0],[0,163.3,0]],"id":"projected1","modePaths":{"iso":[[[0.0,0.0,0.0],[0.0,163.3,0.0]]],"military":[[[0.0,0.0,0.0],[0.0,163.3,0.0]]],"cabinet":[[[0.0,0.0,0.0],[0.0,163.3,0.0]]]}},{"kind":"path","points":[[0,0,0],[0,0,113.6]],"id":"projected2","modePaths":{"iso":[[[0.0,0.0,0.0],[0.0,0.0,105.81290348068588]]],"military":[[[0.0,0.0,0.0],[0.0,0.0,86.9183326284404]]],"cabinet":[[[0.0,0.0,0.0],[0.0,0.0,103.55908389739157]]]}},{"kind":"path","points":[[0,0,113.6],[0,0,126.42580645161291]],"id":"projected3","modePaths":{"iso":[],"military":[],"cabinet":[]}},{"kind":"path","points":[[284,0,0],[284,0,113.6]],"id":"projected4","modePaths":{"iso":[[[284.0,0.0,0.0],[284.0,0.0,85.200000254887]]],"military":[[[284.0,0.0,0.0],[284.0,0.0,80.80650498038634]]],"cabinet":[[[284.0,0.0,0.0],[284.0,0.0,103.55908389739157]]]}},{"kind":"path","points":[[284,0,113.6],[284,0,126.42580645161291]],"id":"projected5","modePaths":{"iso":[],"military":[],"cabinet":[]}},{"kind":"path","points":[[0,163.3,0],[0,163.3,113.6]],"id":"projected6","modePaths":{"iso":[[[0.0,163.3,0.0],[0.0,163.3,113.6]]],"military":[[[0.0,163.3,0.0],[0.0,163.3,109.1332808942397]]],"cabinet":[[[0.0,163.3,0.0],[0.0,163.3,113.6]]]}},{"kind":"path","points":[[0,163.3,113.6],[0,163.3,126.42580645161291]],"id":"projected7","modePaths":{"iso":[[[0.0,163.3,113.6],[0.0,163.3,118.63870984198356]]],"military":[],"cabinet":[[[0.0,163.3,113.6],[0.0,163.3,126.42580645161291]]]}},{"kind":"path","points":[[0,0,113.6],[284,0,113.6]],"id":"projected8"},{"kind":"path","points":[[284,0,113.6],[284,163.3,113.6]],"id":"projected9"},{"kind":"path","points":[[284,163.3,113.6],[0,163.3,113.6]],"id":"projected10"},{"kind":"path","points":[[0,163.3,113.6],[0,0,113.6]],"id":"projected11"},{"kind":"point","point":[0,0,113.6],"id":"projected12"},{"kind":"label","point":[0,0,113.6],"offset":[9.0,17.0],"id":"projected13"},{"kind":"point","point":[284,0,113.6],"id":"projected14"},{"kind":"label","point":[284,0,113.6],"offset":[9.0,16.0],"id":"projected15"},{"kind":"point","point":[284,163.3,113.6],"id":"projected16"},{"kind":"label","point":[284,163.3,113.6],"offset":[8.0,-9.0],"id":"projected17"},{"kind":"point","point":[0,163.3,113.6],"id":"projected18"},{"kind":"label","point":[0,163.3,113.6],"offset":[-29.0,-8.0],"id":"projected19"},{"kind":"path","points":[[0,0,113.6],[-14.2,0,113.6]],"id":"projected20"},{"kind":"point","point":[-14.2,0,113.6],"id":"projected21"},{"kind":"path","points":[[-14.2,0,113.6],[-14.2,-28.4,113.6]],"id":"projected22"},{"kind":"point","point":[-14.2,-28.4,113.6],"id":"projected23"},{"kind":"label","point":[-14.2,-28.4,113.6],"offset":[9.0,18.0],"id":"projected24"},{"kind":"path","points":[[284,0,113.6],[298.2,0,113.6]],"id":"projected25"},{"kind":"point","point":[298.2,0,113.6],"id":"projected26"},{"kind":"path","points":[[298.2,0,113.6],[298.2,-28.4,113.6]],"id":"projected27"},{"kind":"point","point":[298.2,-28.4,113.6],"id":"projected28"},{"kind":"label","point":[298.2,-28.4,113.6],"offset":[10.0,18.0],"id":"projected29"},{"kind":"path","points":[[284,163.3,113.6],[298.2,163.3,113.6]],"id":"projected30"},{"kind":"point","point":[298.2,163.3,113.6],"id":"projected31"},{"kind":"path","points":[[298.2,163.3,113.6],[298.2,191.7,113.6]],"id":"projected32"},{"kind":"point","point":[298.2,191.7,113.6],"id":"projected33"},{"kind":"label","point":[298.2,191.7,113.6],"offset":[7.0,18.0],"id":"projected34"},{"kind":"path","points":[[0,163.3,113.6],[-14.2,163.3,113.6]],"id":"projected35"},{"kind":"point","point":[-14.2,163.3,113.6],"id":"projected36"},{"kind":"path","points":[[-14.2,163.3,113.6],[-14.2,191.7,113.6]],"id":"projected37"},{"kind":"point","point":[-14.2,191.7,113.6],"id":"projected38"},{"kind":"label","point":[-14.2,191.7,113.6],"offset":[-20.0,18.0],"id":"projected39"},{"kind":"path","points":[[-14.2,-28.4,113.6],[298.2,-28.4,113.6]],"id":"projected40","modePaths":{"iso":[[[-14.2,-28.4,113.6],[298.2,-28.4,113.6]]],"military":[[[-14.2,-28.4,113.6],[298.2,-28.4,113.6]]],"cabinet":[[[-14.2,-28.4,113.6],[298.2,-28.4,113.6]]]}},{"kind":"path","points":[[298.2,-28.4,113.6],[298.2,191.7,113.6]],"id":"projected41"},{"kind":"path","points":[[298.2,191.7,113.6],[-14.2,191.7,113.6]],"id":"projected42","modePaths":{"iso":[],"military":[],"cabinet":[[[10.040916428201456,191.7,113.6],[-14.2,191.7,113.6]]]}},{"kind":"path","points":[[-14.2,191.7,113.6],[-14.2,-28.4,113.6]],"id":"projected43"},{"kind":"path","points":[[-14.2,-28.4,113.6],[-14.2,-28.4,127.8]],"id":"projected44","modePaths":{"iso":[[[-14.2,-28.4,113.6],[-14.2,-28.4,127.8]]],"military":[[[-14.2,-28.4,113.6],[-14.2,-28.4,127.8]]],"cabinet":[[[-14.2,-28.4,113.6],[-14.2,-28.4,127.8]]]}},{"kind":"point","point":[-14.2,-28.4,127.8],"id":"projected45"},{"kind":"label","point":[-14.2,-28.4,127.8],"offset":[9.0,-9.0],"id":"projected46"},{"kind":"path","points":[[298.2,-28.4,113.6],[298.2,-28.4,127.8]],"id":"projected47","modePaths":{"iso":[[[298.2,-28.4,113.6],[298.2,-28.4,127.8]]],"military":[[[298.2,-28.4,113.6],[298.2,-28.4,127.8]]],"cabinet":[[[298.2,-28.4,113.6],[298.2,-28.4,127.8]]]}},{"kind":"point","point":[298.2,-28.4,127.8],"id":"projected48"},{"kind":"label","point":[298.2,-28.4,127.8],"offset":[9.0,-9.0],"id":"projected49"},{"kind":"path","points":[[298.2,191.7,113.6],[298.2,191.7,127.8]],"id":"projected50","modePaths":{"iso":[],"military":[],"cabinet":[]}},{"kind":"point","point":[298.2,191.7,127.8],"id":"projected51"},{"kind":"label","point":[298.2,191.7,127.8],"offset":[7.0,-9.0],"id":"projected52"},{"kind":"path","points":[[-14.2,191.7,113.6],[-14.2,191.7,127.8]],"id":"projected53","modePaths":{"iso":[[[-14.2,191.7,113.6],[-14.2,191.7,127.8]]],"military":[[[-14.2,191.7,113.6],[-14.2,191.7,127.8]]],"cabinet":[[[-14.2,191.7,113.6],[-14.2,191.7,127.8]]]}},{"kind":"point","point":[-14.2,191.7,127.8],"id":"projected54"},{"kind":"label","point":[-14.2,191.7,127.8],"offset":[-23.0,-9.0],"id":"projected55"},{"kind":"path","points":[[-14.2,-28.4,127.8],[298.2,-28.4,127.8]],"id":"projected56","modePaths":{"iso":[[[-14.2,-28.4,127.8],[298.2,-28.4,127.8]]],"military":[[[-14.2,-28.4,127.8],[298.2,-28.4,127.8]]],"cabinet":[[[-14.2,-28.4,127.8],[298.2,-28.4,127.8]]]}},{"kind":"path","points":[[298.2,-28.4,127.8],[298.2,191.7,127.8]],"id":"projected57"},{"kind":"path","points":[[298.2,191.7,127.8],[-14.2,191.7,127.8]],"id":"projected58","modePaths":{"iso":[[[298.2,191.7,127.8],[-14.2,191.7,127.8]]],"military":[[[298.2,191.7,127.8],[-14.2,191.7,127.8]]],"cabinet":[]}},{"kind":"path","points":[[-14.2,191.7,127.8],[-14.2,-28.4,127.8]],"id":"projected59"},{"kind":"path","points":[[-14.2,81.65,127.8],[298.2,81.65,127.8]],"id":"projected60"},{"kind":"point","point":[-14.2,81.65,127.8],"id":"projected61"},{"kind":"point","point":[298.2,81.65,127.8],"id":"projected62"},{"kind":"label","point":[-14.2,81.65,127.8],"offset":[-23.0,13.0],"id":"projected63"},{"kind":"label","point":[298.2,81.65,127.8],"offset":[8.0,17.0],"id":"projected64"},{"kind":"path","points":[[-14.2,-28.4,127.8],[-14.2,81.65,127.8],[-14.2,191.7,127.8]],"id":"projected65"},{"kind":"path","points":[[298.2,-28.4,127.8],[298.2,81.65,127.8],[298.2,191.7,127.8]],"id":"projected66"},{"kind":"path","points":[[-14.2,81.65,127.8],[-14.2,81.65,177.5]],"id":"projected67"},{"kind":"path","points":[[298.2,81.65,127.8],[298.2,81.65,177.5]],"id":"projected68"},{"kind":"point","point":[-14.2,81.65,177.5],"id":"projected69"},{"kind":"point","point":[298.2,81.65,177.5],"id":"projected70"},{"kind":"label","point":[-14.2,81.65,177.5],"offset":[-20.0,-8.0],"id":"projected71"},{"kind":"label","point":[298.2,81.65,177.5],"offset":[8.0,-8.0],"id":"projected72"},{"kind":"label","point":[-14.2,81.65,163.3],"offset":[11.99853495273851,9.944999999999993],"id":"projected73"},{"kind":"path","points":[[-14.2,81.65,177.5],[298.2,81.65,177.5]],"id":"projected74","modePaths":{"iso":[[[-14.2,81.65,177.5],[298.2,81.65,177.5]]],"military":[[[-14.2,81.65,177.5],[298.2,81.65,177.5]]],"cabinet":[[[-14.2,81.65,177.5],[298.2,81.65,177.5]]]}},{"kind":"path","points":[[-14.2,-28.4,127.8],[-14.2,81.65,177.5]],"id":"projected75","modePaths":{"iso":[[[-14.2,-28.4,127.8],[-14.2,81.65,177.5]]],"military":[[[-14.2,-28.4,127.8],[-14.2,81.65,177.5]]],"cabinet":[[[-14.2,-28.4,127.8],[-14.2,81.65,177.5]]]}},{"kind":"path","points":[[-14.2,81.65,177.5],[-14.2,191.7,127.8]],"id":"projected76","modePaths":{"iso":[[[-14.2,81.65,177.5],[-14.2,191.7,127.8]]],"military":[[[-14.2,81.65,177.5],[-14.2,191.7,127.8]]],"cabinet":[[[-14.2,81.65,177.5],[-14.2,191.7,127.8]]]}},{"kind":"path","points":[[298.2,-28.4,127.8],[298.2,81.65,177.5]],"id":"projected77","modePaths":{"iso":[[[298.2,-28.4,127.8],[298.2,81.65,177.5]]],"military":[[[298.2,-28.4,127.8],[298.2,81.65,177.5]]],"cabinet":[[[298.2,-28.4,127.8],[298.2,81.65,177.5]]]}},{"kind":"path","points":[[298.2,81.65,177.5],[298.2,191.7,127.8]],"id":"projected78","modePaths":{"iso":[[[298.2,81.65,177.5],[298.2,191.7,127.8]]],"military":[[[298.2,81.65,177.5],[298.2,191.7,127.8]]],"cabinet":[]}},{"kind":"path","points":[[-14.2,81.65,177.5],[-14.2,81.65,163.3]],"id":"projected79","modePaths":{"iso":[[[-14.2,81.65,177.5],[-14.2,81.65,163.3]]],"military":[[[-14.2,81.65,177.5],[-14.2,81.65,163.3]]],"cabinet":[[[-14.2,81.65,177.5],[-14.2,81.65,163.3]]]}},{"kind":"path","points":[[-14.2,-28.4,113.6],[-14.2,81.65,163.3]],"id":"projected80","modePaths":{"iso":[[[-14.2,-28.4,113.6],[-14.2,81.65,163.3]]],"military":[[[-14.2,-28.4,113.6],[-14.2,81.65,163.3]]],"cabinet":[[[-14.2,-28.4,113.6],[-14.2,81.65,163.3]]]}},{"kind":"path","points":[[-14.2,81.65,163.3],[-14.2,191.7,113.6]],"id":"projected81","modePaths":{"iso":[[[-14.2,81.65,163.3],[-14.2,191.7,113.6]]],"military":[[[-14.2,81.65,163.3],[-14.2,191.7,113.6]]],"cabinet":[[[-14.2,81.65,163.3],[-14.2,191.7,113.6]]]}},{"kind":"point","point":[-14.2,81.65,163.3],"id":"projected82"},{"kind":"label","point":[-14.2,81.65,163.3],"offset":[10.0,16.0],"id":"projected83"},{"id":"rearWall","kind":"path","points":[[284,163.3,0],[284,163.3,126.42580645161291]],"modePaths":{"iso":[],"military":[],"cabinet":[]}},{"id":"rearBaseX","kind":"path","points":[[0,163.3,0],[284,163.3,0]],"modePaths":{"iso":[],"military":[],"cabinet":[]}},{"id":"rearBaseY","kind":"path","points":[[284,0,0],[284,163.3,0]],"modePaths":{"iso":[],"military":[],"cabinet":[]}},{"id":"rearRoofLowerA","kind":"path","points":[[298.2,-28.4,113.6],[298.2,81.65,163.3]],"modePaths":{"iso":[],"military":[],"cabinet":[]}},{"id":"rearRoofLowerB","kind":"path","points":[[298.2,81.65,163.3],[298.2,191.7,113.6]],"modePaths":{"iso":[],"military":[],"cabinet":[]}},{"id":"rearRidgeThickness","kind":"path","points":[[298.2,81.65,163.3],[298.2,81.65,177.5]],"modePaths":{"iso":[],"military":[[[298.2,81.65,177.49999849916736],[298.2,81.65,177.5]]],"cabinet":[]}},{"id":"lowerRidge","kind":"path","points":[[-14.2,81.65,163.3],[298.2,81.65,163.3]],"modePaths":{"iso":[],"military":[],"cabinet":[]}},{"id":"projected0Hidden","kind":"path","points":[[0,0,0],[284,0,0]],"modePaths":{"iso":[],"military":[],"cabinet":[]}},{"id":"projected1Hidden","kind":"path","points":[[0,0,0],[0,163.3,0]],"modePaths":{"iso":[],"military":[],"cabinet":[]}},{"id":"projected40Hidden","kind":"path","points":[[-14.2,-28.4,113.6],[298.2,-28.4,113.6]],"modePaths":{"iso":[],"military":[],"cabinet":[]}},{"id":"projected42Hidden","kind":"path","points":[[298.2,191.7,113.6],[-14.2,191.7,113.6]],"modePaths":{"iso":[[[298.2,191.7,113.6],[-14.199999322662222,191.7,113.6]]],"military":[[[298.2,191.7,113.6],[-14.199999399982403,191.7,113.6]]],"cabinet":[[[298.2,191.7,113.6],[10.040916428201456,191.7,113.6]]]}},{"id":"projected44Hidden","kind":"path","points":[[-14.2,-28.4,113.6],[-14.2,-28.4,127.8]],"modePaths":{"iso":[],"military":[],"cabinet":[]}},{"id":"projected47Hidden","kind":"path","points":[[298.2,-28.4,113.6],[298.2,-28.4,127.8]],"modePaths":{"iso":[],"military":[],"cabinet":[]}},{"id":"projected50Hidden","kind":"path","points":[[298.2,191.7,113.6],[298.2,191.7,127.8]],"modePaths":{"iso":[[[298.2,191.7,113.6],[298.2,191.7,127.79999957366356]]],"military":[[[298.2,191.7,113.6],[298.2,191.7,127.79999928138385]]],"cabinet":[[[298.2,191.7,113.6],[298.2,191.7,127.8]]]}},{"id":"projected53Hidden","kind":"path","points":[[-14.2,191.7,113.6],[-14.2,191.7,127.8]],"modePaths":{"iso":[],"military":[],"cabinet":[]}},{"id":"projected56Hidden","kind":"path","points":[[-14.2,-28.4,127.8],[298.2,-28.4,127.8]],"modePaths":{"iso":[],"military":[],"cabinet":[]}},{"id":"projected58Hidden","kind":"path","points":[[298.2,191.7,127.8],[-14.2,191.7,127.8]],"modePaths":{"iso":[],"military":[],"cabinet":[[[298.2,191.7,127.8],[-14.199999504389382,191.7,127.8]]]}},{"id":"projected74Hidden","kind":"path","points":[[-14.2,81.65,177.5],[298.2,81.65,177.5]],"modePaths":{"iso":[],"military":[],"cabinet":[]}},{"id":"projected75Hidden","kind":"path","points":[[-14.2,-28.4,127.8],[-14.2,81.65,177.5]],"modePaths":{"iso":[],"military":[],"cabinet":[]}},{"id":"projected76Hidden","kind":"path","points":[[-14.2,81.65,177.5],[-14.2,191.7,127.8]],"modePaths":{"iso":[],"military":[],"cabinet":[]}},{"id":"projected77Hidden","kind":"path","points":[[298.2,-28.4,127.8],[298.2,81.65,177.5]],"modePaths":{"iso":[],"military":[],"cabinet":[]}},{"id":"projected78Hidden","kind":"path","points":[[298.2,81.65,177.5],[298.2,191.7,127.8]],"modePaths":{"iso":[],"military":[],"cabinet":[[[298.2,81.65000121896811,177.4999994494983],[298.2,191.7,127.8]]]}},{"id":"projected79Hidden","kind":"path","points":[[-14.2,81.65,177.5],[-14.2,81.65,163.3]],"modePaths":{"iso":[],"military":[],"cabinet":[]}},{"id":"projected80Hidden","kind":"path","points":[[-14.2,-28.4,113.6],[-14.2,81.65,163.3]],"modePaths":{"iso":[],"military":[],"cabinet":[]}},{"id":"projected81Hidden","kind":"path","points":[[-14.2,81.65,163.3],[-14.2,191.7,113.6]],"modePaths":{"iso":[],"military":[],"cabinet":[]}},{"id":"projected2Hidden","kind":"path","points":[[0,0,0],[0,0,113.6]],"modePaths":{"iso":[[[0.0,0.0,105.81290348068588],[0.0,0.0,113.6]]],"military":[[[0.0,0.0,86.9183326284404],[0.0,0.0,113.6]]],"cabinet":[[[0.0,0.0,103.55908389739157],[0.0,0.0,113.6]]]}},{"id":"projected3Hidden","kind":"path","points":[[0,0,113.6],[0,0,126.42580645161291]],"modePaths":{"iso":[[[0.0,0.0,113.6],[0.0,0.0,126.42580645161291]]],"military":[[[0.0,0.0,113.6],[0.0,0.0,126.42580645161291]]],"cabinet":[[[0.0,0.0,113.6],[0.0,0.0,126.42580645161291]]]}},{"id":"projected4Hidden","kind":"path","points":[[284,0,0],[284,0,113.6]],"modePaths":{"iso":[[[284.0,0.0,85.200000254887],[284.0,0.0,113.6]]],"military":[[[284.0,0.0,80.80650498038634],[284.0,0.0,113.6]]],"cabinet":[[[284.0,0.0,103.55908389739157],[284.0,0.0,113.6]]]}},{"id":"projected5Hidden","kind":"path","points":[[284,0,113.6],[284,0,126.42580645161291]],"modePaths":{"iso":[[[284.0,0.0,113.6],[284.0,0.0,126.42580645161291]]],"military":[[[284.0,0.0,113.6],[284.0,0.0,126.42580645161291]]],"cabinet":[[[284.0,0.0,113.6],[284.0,0.0,126.42580645161291]]]}},{"id":"projected6Hidden","kind":"path","points":[[0,163.3,0],[0,163.3,113.6]],"modePaths":{"iso":[],"military":[[[0.0,163.3,109.1332808942397],[0.0,163.3,113.6]]],"cabinet":[]}},{"id":"projected7Hidden","kind":"path","points":[[0,163.3,113.6],[0,163.3,126.42580645161291]],"modePaths":{"iso":[[[0.0,163.3,118.63870984198356],[0.0,163.3,126.42580645161291]]],"military":[[[0.0,163.3,113.6],[0.0,163.3,126.42580645161291]]],"cabinet":[]}},{"id":"rearWallHidden","kind":"path","points":[[284,163.3,0],[284,163.3,126.42580645161291]],"modePaths":{"iso":[[[284.0,163.3,0.0],[284.0,163.3,126.42580645161291]]],"military":[[[284.0,163.3,0.0],[284.0,163.3,126.42580645161291]]],"cabinet":[[[284.0,163.3,0.0],[284.0,163.3,126.42580645161291]]]}},{"id":"rearBaseXHidden","kind":"path","points":[[0,163.3,0],[284,163.3,0]],"modePaths":{"iso":[[[6.773395095175755e-07,163.3,0.0],[284.0,163.3,0.0]]],"military":[[[5.999883190573504e-07,163.3,0.0],[284.0,163.3,0.0]]],"cabinet":[[[4.535514259866129e-07,163.3,0.0],[284.0,163.3,0.0]]]}},{"id":"rearBaseYHidden","kind":"path","points":[[284,0,0],[284,163.3,0]],"modePaths":{"iso":[[[284.0,6.773425229766874e-07,0.0],[284.0,163.3,0.0]]],"military":[[[284.0,9.660267399643397e-07,0.0],[284.0,163.3,0.0]]],"cabinet":[[[284.0,1.0999922172535058e-06,0.0],[284.0,163.3,0.0]]]}},{"id":"rearRoofLowerAHidden","kind":"path","points":[[298.2,-28.4,113.6],[298.2,81.65,163.3]],"modePaths":{"iso":[[[298.2,-28.399999322651663,113.60000030589924],[298.2,81.65,163.3]]],"military":[[[298.2,-28.39999903397907,113.6000004362675],[298.2,81.65,163.3]]],"cabinet":[[[298.2,-28.399998900005414,113.60000049677174],[298.2,81.65,163.3]]]}},{"id":"rearRoofLowerBHidden","kind":"path","points":[[298.2,81.65,163.3],[298.2,191.7,113.6]],"modePaths":{"iso":[[[298.2,81.65,163.3],[298.2,191.7,113.6]]],"military":[[[298.2,81.65,163.3],[298.2,191.7,113.6]]],"cabinet":[[[298.2,81.65,163.3],[298.2,191.7,113.6]]]}},{"id":"rearRidgeThicknessHidden","kind":"path","points":[[298.2,81.65,163.3],[298.2,81.65,177.5]],"modePaths":{"iso":[[[298.2,81.65,163.3],[298.2,81.65,177.4999990521853]]],"military":[[[298.2,81.65,163.3],[298.2,81.65,177.49999849916736]]],"cabinet":[[[298.2,81.65,163.3],[298.2,81.65,177.49999908510952]]]}},{"id":"lowerRidgeHidden","kind":"path","points":[[-14.2,81.65,163.3],[298.2,81.65,163.3]],"modePaths":{"iso":[[[-14.199999322662212,81.65,163.3],[298.2,81.65,163.3]]],"military":[[[-14.199999399982406,81.65,163.3],[298.2,81.65,163.3]]],"cabinet":[[[-14.199999546439964,81.65,163.3],[298.2,81.65,163.3]]]}}],select=document.getElementById('projectionSelect');const basis={iso:[[Math.sqrt(.5),-Math.sqrt(1/6)],[-Math.sqrt(.5),-Math.sqrt(1/6)],[0,-Math.sqrt(2/3)]],military:[[Math.sqrt(3)/2,-.5],[-.5,-Math.sqrt(3)/2],[0,-1]],cabinet:[[1,0],[-Math.SQRT1_2/2,-Math.SQRT1_2/2],[0,-1]]};function update(){const b=basis[select.value],raw=p=>[0,1].map(j=>p.reduce((s,v,i)=>s+v*b[i][j],0));const pts=records.flatMap(r=>r.points||[r.point]).map(raw),xx=pts.map(p=>p[0]),yy=pts.map(p=>p[1]);const minX=Math.min(...xx),maxX=Math.max(...xx),minY=Math.min(...yy),maxY=Math.max(...yy),scale=Math.min(580/(maxX-minX),425/(maxY-minY));const project=p=>{const a=raw(p);return[900+(a[0]-(minX+maxX)/2)*scale,325+(a[1]-(minY+maxY)/2)*scale]};records.forEach(r=>{const el=document.getElementById(r.id);if(r.kind==='path'){const segments=r.modePaths?r.modePaths[select.value]:[r.points];el.setAttribute('d',segments.map(ps=>ps.map((p,i)=>(i?'L':'M')+project(p).join(' ')).join(' ')).join(' ')||'M0 0');}else{const a=project(r.point);if(r.kind==='point'){el.setAttribute('cx',a[0]);el.setAttribute('cy',a[1]);}else{el.setAttribute('x',a[0]+r.offset[0]);el.setAttribute('y',a[1]+r.offset[1]);}}});document.getElementById('projectionCaption').textContent=select.options[select.selectedIndex].text;const triad=document.getElementById('projectionTriad');if(triad){triad.innerHTML=b.map((v,i)=>'<path class="axis" d="M1180 126l'+v.map(n=>n*45).join(' ')+'"/><text class="axis-label" x="'+(1180+v[0]*55)+'" y="'+(126+v[1]*55)+'">'+['X','Y','Z'][i]+'</text>').join('');}}select.addEventListener('change',update);update();})();</script>
+<script>(()=>{const figures={"iso": "<circle cx=\"1110\" cy=\"130\" r=\"2.3\" fill=\"#ed8b33\"/><path d=\"M1110 130L1147.24 108.50\" fill=\"none\" stroke=\"#dc862f\" stroke-width=\"1.3\"/><text x=\"1156.77\" y=\"107.00\" text-anchor=\"start\" fill=\"#c17128\" font-size=\"13\" font-weight=\"600\">X</text><path d=\"M1110 130L1110.00 173.00\" fill=\"none\" stroke=\"#dc862f\" stroke-width=\"1.3\"/><text x=\"1110.00\" y=\"188.00\" text-anchor=\"middle\" fill=\"#c17128\" font-size=\"13\" font-weight=\"600\">Z</text><path d=\"M1110 130L1072.76 108.50\" fill=\"none\" stroke=\"#dc862f\" stroke-width=\"1.3\"/><text x=\"1063.23\" y=\"107.00\" text-anchor=\"end\" fill=\"#c17128\" font-size=\"13\" font-weight=\"600\">Y</text><path d=\"M1110.00 152.00L1108.08 151.92L1106.18 151.67L1104.31 151.25L1102.48 150.67L1100.70 149.94L1099.00 149.05L1097.38 148.02L1095.86 146.85L1094.44 145.56L1093.15 144.14L1091.98 142.62L1090.95 141.00L1090.06 139.30L1089.33 137.52L1088.75 135.69L1088.33 133.82L1088.08 131.92L1088.00 130.00L1088.08 128.08L1088.33 126.18L1088.75 124.31L1089.33 122.48L1090.06 120.70L1090.95 119.00\" fill=\"none\" stroke=\"#e3a96e\" stroke-width=\"1.15\"/><text x=\"1078.82\" y=\"151.00\" text-anchor=\"middle\" fill=\"#a66327\" font-size=\"11.2\" font-weight=\"600\">120°</text><path d=\"M1090.95 119.00L1091.98 117.38L1093.15 115.86L1094.44 114.44L1095.86 113.15L1097.38 111.98L1099.00 110.95L1100.70 110.06L1102.48 109.33L1104.31 108.75L1106.18 108.33L1108.08 108.08L1110.00 108.00L1111.92 108.08L1113.82 108.33L1115.69 108.75L1117.52 109.33L1119.30 110.06L1121.00 110.95L1122.62 111.98L1124.14 113.15L1125.56 114.44L1126.85 115.86L1128.02 117.38L1129.05 119.00\" fill=\"none\" stroke=\"#e3a96e\" stroke-width=\"1.15\"/><text x=\"1110.00\" y=\"97.00\" text-anchor=\"middle\" fill=\"#a66327\" font-size=\"11.2\" font-weight=\"600\">120°</text><path d=\"M1129.05 119.00L1129.94 120.70L1130.67 122.48L1131.25 124.31L1131.67 126.18L1131.92 128.08L1132.00 130.00L1131.92 131.92L1131.67 133.82L1131.25 135.69L1130.67 137.52L1129.94 139.30L1129.05 141.00L1128.02 142.62L1126.85 144.14L1125.56 145.56L1124.14 146.85L1122.62 148.02L1121.00 149.05L1119.30 149.94L1117.52 150.67L1115.69 151.25L1113.82 151.67L1111.92 151.92L1110.00 152.00\" fill=\"none\" stroke=\"#e3a96e\" stroke-width=\"1.15\"/><text x=\"1141.18\" y=\"151.00\" text-anchor=\"middle\" fill=\"#a66327\" font-size=\"11.2\" font-weight=\"600\">120°</text>", "military": "<circle cx=\"1110\" cy=\"130\" r=\"2.3\" fill=\"#ed8b33\"/><path d=\"M1110 130L1147.24 108.50\" fill=\"none\" stroke=\"#dc862f\" stroke-width=\"1.3\"/><text x=\"1156.77\" y=\"107.00\" text-anchor=\"start\" fill=\"#c17128\" font-size=\"13\" font-weight=\"600\">X</text><path d=\"M1110 130L1110.00 173.00\" fill=\"none\" stroke=\"#dc862f\" stroke-width=\"1.3\"/><text x=\"1110.00\" y=\"188.00\" text-anchor=\"middle\" fill=\"#c17128\" font-size=\"13\" font-weight=\"600\">Z</text><path d=\"M1110 130L1088.50 92.76\" fill=\"none\" stroke=\"#dc862f\" stroke-width=\"1.3\"/><text x=\"1083.00\" y=\"87.23\" text-anchor=\"end\" fill=\"#c17128\" font-size=\"13\" font-weight=\"600\">Y</text><path d=\"M1110.00 152.00L1107.60 151.87L1105.24 151.48L1102.93 150.83L1100.70 149.94L1098.59 148.81L1096.61 147.45L1094.79 145.89L1093.15 144.14L1091.71 142.22L1090.49 140.16L1089.50 137.97L1088.75 135.69L1088.26 133.35L1088.02 130.96L1088.05 128.56L1088.33 126.18L1088.88 123.84L1089.67 121.58L1090.71 119.42L1091.98 117.38L1093.46 115.49L1095.14 113.78L1096.99 112.26L1099.00 110.95\" fill=\"none\" stroke=\"#e3a96e\" stroke-width=\"1.15\"/><text x=\"1075.23\" y=\"142.32\" text-anchor=\"middle\" fill=\"#a66327\" font-size=\"11.2\" font-weight=\"600\">150°</text><path d=\"M1099.00 110.95L1100.27 110.27L1101.58 109.67L1102.93 109.17L1104.31 108.75L1105.71 108.42L1107.13 108.19L1108.56 108.05L1110.00 108.00L1111.44 108.05L1112.87 108.19L1114.29 108.42L1115.69 108.75L1117.07 109.17L1118.42 109.67L1119.73 110.27L1121.00 110.95L1122.22 111.71L1123.39 112.55L1124.51 113.46L1125.56 114.44L1126.54 115.49L1127.45 116.61L1128.29 117.78L1129.05 119.00\" fill=\"none\" stroke=\"#e3a96e\" stroke-width=\"1.15\"/><text x=\"1119.32\" y=\"98.23\" text-anchor=\"middle\" fill=\"#a66327\" font-size=\"11.2\" font-weight=\"600\">90°</text><path d=\"M1129.05 119.00L1129.94 120.70L1130.67 122.48L1131.25 124.31L1131.67 126.18L1131.92 128.08L1132.00 130.00L1131.92 131.92L1131.67 133.82L1131.25 135.69L1130.67 137.52L1129.94 139.30L1129.05 141.00L1128.02 142.62L1126.85 144.14L1125.56 145.56L1124.14 146.85L1122.62 148.02L1121.00 149.05L1119.30 149.94L1117.52 150.67L1115.69 151.25L1113.82 151.67L1111.92 151.92L1110.00 152.00\" fill=\"none\" stroke=\"#e3a96e\" stroke-width=\"1.15\"/><text x=\"1141.18\" y=\"151.00\" text-anchor=\"middle\" fill=\"#a66327\" font-size=\"11.2\" font-weight=\"600\">120°</text>", "cabinet": "<circle cx=\"1110\" cy=\"130\" r=\"2.3\" fill=\"#ed8b33\"/><path d=\"M1110 130L1153.00 130.00\" fill=\"none\" stroke=\"#dc862f\" stroke-width=\"1.3\"/><text x=\"1164.00\" y=\"134.00\" text-anchor=\"start\" fill=\"#c17128\" font-size=\"13\" font-weight=\"600\">X</text><path d=\"M1110 130L1110.00 173.00\" fill=\"none\" stroke=\"#dc862f\" stroke-width=\"1.3\"/><text x=\"1110.00\" y=\"188.00\" text-anchor=\"middle\" fill=\"#c17128\" font-size=\"13\" font-weight=\"600\">Z</text><path d=\"M1110 130L1079.59 99.59\" fill=\"none\" stroke=\"#dc862f\" stroke-width=\"1.3\"/><text x=\"1071.82\" y=\"95.82\" text-anchor=\"end\" fill=\"#c17128\" font-size=\"13\" font-weight=\"600\">Y</text><path d=\"M1132.00 130.00L1131.95 131.44L1131.81 132.87L1131.58 134.29L1131.25 135.69L1130.83 137.07L1130.33 138.42L1129.73 139.73L1129.05 141.00L1128.29 142.22L1127.45 143.39L1126.54 144.51L1125.56 145.56L1124.51 146.54L1123.39 147.45L1122.22 148.29L1121.00 149.05L1119.73 149.73L1118.42 150.33L1117.07 150.83L1115.69 151.25L1114.29 151.58L1112.87 151.81L1111.44 151.95L1110.00 152.00\" fill=\"none\" stroke=\"#e3a96e\" stroke-width=\"1.15\"/><text x=\"1135.46\" y=\"158.46\" text-anchor=\"middle\" fill=\"#a66327\" font-size=\"11.2\" font-weight=\"600\">90°</text><path d=\"M1110.00 152.00L1107.84 151.89L1105.71 151.58L1103.61 151.05L1101.58 150.33L1099.63 149.40L1097.78 148.29L1096.04 147.01L1094.44 145.56L1092.99 143.96L1091.71 142.22L1090.60 140.37L1089.67 138.42L1088.95 136.39L1088.42 134.29L1088.11 132.16L1088.00 130.00L1088.11 127.84L1088.42 125.71L1088.95 123.61L1089.67 121.58L1090.60 119.63L1091.71 117.78L1092.99 116.04L1094.44 114.44\" fill=\"none\" stroke=\"#e3a96e\" stroke-width=\"1.15\"/><text x=\"1076.74\" y=\"146.78\" text-anchor=\"middle\" fill=\"#a66327\" font-size=\"11.2\" font-weight=\"600\">135°</text><path d=\"M1094.44 114.44L1096.04 112.99L1097.78 111.71L1099.63 110.60L1101.58 109.67L1103.61 108.95L1105.71 108.42L1107.84 108.11L1110.00 108.00L1112.16 108.11L1114.29 108.42L1116.39 108.95L1118.42 109.67L1120.37 110.60L1122.22 111.71L1123.96 112.99L1125.56 114.44L1127.01 116.04L1128.29 117.78L1129.40 119.63L1130.33 121.58L1131.05 123.61L1131.58 125.71L1131.89 127.84L1132.00 130.00\" fill=\"none\" stroke=\"#e3a96e\" stroke-width=\"1.15\"/><text x=\"1123.78\" y=\"99.74\" text-anchor=\"middle\" fill=\"#a66327\" font-size=\"11.2\" font-weight=\"600\">135°</text>"},select=document.getElementById('projectionSelect'),angles=document.getElementById('axisAngles');select.addEventListener('change',()=>{angles.innerHTML=figures[select.value]});})();</script>
+</body>
+</html>

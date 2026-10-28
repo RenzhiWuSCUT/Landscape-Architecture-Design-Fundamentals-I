@@ -1,0 +1,277 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>轴测图分类图v3</title>
+<style>
+  :root{
+    --ink:#111;
+    --muted:#6c6c6c;
+    --guide:#9b9b9b;
+    --blue-top:#bce6fd;
+    --blue-left:#88c6fd;
+    --blue-right:#59b9fd;
+    --blue-edge:#111;
+    --card:#ffffff;
+    --card-line:#e8eef3;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:#fff;color:var(--ink);font-family:"Microsoft YaHei","PingFang SC","Noto Sans CJK SC",Arial,sans-serif}
+  body{padding:14px 14px 26px}
+  .sheet{width:min(1560px,100%);margin:0 auto}
+
+  .title{font-size:42px;font-weight:800;letter-spacing:.05em;text-align:center;margin:0 0 2px}
+  .hierarchy{position:relative;isolation:isolate}
+  .hierarchy-lines{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:-1;overflow:visible}
+  .hierarchy-lines path{fill:none;stroke:#aeb9c4;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke}
+  .hierarchy .title{margin-bottom:34px}
+  .groups{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px;margin:0 0 34px}
+  .group{min-width:0;grid-column:span 3}
+  .group-head{font-size:31px;font-weight:800;text-align:center;line-height:1.08}
+  .group-sub{font-size:13px;color:#7a7a7a;text-align:center;margin-top:4px}
+  .category-row{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px}
+  .cat-title{text-align:center;font-size:22px;font-weight:800;line-height:1.12;padding:0 4px 9px}
+
+  .columns{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px;align-items:start}
+  .col{display:flex;flex-direction:column;gap:10px;min-width:0}
+  .col:nth-child(2){display:flex;flex-direction:column;gap:10px;align-content:start}
+  .item{background:linear-gradient(180deg,#fff 0%,#fbfdff 100%);border:1px solid var(--card-line);border-radius:11px;padding:8px 9px 9px;min-height:214px;box-shadow:0 1px 7px rgba(40,80,110,.04)}
+  .name{font-weight:800;font-size:17px;line-height:1.22;text-align:center;min-height:40px;display:flex;align-items:center;justify-content:center}
+  .tag{font-size:.78em;font-weight:700}
+  .diagram{height:116px;margin:0 0 2px;display:flex;align-items:center;justify-content:center}
+  svg.axo{width:100%;height:100%;overflow:visible}
+  .edge{stroke:var(--blue-edge);stroke-width:2.1;stroke-linejoin:round;stroke-linecap:round;fill:none}
+  .hidden{stroke:#555;stroke-width:1.45;stroke-dasharray:3.2 3.2;fill:none;opacity:.82}
+  .face-top{fill:var(--blue-top)}
+  .face-left{fill:var(--blue-left)}
+  .face-right{fill:var(--blue-right)}
+  .meta{font-size:11.5px;line-height:1.30;border-top:1px solid #eef3f6;padding-top:5px}
+  .meta-row{display:flex;gap:5px;align-items:flex-start;margin:1px 0}
+  .meta-k{color:#757575;white-space:nowrap}
+  .meta-v{font-weight:700;min-width:0}
+  .scene{font-size:11.5px;color:#555;line-height:1.35;margin-top:3px}
+  .scene b{color:#777;font-weight:500}
+
+  .legend{display:flex;justify-content:center;gap:20px;margin:14px 0 0;font-size:12px;color:#666;flex-wrap:wrap}
+  .legend span{display:flex;align-items:center;gap:8px}
+  .swatch{width:22px;height:14px;border:1.5px solid #111;display:inline-block;background:linear-gradient(135deg,var(--blue-top) 0 45%,var(--blue-right) 46% 100%)}
+  .foot{text-align:center;color:#8a8a8a;font-size:11px;margin-top:6px}
+
+  @media(max-width:1180px){
+    body{padding:10px 8px 20px}
+    .sheet{min-width:1080px}
+    body{overflow-x:auto}
+  }
+</style>
+</head>
+<body>
+<div class="sheet">
+  <div class="hierarchy" id="hierarchy">
+  <svg class="hierarchy-lines" id="hierarchyLines" aria-hidden="true"></svg>
+  <h1 class="title">轴测图</h1>
+
+  <div class="groups">
+    <section class="group">
+      <div class="group-head">正轴测图</div>
+      <div class="group-sub">投影线垂直于投影面</div>
+    </section>
+    <section class="group">
+      <div class="group-head">斜轴测图</div>
+      <div class="group-sub">投影线倾斜于投影面</div>
+    </section>
+  </div>
+
+  <div class="category-row">
+    <div class="cat-title">正等测</div>
+    <div class="cat-title">正二测</div>
+    <div class="cat-title">正三测</div>
+    <div class="cat-title">斜等测</div>
+    <div class="cat-title">斜二测</div>
+    <div class="cat-title">斜三测</div>
+  </div>
+
+  </div>
+
+  <div class="columns" id="columns"></div>
+
+  <div class="legend">
+    <span><i class="swatch"></i>蓝色面表示可见面</span>
+    <span>虚线表示被遮挡的棱</span>
+    <span>比例均按 X:Y:Z 表示</span>
+  </div>
+  <div class="foot">图示为教学示意，用于比较轴向比例与轴间角；实际工程制图应按所采用规范作图。</div>
+</div>
+
+<script>
+const data = [
+  {
+    cat:'正等测', items:[
+      {name:'标准正等测', ratio:'1:1:1', ratioDisplay:'1:1:1≈<br>0.816:0.816:0.816', angles:'120°／120°／120°', scene:'通用', axes:[30,150,270]}
+    ]
+  },
+  {
+    cat:'正二测', items:[
+      {name:'标准正二测', ratio:'1:1:1/2', ratioDisplay:'1:1:1/2≈<br>0.943:0.943:0.471', angles:'97.2°／131.4°／131.4°', scene:'机械', axes:[41.4,138.6,270]},
+      {name:'微伸正二测', ratio:'1:1:1.1', ratioDisplay:'1:1:1.1≈<br>0.789:0.789:0.868', angles:'127.2°／116.4°／116.4°', scene:'建筑、园林', axes:[26.4,153.6,270]},
+    ]
+  },
+  {
+    cat:'正三测', items:[
+      {name:'经典正三测', ratio:'7/8:3/4:1', ratioDisplay:'7/8:3/4:1≈<br>0.811:0.695:0.927', angles:'138.2°／114.8°／107.0°', scene:'自然展示', axes:[17,155.2,270]},
+      {name:'紧缩正三测', ratio:'7/8:2/3:1', ratioDisplay:'7/8:2/3:1≈<br>0.832:0.634:0.951', angles:'144.3°／113.3°／102.5°', scene:'定制表达', axes:[12.5,156.8,270]}
+    ]
+  },
+  {
+    cat:'斜等测', items:[
+      {name:'正面斜等轴测/<br>城防高台投影', ratio:'1:1:1', ratioDisplay:'1:1:1', angles:'135°／135°／90°', scene:'手绘、建筑', axes:[0,135,270], oblique:'front'},
+      {name:'水平斜等轴测/<br>军事投影', ratio:'1:1:1', ratioDisplay:'1:1:1', angles:'90°／135°／135°', scene:'园林、城市', axes:[45,135,270], oblique:'plan'},
+      {name:'水平斜等轴测/<br>60°水平斜投影', ratio:'1:1:1', ratioDisplay:'1:1:1', angles:'90°／120°／150°', scene:'园林、城市', axes:[60,150,270], oblique:'plan'}
+    ]
+  },
+  {
+    cat:'斜二测', items:[
+      {name:'正面斜二等轴测/<br>柜式投影', ratio:'1:1/2:1', ratioDisplay:'1:1/2:1', angles:'135°／135°／90°', scene:'室内、产品', axes:[0,135,270], oblique:'front'},
+      {name:'水平斜二等轴测/<br>减高军事投影', ratio:'1:1:1/2', ratioDisplay:'1:1:1/2', angles:'90°／135°／135°', scene:'园林、地形', axes:[45,135,270], oblique:'plan'}
+    ]
+  },
+  {
+    cat:'斜三测', items:[
+      {name:'一般斜三测', ratio:'1:3/4:1/2', ratioDisplay:'示例 1:3/4:1/2', angles:'无固定值', scene:'信息图', axes:[0,135,270], oblique:'free'}
+    ]
+  }
+];
+
+function frac(v){
+  const s=String(v).trim();
+  if(s.includes('/')){const [a,b]=s.split('/').map(Number);return a/b}
+  return Number(s);
+}
+function parseRatio(s){
+  const p=s.replace(/^如\s*/, '').split(':');
+  return p.map(frac);
+}
+function vec(angleDeg,len){
+  const a=angleDeg*Math.PI/180;
+  return {x:Math.cos(a)*len,y:Math.sin(a)*len};
+}
+function add(...ps){return ps.reduce((o,p)=>({x:o.x+p.x,y:o.y+p.y}),{x:0,y:0})}
+function pts(arr){return arr.map(p=>`${p.x.toFixed(2)},${p.y.toFixed(2)}`).join(' ')}
+
+function cubeSVG(item){
+  const [rx,ry,rz]=parseRatio(item.ratio);
+  const maxR=Math.max(rx,ry,rz);
+  const base=62/maxR;
+  const vx=vec(item.axes[0],base*rx);
+  const vy=vec(item.axes[1],base*ry);
+  const vz=vec(item.axes[2],base*rz);
+  const O={x:0,y:0}, X=vx, Y=vy, Z=vz;
+  const XY=add(vx,vy), XZ=add(vx,vz), YZ=add(vy,vz), XYZ=add(vx,vy,vz);
+  const all=[O,X,Y,Z,XY,XZ,YZ,XYZ];
+  const minX=Math.min(...all.map(p=>p.x)), maxX=Math.max(...all.map(p=>p.x));
+  const minY=Math.min(...all.map(p=>p.y)), maxY=Math.max(...all.map(p=>p.y));
+  const tx=90-(minX+maxX)/2, ty=70-(minY+maxY)/2;
+  const T=p=>({x:p.x+tx,y:p.y+ty});
+  const t={O:T(O),X:T(X),Y:T(Y),Z:T(Z),XY:T(XY),XZ:T(XZ),YZ:T(YZ),XYZ:T(XYZ)};
+
+  // Three visible faces. The preserved plane in oblique projections gets the lightest face.
+  let faces;
+  if(item.oblique==='front'){
+    faces=[
+      ['face-top',[t.Z,t.XZ,t.XYZ,t.YZ]],
+      ['face-left',[t.O,t.X,t.XZ,t.Z]],
+      ['face-right',[t.X,t.XY,t.XYZ,t.XZ]]
+    ];
+  }else if(item.oblique==='plan'){
+    faces=[
+      ['face-top',[t.O,t.X,t.XY,t.Y]],
+      ['face-left',[t.Y,t.XY,t.XYZ,t.YZ]],
+      ['face-right',[t.X,t.XY,t.XYZ,t.XZ]]
+    ];
+  }else{
+    faces=[
+      ['face-top',[t.Z,t.XZ,t.XYZ,t.YZ]],
+      ['face-left',[t.Y,t.XY,t.XYZ,t.YZ]],
+      ['face-right',[t.X,t.XY,t.XYZ,t.XZ]]
+    ];
+  }
+  const faceMarkup=faces.map(([cl,p])=>`<polygon class="${cl}" points="${pts(p)}"/>`).join('');
+
+  const edges=[
+    [t.O,t.X],[t.O,t.Y],[t.O,t.Z],
+    [t.X,t.XY],[t.X,t.XZ],
+    [t.Y,t.XY],[t.Y,t.YZ],
+    [t.Z,t.XZ],[t.Z,t.YZ],
+    [t.XY,t.XYZ],[t.XZ,t.XYZ],[t.YZ,t.XYZ]
+  ];
+  const edgeMarkup=edges.map(([a,b])=>`<line class="edge" x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}"/>`).join('');
+
+  // Hidden-edge cue from the most central/far corner.
+  const hidden=[
+    [t.O,t.X],[t.O,t.Y]
+  ].map(([a,b])=>`<line class="hidden" x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}"/>`).join('');
+
+  return `<svg class="axo" viewBox="0 0 180 140" aria-hidden="true">${faceMarkup}${edgeMarkup}${hidden}</svg>`;
+}
+
+function itemHTML(item){
+  return `<article class="item">
+    <div class="name"><span>${item.name}${item.tag?` <span class="tag">${item.tag}</span>`:''}</span></div>
+    <div class="diagram">${cubeSVG(item)}</div>
+    <div class="meta">
+      <div class="meta-row"><span class="meta-k">轴向伸缩比</span><span class="meta-v">${item.ratioDisplay || item.ratio}</span></div>
+      <div class="meta-row"><span class="meta-k">轴间角</span><span class="meta-v">${item.angles}</span></div>
+    </div>
+  </article>`;
+}
+
+document.getElementById('columns').innerHTML=data.map(group=>
+  `<section class="col" aria-label="${group.cat}">${group.items.map(itemHTML).join('')}</section>`
+).join('');
+
+function alignHierarchy(){
+  const host=document.getElementById('hierarchy');
+  const canvas=document.getElementById('hierarchyLines');
+  const base=host.getBoundingClientRect();
+  if(!base.width || !base.height)return;
+  const box=el=>{
+    const r=el.getBoundingClientRect();
+    return {x:r.left-base.left+r.width/2,top:r.top-base.top,bottom:r.bottom-base.top};
+  };
+  const title=box(host.querySelector('.title'));
+  const groups=[...host.querySelectorAll('.group')];
+  const heads=groups.map(g=>box(g.querySelector('.group-head')));
+  const subs=groups.map(g=>box(g.querySelector('.group-sub')));
+  const cats=[...host.querySelectorAll('.cat-title')].map(box);
+  const paths=[];
+  function branch(parent,children){
+    const start=parent.bottom+5;
+    const end=Math.min(...children.map(c=>c.top))-7;
+    const join=(start+end)/2;
+    const left=Math.min(...children.map(c=>c.x));
+    const right=Math.max(...children.map(c=>c.x));
+    let d=`M ${parent.x} ${start} V ${join} M ${left} ${join} H ${right}`;
+    children.forEach(c=>{d+=` M ${c.x} ${join} V ${c.top-7}`;});
+    paths.push(`<path d="${d}"/>`);
+  }
+  branch(title,heads);
+  subs.forEach((parent,i)=>branch(parent,cats.slice(i*3,i*3+3)));
+  canvas.setAttribute('viewBox',`0 0 ${base.width} ${base.height}`);
+  canvas.innerHTML=paths.join('');
+}
+let hierarchyFrame=0;
+function scheduleHierarchy(){
+  cancelAnimationFrame(hierarchyFrame);
+  hierarchyFrame=requestAnimationFrame(alignHierarchy);
+}
+if('ResizeObserver' in window){
+  const observer=new ResizeObserver(scheduleHierarchy);
+  observer.observe(document.getElementById('hierarchy'));
+}
+window.addEventListener('resize',scheduleHierarchy,{passive:true});
+if(document.fonts)document.fonts.ready.then(scheduleHierarchy);
+scheduleHierarchy();
+
+</script>
+</body>
+</html>

@@ -1,0 +1,124 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>平躺圆柱轴测图：平行弦法</title><style>
+    :root{
+      --ink:#101828;
+      --muted:#667085;
+      --border:#dfe4ea;
+      --blue:#1677ff;
+      --blue-soft:#6ca7ff;
+      --orange:#f08a24;
+      --guide:#9aa5b1;
+      --paper:#fff;
+    }
+    *{box-sizing:border-box}
+    html,body{width:100%;height:100%;margin:0;overflow:hidden;background:var(--paper);color:var(--ink);font-family:"Microsoft YaHei","微软雅黑","PingFang SC",Arial,sans-serif}
+    button,input{font:inherit}
+    .app{height:100%;display:grid;grid-template-rows:auto minmax(0,1fr) auto;gap:clamp(10px,1.6vh,18px);padding:clamp(18px,2.8vh,30px) clamp(18px,3vw,42px) clamp(16px,2.2vh,24px)}
+    header,.board,.controls{max-width:1480px;width:100%;margin:0 auto}
+    header{display:flex;align-items:flex-end;justify-content:space-between;gap:24px}
+    h1{margin:0;font-size:clamp(24px,2.2vw,34px);line-height:1.2;letter-spacing:-.035em;font-weight:700}
+    .stage-readout{display:flex;align-items:baseline;gap:12px;white-space:nowrap}
+    .stage-index{color:var(--blue);font-size:14px;font-weight:700;letter-spacing:.12em}
+    .stage-title{color:var(--muted);font-size:15px;font-weight:600}
+    .board{position:relative;min-height:0;border:1px solid var(--border);border-radius:18px;overflow:hidden;background:#fff}
+    .board:before{content:"";position:absolute;left:41%;top:4%;bottom:4%;width:1px;background:#edf0f3;pointer-events:none}
+    svg{display:block;width:100%;height:100%}
+    svg text{font-family:"Microsoft YaHei","微软雅黑","PingFang SC",Arial,sans-serif;user-select:none}
+    .view-tag{fill:var(--muted);font-size:14px;font-weight:700;letter-spacing:.12em}
+    .source-circle,.source-axis,.chord,.target-axis,.frame-line,.x-guide,.y-guide,.ellipse-line{fill:none;vector-effect:non-scaling-stroke;stroke-linecap:round;stroke-linejoin:round}
+    .source-circle{stroke:#27364a;stroke-width:2.4}
+    .source-axis{stroke:var(--orange);stroke-width:1.45}
+    .chord{stroke:var(--orange);stroke-width:1.45}
+    .target-axis{stroke:var(--orange);stroke-width:1.55}
+    .frame-line{stroke:#667085;stroke-width:1.45}
+    .x-guide{stroke:var(--orange);stroke-width:1.25}
+    .y-guide{stroke:var(--blue-soft);stroke-width:1.25}
+    .ellipse-line{stroke:var(--blue);stroke-width:3.2}
+    .axis-label{fill:var(--orange);font-size:18px;font-weight:700;font-style:italic}
+    .ratio-label{fill:var(--orange);font-size:13px;font-weight:700}
+    .corner-label{fill:#27364a;font-family:Georgia,"Times New Roman",serif;font-size:18px;font-weight:700;font-style:italic}
+    .sample-dot{fill:var(--blue);stroke:#fff;stroke-width:1.7;vector-effect:non-scaling-stroke}
+    .target-dot{fill:var(--blue);stroke:#fff;stroke-width:2;vector-effect:non-scaling-stroke}
+    .point-label{fill:#174ea6;font-size:13px;font-weight:700}
+    .coord-mark{stroke:var(--orange);stroke-width:1.5;vector-effect:non-scaling-stroke}
+    .origin-dot{fill:var(--orange)}
+    .origin-label{fill:var(--orange);font-size:14px;font-weight:700;font-style:italic}
+    [data-show],[data-hide]{opacity:0}
+    .controls{display:grid;grid-template-columns:auto minmax(0,1fr);gap:18px;align-items:center}
+    .play{width:46px;height:46px;border:1px solid #cfd6df;border-radius:50%;display:grid;place-items:center;background:#fff;color:var(--ink);cursor:pointer;transition:border-color .18s,color .18s,background .18s}
+    .play:hover,.play:focus-visible{border-color:var(--blue);color:var(--blue);background:#f7fbff;outline:none}
+    .play svg{width:18px;height:18px}
+    .timeline{min-width:0}
+    .range-wrap{position:relative;height:22px;display:flex;align-items:center}
+    .track,.track-fill{position:absolute;left:0;right:0;top:10px;height:4px;border-radius:99px;pointer-events:none}
+    .track{background:#e6eaf0}.track-fill{right:auto;width:0;background:var(--blue)}
+    input[type=range]{position:relative;z-index:2;width:100%;margin:0;height:22px;appearance:none;-webkit-appearance:none;background:transparent;cursor:ew-resize}
+    input[type=range]::-webkit-slider-runnable-track{height:4px;background:transparent}
+    input[type=range]::-moz-range-track{height:4px;background:transparent}
+    input[type=range]::-webkit-slider-thumb{appearance:none;-webkit-appearance:none;width:18px;height:18px;margin-top:-7px;border:3px solid var(--blue);border-radius:50%;background:#fff}
+    input[type=range]::-moz-range-thumb{width:13px;height:13px;border:3px solid var(--blue);border-radius:50%;background:#fff}
+    input[type=range]:focus-visible{outline:none}
+    .ticks{display:grid;grid-template-columns:repeat(9,1fr);margin-top:6px}
+    .tick{position:relative;min-width:0;padding:10px 2px 0;border:0;background:transparent;color:#98a2b3;font-size:11.5px;line-height:1.25;text-align:center;cursor:pointer;transition:color .18s}
+    .tick:before{content:"";position:absolute;left:50%;top:0;width:5px;height:5px;border-radius:50%;transform:translateX(-50%);background:#cfd6df}
+    .tick:first-child{text-align:left}.tick:first-child:before{left:0;transform:none}
+    .tick:last-child{text-align:right}.tick:last-child:before{left:auto;right:0;transform:none}
+    .tick.done,.tick.active{color:var(--blue)}.tick.done:before,.tick.active:before{background:var(--blue)}.tick.active{font-weight:700}
+    @media(max-width:900px){
+      .app{padding-inline:12px}
+      header{align-items:flex-start;flex-direction:column;gap:5px}
+      .stage-readout{width:100%;justify-content:space-between}
+      .board:before{display:none}
+      .controls{grid-template-columns:40px minmax(0,1fr);gap:10px}
+      .play{width:40px;height:40px}
+      .tick span{display:none}.tick{min-height:18px}
+    }
+  
+header{flex-wrap:wrap;gap:12px 20px}h1{font-size:27px}.board:before{left:39%}.projection-control{display:flex;align-items:center;gap:10px;font-size:13px;color:#667085}select{font:inherit;padding:9px 12px;border:1px solid #dfe4ea;border-radius:8px;background:white;color:#344054;max-width:100%}.stage-readout{margin-left:auto}.ticks{grid-template-columns:repeat(var(--count),1fr)}.tick{font-size:12px;padding-inline:5px}.status{font-size:13px;fill:#667085}.draw{fill:none;stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke}.outline{stroke:#27364a;stroke-width:2.6}.guide{stroke:#aab4c1;stroke-width:1.1}.center{stroke:#bbc5d0;stroke-width:1.1;stroke-dasharray:7 5}.chord{stroke:#ed942f;stroke-width:1.5}.transfer{stroke:#6598d5;stroke-width:1.2}.curve{stroke:#1677ff;stroke-width:2.8}.hidden{stroke:#aab4c1;stroke-width:1.3;stroke-dasharray:6 5}.axis{stroke:#df8b30;stroke-width:1.4}.label{font-size:15px;fill:#47739c;paint-order:stroke;stroke:white;stroke-width:4px;stroke-linejoin:round}.dimension{stroke:#8795a5;stroke-width:1}.dimlabel{font:italic 17px Georgia;fill:#566576;paint-order:stroke;stroke:white;stroke-width:5px}.point{fill:#1677ff;stroke:white;stroke-width:1.5}.note{font-size:14px;fill:#667085}.final{stroke:#27364a;stroke-width:3}.tick.active{color:#d77b27}.tick.active:before{background:#d77b27}@media(max-width:900px){h1{font-size:22px}header{gap:7px}.stage-readout{margin-left:0}.projection-control{width:100%}}</style></head><body><div class="app"><header><h1>平躺圆柱轴测图：平行弦法</h1><label class="projection-control">投影<select id="projectionSelect"><option value="iso">标准正等测</option><option value="military">水平斜等测 / 60°水平斜投影</option><option value="cabinet">正面斜二测 / 柜式投影[最常用]</option></select></label><div class="stage-readout" aria-live="polite"><span class="stage-index" id="stageIndex"></span><span class="stage-title" id="stageTitle"></span></div></header><section class="board"><svg viewBox="0 0 1280 740" role="img" aria-label="平躺圆柱轴测图：平行弦法"></svg></section><div class="controls"><button class="play" id="playButton" type="button" aria-label="播放作图过程" aria-pressed="false">▶</button><div class="timeline"><div class="range-wrap"><div class="track"></div><div class="track-fill" id="trackFill"></div><input id="progress" type="range" min="0" value="0" aria-label="作图步骤"></div><div class="ticks"></div></div></div></div><script>
+(()=>{'use strict';
+const CYL=true,R=CYL?125:165,H=270,Q=R/Math.sqrt(2),TAU=Math.PI*2;
+const configs={iso:{a:[Math.sqrt(.5),1/Math.sqrt(6)],b:[-Math.sqrt(.5),1/Math.sqrt(6)],k:Math.sqrt(2/3),caption:'X:Y:Z = 0.816:0.816:0.816　｜　120° / 120° / 120°'},military:{a:[Math.sqrt(3)/2,.5],b:[-.5,Math.sqrt(3)/2],k:1,caption:'X:Y:Z = 1:1:1　｜　90° / 120° / 150°'},cabinet:{a:[1,0],b:[-Math.SQRT1_2/2,Math.SQRT1_2/2],k:1,caption:'X:Y:Z = 1:1/2:1　｜　135° / 135° / 90°'}};
+const names=CYL?['建立坐标轴','前端外框','前端十字与对角线','前端平行弦','前端八点','连接前端圆','沿轴搬移长度','后端十字与对角线','后端平行弦','后端八点','连接后端圆','作相切母线','擦除遮挡线','整理成图']:['建立坐标轴','画外框','十字与对角线','量取 a、b','搬移横坐标','作平行弦','确定八点','光滑连圆','擦除辅助线'];
+const svg=document.querySelector('.board svg'),range=document.getElementById('progress'),select=document.getElementById('projectionSelect'),ticks=document.querySelector('.ticks'),play=document.getElementById('playButton');
+let v=0,config=configs.iso,playing=false,raf=0,last=0,layer=svg;
+const clamp=x=>Math.max(0,Math.min(1,x));
+const $=(tag,attrs={},text)=>{let e=document.createElementNS('http://www.w3.org/2000/svg',tag);for(let [k,v]of Object.entries(attrs))e.setAttribute(k,v);if(text!==undefined)e.textContent=text;layer.append(e);return e};
+const txt=(p,t,cls='label',anchor='middle')=>$('text',{x:p[0],y:p[1],class:cls,'text-anchor':anchor},t);
+const path=(pts,cls='guide',close=false)=>$('path',{d:pts.map((p,i)=>(i?'L':'M')+p.join(',')).join(' ')+(close?'Z':''),class:'draw '+cls});
+const line=(a,b,c)=>path([a,b],c);
+function group(at,clean,fn){let opacity=at===0?1:clamp((v-at+.4)/.4);if(clean)opacity*=1-clamp(v-(names.length-2));if(!opacity)return;let prev=layer;layer=$('g',{opacity});fn();layer=prev;}
+const source=(x,z)=>[235+x,560-z];
+const base=()=>[875,390];
+const proj=(x,z,depth=0)=>{let c=base(),y=depth-H/2;return[c[0]+config.a[0]*x+config.b[0]*y,c[1]+config.a[1]*x+config.b[1]*y-config.k*z]};
+const tangentAngle=()=>Math.atan2(config.k*config.b[0],config.a[0]*config.b[1]-config.a[1]*config.b[0]);
+const circlePoint=t=>[R*Math.cos(t),R*Math.sin(t)];
+function circle(p,z,cls='curve',start=0,end=TAU){const [cx,cy]=p(0,0,z),a=p(1,0,z),b=p(0,1,z),m=`matrix(${a[0]-cx} ${a[1]-cy} ${b[0]-cx} ${b[1]-cy} ${cx} ${cy})`;if(end-start>TAU-.00001)return $('circle',{cx:0,cy:0,r:R,transform:m,class:'draw '+cls});let s=circlePoint(start),e=circlePoint(end);return $('path',{d:`M${s}A${R},${R} 0 ${end-start>Math.PI?1:0} 1 ${e}`,transform:m,class:'draw '+cls});}
+function frame(p,z){path([p(-R,-R,z),p(R,-R,z),p(R,R,z),p(-R,R,z)],'guide',true)}
+function cross(p,z){line(p(-R,0,z),p(R,0,z),'center');line(p(0,-R,z),p(0,R,z),'center');line(p(-R,-R,z),p(R,R,z),'guide');line(p(-R,R,z),p(R,-R,z),'guide')}
+function coords(p,z,vertical=true,horizontal=true){for(let s of[-1,1]){if(vertical)line(p(s*Q,-Q,z),p(s*Q,Q,z),'transfer');if(horizontal)line(p(-Q,s*Q,z),p(Q,s*Q,z),'chord')}}
+function points(p,z,which='all',labels=true){for(let i=0;i<8;i++){if(which==='four'&&i%2||which==='diagonal'&&!(i%2))continue;let t=i*Math.PI/4,[x,y]=circlePoint(t),pt=p(x,y,z),c=p(0,0,z),dx=pt[0]-c[0],dy=pt[1]-c[1],n=Math.hypot(dx,dy);$('circle',{cx:pt[0],cy:pt[1],r:4.2,class:'point','data-point':i+1});if(labels)txt([pt[0]+dx/n*16,pt[1]+dy/n*16+5],String(i+1),'label')}}
+function dimensions(){let [cx,cy]=source(0,0),yy=cy+R+31,xx=cx+R+32;line([cx,cy],[cx,yy+5],'dimension');line([cx+Q,cy],[cx+Q,yy+5],'dimension');line([cx,yy],[cx+Q,yy],'dimension');for(let x of[cx,cx+Q])line([x-4,yy+4],[x+4,yy-4],'dimension');txt([cx+Q/2,yy-8],'a','dimlabel');line([cx,cy],[xx+5,cy],'dimension');line([cx+Q,cy-Q],[xx+5,cy-Q],'dimension');line([xx,cy],[xx,cy-Q],'dimension');for(let y of[cy,cy-Q])line([xx-4,y+4],[xx+4,y-4],'dimension');txt([xx+13,cy-Q/2+5],'b','dimlabel');}
+function axes(){let o=proj(0,0,H),vectors=[config.a,config.b,[0,-config.k]],labels=['X','Y','Z'];vectors.forEach((d,i)=>{let n=Math.hypot(...d),L=CYL?185:215,e=[o[0]+L*d[0]/n,o[1]+L*d[1]/n];line(o,e,'axis');txt([e[0]+18*d[0]/n,e[1]+18*d[1]/n+5],labels[i],'axis-label')});txt([o[0]+10,o[1]+20],'O','dimlabel');let ang=vectors.map(d=>(Math.atan2(d[1],d[0])+TAU)%TAU).sort((a,b)=>a-b);for(let i=0;i<3;i++){let a=ang[i],b=ang[(i+1)%3]+(i===2?TAU:0),mid=(a+b)/2;path(Array.from({length:30},(_,j)=>[o[0]+43*Math.cos(a+(b-a)*j/29),o[1]+43*Math.sin(a+(b-a)*j/29)]),'axis');txt([o[0]+70*Math.cos(mid),o[1]+70*Math.sin(mid)+4],Math.round((b-a)*180/Math.PI)+'°','note')}}
+function heightDimension(p1,p2,label){let x=Math.min(p1[0],p2[0])-30;line(p1,[x-5,p1[1]],'dimension');line(p2,[x-5,p2[1]],'dimension');line([x,p1[1]],[x,p2[1]],'dimension');for(let y of[p1[1],p2[1]])line([x-4,y+4],[x+4,y-4],'dimension');txt([x-12,(p1[1]+p2[1])/2+5],label,'dimlabel')}
+function lengthDimension(p1,p2){const dx=p2[0]-p1[0],dy=p2[1]-p1[1],n=Math.hypot(dx,dy),u=[dy/n*30,-dx/n*30],a=p1.map((v,i)=>v+u[i]),b=p2.map((v,i)=>v+u[i]);line(p1,a,'dimension');line(p2,b,'dimension');line(a,b,'dimension');for(const p of[a,b])line([p[0]-4,p[1]+4],[p[0]+4,p[1]-4],'dimension');txt([(a[0]+b[0])/2+u[0]*.45,(a[1]+b[1])/2+u[1]*.45],'L′','dimlabel')}
+function sourceDrawing(){txt([60,50],'俯视图','view-tag','start');path([[110,80],[360,80],[360,350],[110,350]],'outline',true);line([235,65],[235,365],'center');heightDimension([110,80],[110,350],'L');txt([60,394],'前视图','view-tag','start');circle(source,0,'outline');
+ group(1,true,()=>frame(source,0));group(2,true,()=>cross(source,0));group(3,true,()=>{coords(source,0);dimensions();txt([235,411],'a = b = R / √2','note')});group(4,true,()=>points(source,0));}
+function render(value){v=Number(value);range.value=v;svg.replaceChildren();layer=svg;sourceDrawing();txt([530,50],config.caption,'status','start');group(0,false,()=>{if(v<2){let prev=layer;let axisOpacity=v<=1.6?1:clamp((2-v)/.4);layer=$('g',{opacity:axisOpacity});axes();layer=prev}});
+if(!CYL){group(1,true,()=>frame(proj,0));group(2,true,()=>cross(proj,0));group(4,true,()=>coords(proj,0,true,false));group(5,true,()=>coords(proj,0,false,true));group(6,true,()=>points(proj,0));group(7,false,()=>circle(proj,0,v>=8?'final':'curve'));}
+else{let clean=names.length-1;
+ group(1,true,()=>frame(proj,H));group(2,true,()=>cross(proj,H));group(3,true,()=>coords(proj,H));group(4,true,()=>points(proj,H));group(5,false,()=>circle(proj,H,v>=clean?'final':'curve'));
+ group(6,true,()=>{frame(proj,0);for(let x of[-R,R])for(let y of[-R,R])line(proj(x,y,H),proj(x,y,0),'center');let t=tangentAngle(),[x,y]=circlePoint(t);lengthDimension(proj(x,y,H),proj(x,y,0))});
+ group(7,true,()=>cross(proj,0));group(8,true,()=>coords(proj,0));group(9,true,()=>points(proj,0));
+ const theta=tangentAngle();
+ group(10,false,()=>circle(proj,0,v>=clean?'final':'curve',theta,theta+Math.PI));
+ group(10,true,()=>circle(proj,0,'hidden',theta+Math.PI,theta+TAU));
+ group(11,false,()=>{for(let t of[theta,theta+Math.PI]){let[x,y]=circlePoint(t);line(proj(x,y,0),proj(x,y,H),v>=clean?'final':'curve')}});
+}
+let active=Math.min(names.length-1,Math.floor(v+.001));document.getElementById('stageIndex').textContent=String(active+1).padStart(2,'0')+' / '+String(names.length).padStart(2,'0');document.getElementById('stageTitle').textContent=names[active];document.getElementById('trackFill').style.width=v/(names.length-1)*100+'%';[...ticks.children].forEach((b,i)=>{b.classList.toggle('active',i===active);b.classList.toggle('done',i<active)})}
+range.max=names.length-1;range.step=.01;ticks.style.setProperty('--count',names.length);names.forEach((n,i)=>{let b=document.createElement('button');b.className='tick';b.innerHTML='<span>'+n+'</span>';b.type='button';b.onclick=()=>{stop();render(i)};ticks.append(b)});
+function stop(){playing=false;cancelAnimationFrame(raf);play.textContent='▶';play.setAttribute('aria-label','播放作图过程');play.setAttribute('aria-pressed','false')}
+function animate(now){if(!playing)return;let next=v+(now-last)/2000;last=now;render(Math.min(names.length-1,next));if(next>=names.length-1)stop();else raf=requestAnimationFrame(animate)}
+play.onclick=()=>{if(playing)return stop();if(v>=names.length-1)render(0);playing=true;play.textContent='Ⅱ';play.setAttribute('aria-label','暂停作图过程');play.setAttribute('aria-pressed','true');last=performance.now();raf=requestAnimationFrame(animate)};
+range.oninput=()=>{stop();render(range.value)};select.onchange=()=>{stop();config=configs[select.value];render(v)};window.addEventListener('keydown',e=>{if(['SELECT','INPUT','BUTTON'].includes(e.target.tagName))return;if(e.code==='Space'){e.preventDefault();play.click()}if(e.code==='ArrowLeft'||e.code==='ArrowRight'){e.preventDefault();stop();render(Math.max(0,Math.min(names.length-1,Math.round(v)+(e.code==='ArrowLeft'?-1:1))))}});
+window.drawing={render,configs,proj,circlePoint,R,H,names};render(0);
+})();
+</script></body></html>
