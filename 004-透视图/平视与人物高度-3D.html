@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>平视 · 人物与视平线</title>
+<style>
+:root{--ink:#233c3f;--muted:#718381;--paper:#f5f7f3;--line:#dae2db;--teal:#337f78;--adult:#287f79;--woman:#bc7156;--child:#c89a43;--pink:#bd6077}*{box-sizing:border-box}body{margin:0;overflow:hidden;background:#edf2ed;color:var(--ink);font:14px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif}button,input{font:inherit}button{cursor:pointer;color:inherit}button:focus-visible,input:focus-visible,summary:focus-visible{outline:2px solid var(--teal);outline-offset:4px}#stage{position:fixed;inset:0 304px 0 0;transition:right .25s}body.tray-closed #stage{right:0}canvas{width:100%;height:100%;display:block;touch-action:none}#scene{cursor:grab}#scene:active{cursor:grabbing}#overlay{position:absolute;inset:0;pointer-events:none}.masthead{position:absolute;left:34px;top:27px;pointer-events:none}.masthead small{font-size:10px;letter-spacing:3px;color:#81938f}.masthead h1{margin:5px 0 14px;font-weight:550;font-size:25px;letter-spacing:1px}.focus-row{display:flex;gap:7px;pointer-events:auto;flex-wrap:wrap}.chip{border:1px solid #d4dfd5;background:#ffffffa6;border-radius:30px;padding:6px 13px;font-size:12px;backdrop-filter:blur(8px)}.chip.active{background:#243e3b;color:white;border-color:#243e3b}.chip[data-focus="1"].active{background:var(--adult);border-color:var(--adult)}.chip[data-focus="2"].active{background:var(--woman);border-color:var(--woman)}.chip[data-focus="3"].active{background:var(--child);border-color:var(--child)}.knowledge{position:absolute;bottom:28px;left:34px;width:min(465px,calc(100% - 68px));border-left:2px solid var(--pink);padding:14px 18px;background:#f9fbf5d9;backdrop-filter:blur(10px);border-radius:0 12px 12px 0;box-shadow:0 5px 30px #39534508;pointer-events:none}.knowledge .lead{font-size:13px;margin:0 0 10px;color:#526562}.knowledge p{margin:7px 0;font-size:13px;line-height:1.8}.knowledge b{font-weight:650}.knowledge p[data-point="1"] b{color:var(--adult)}.knowledge p[data-point="2"] b{color:var(--woman)}.knowledge p[data-point="3"] b{color:#9d742c}.knowledge p.muted{opacity:.35}.view-tag{position:absolute;bottom:29px;right:27px;font-size:11px;letter-spacing:1px;color:#6a817c;background:#f7faf4b8;border:1px solid #d9e3d8;border-radius:20px;padding:5px 12px;pointer-events:none}#tray{position:fixed;right:0;top:0;bottom:0;width:304px;z-index:5;padding:0;background:#fafbf7f2;border-left:1px solid #d5dfd7;backdrop-filter:blur(18px);display:flex;flex-direction:column;transition:transform .25s}.tray-closed #tray{transform:translateX(100%)}.tray-head{height:78px;flex-shrink:0;padding:25px 22px 18px;display:flex;align-items:center;justify-content:space-between;font-size:14px;font-weight:600;letter-spacing:2px}.tray-head button{border:1px solid var(--line);background:transparent;width:28px;height:28px;border-radius:8px;font-size:18px;line-height:1}.tray-scroll{overflow-y:auto;flex:1;padding:0 22px 20px;scrollbar-width:thin;scrollbar-color:#bccac0 transparent}.tray-scroll::-webkit-scrollbar{width:5px}.tray-scroll::-webkit-scrollbar-thumb{background:#bccac0;border-radius:10px}.tray-open{position:fixed;right:17px;top:22px;border:1px solid var(--line);border-radius:12px;padding:9px 14px;background:#fafbf7;z-index:4;display:none}.tray-closed .tray-open{display:block}details{border-top:1px solid var(--line);padding:16px 0}summary{list-style:none;cursor:pointer;font-size:12px;letter-spacing:1px;font-weight:650;display:flex;align-items:center;justify-content:space-between}summary::-webkit-details-marker{display:none}summary:after{content:'＋';font-size:15px;font-weight:400;color:#8b9c92}details[open]>summary:after{content:'−'}.section-content{padding-top:14px}.views{display:grid;grid-template-columns:1fr 1fr;gap:7px}.views button{background:#f1f4ee;border:1px solid #e0e6dd;padding:9px 2px;border-radius:8px;font-size:12px}.views button.active{background:#e0eee4;border-color:#99b8a5;color:#2b6257}.row{display:flex;align-items:center;justify-content:space-between;margin:11px 0;gap:8px;font-size:12px}.row label{display:flex;align-items:center;gap:8px;cursor:pointer}.dot{display:inline-block;width:7px;height:7px;border-radius:100%;background:var(--teal)}.toggle{appearance:none;width:30px;height:17px;border-radius:20px;background:#d9e1d9;cursor:pointer;position:relative;transition:background .15s;flex-shrink:0;margin:0}.toggle:before{content:'';position:absolute;width:11px;height:11px;top:3px;left:3px;background:white;border-radius:100%;box-shadow:0 1px 3px #52625230;transition:transform .15s}.toggle:checked{background:#438976}.toggle:checked:before{transform:translateX(13px)}.range-head{display:flex;justify-content:space-between;align-items:center;font-size:12px;margin-top:14px}.range-head:first-child{margin-top:0}.range-head output{font-size:11px;color:#789085;font-variant-numeric:tabular-nums}.range{width:100%;accent-color:#468876;height:18px;cursor:pointer;margin:6px 0 0}.tray-bottom{border-top:1px solid var(--line);padding:15px 22px;display:flex;gap:8px;flex-shrink:0}.tray-bottom button{border:1px solid var(--line);background:transparent;border-radius:8px;padding:7px 12px;font-size:12px;flex:1}.tray-bottom button:hover,.views button:hover{background:#e4eee3}.mini{font-size:11px;color:#71887a}.hidden{display:none!important}#fallback{position:absolute;inset:30% 10%;padding:25px;background:#fff;display:none}.swatches{display:flex;gap:12px;position:absolute;top:122px;left:36px;pointer-events:none;font-size:11px;color:#73877f}.swatches span{display:flex;align-items:center;gap:6px}@media(max-width:900px){#stage{right:270px}#tray{width:270px}.masthead{left:22px;top:22px}.masthead h1{font-size:22px}.knowledge{left:22px;bottom:22px;width:calc(100% - 44px);padding:12px 14px}.view-tag{bottom:12px;right:15px;font-size:10px}.swatches{left:24px;top:118px}.knowledge p,.knowledge .lead{font-size:12px}}@media(max-width:640px){#stage{right:0}#tray{width:270px;box-shadow:-8px 0 35px #233e3920}.masthead h1{font-size:21px}.masthead{left:20px}.focus-row{max-width:300px}.chip{padding:5px 10px}.swatches{display:none}.knowledge{left:18px;width:calc(100% - 36px);bottom:36px}.view-tag{bottom:8px}.tray-open{top:20px;right:14px;font-size:12px}}
+
+.range-wrap{position:relative;padding-bottom:8px;margin-bottom:5px}.range-wrap .range{display:block;margin-bottom:0}.eye-marker{position:absolute;top:21px;left:0;width:18px;height:17px;transform:translateX(-50%);border:0;padding:0;background:transparent;cursor:help}.eye-marker:before{content:'';position:absolute;left:6px;top:1px;border-left:3px solid transparent;border-right:3px solid transparent;border-bottom:5px solid var(--pink)}.eye-marker:after{content:attr(data-tip);position:absolute;bottom:22px;left:50%;transform:translateX(-50%);white-space:nowrap;font-size:11px;letter-spacing:0;background:#354b45;color:#fff;border-radius:6px;padding:5px 8px;opacity:0;pointer-events:none;transition:opacity .12s;z-index:15}.eye-marker:hover:after,.eye-marker:focus-visible:after{opacity:1}.range-head .dot{margin-right:7px}.swatches span:last-child{margin-left:1px}.movement-hint{font-size:10px;letter-spacing:2px;color:#7d9386}.pitch-control{margin-top:16px}.range{accent-color:#458977}
+
+/* Compact tray spacing and controls. */
+#tray{font-size:11.5px;line-height:1.35}
+#tray .tray-head{height:44px;padding:9px 16px;font-size:13px;letter-spacing:1px}
+#tray .tray-head button{width:24px;height:24px;border-radius:6px;font-size:17px}
+#tray .tray-scroll{padding:0 16px 8px}
+#tray details{padding:7px 0}
+#tray summary{font-size:11.5px;line-height:18px;letter-spacing:.5px}
+#tray summary:after{font-size:13px}
+#tray .section-content{padding-top:6px}
+#tray .views{gap:5px}
+#tray .views button{padding:5px 2px;font-size:11px;line-height:17px;border-radius:6px}
+#tray .pitch-control{margin-top:7px}
+#tray .range-head{font-size:11px;line-height:16px;margin-top:5px;gap:5px}
+#tray .height-head{display:grid;grid-template-columns:1fr auto 27px;align-items:center;margin-top:5px}
+#tray .height-head:first-child{margin-top:0}
+#tray .range-head output,#tray .inline-control output{font-size:10.5px;font-variant-numeric:tabular-nums;white-space:nowrap}
+#tray .range{height:14px;margin:1px 0 0}
+#tray .range-wrap{padding-bottom:10px;margin-bottom:2px}
+#tray .eye-marker{top:15px;width:16px;height:12px}
+#tray .eye-marker:before{left:5px;top:1px;border-bottom-width:4px}
+#tray .eye-marker:after{bottom:17px;font-size:10.5px;padding:4px 6px}
+#tray .inline-control{display:grid;grid-template-columns:58px minmax(0,1fr) 58px;align-items:center;gap:5px;min-height:22px;margin:3px 0;font-size:11px}
+#tray .inline-control .range{margin:0}
+#tray .inline-control output{text-align:right;color:#789085}
+#tray .row{margin:3px 0;min-height:19px;line-height:16px;font-size:11px;gap:6px}
+#tray .row label{gap:6px}
+#tray .dot{width:6px;height:6px}
+#tray .toggle{width:27px;height:15px}
+#tray .toggle:before{width:9px;height:9px;top:3px;left:3px}
+#tray .toggle:checked:before{transform:translateX(12px)}
+#tray .tray-bottom{padding:7px 16px;gap:6px}
+#tray .tray-bottom button{padding:4px 9px;line-height:17px;font-size:11px;border-radius:6px}
+
+#tray .range:disabled{opacity:.6;cursor:default}
+
+#background{position:absolute;inset:0;pointer-events:none}#scene{position:relative}
+
+#tray .tray-head{height:32px;padding:3px 16px;justify-content:flex-end}
+.knowledge-options{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+#tray .knowledge-options .chip{padding:6px 3px;border-radius:6px;font-size:11px;line-height:1.4}
+.chip[data-focus="4"].active{background:#74648a;border-color:#74648a}
+.knowledge p[data-point="4"] b{color:#74648a}
+
+#tray .numeric-value{display:flex;align-items:center;justify-content:flex-end;gap:3px;white-space:nowrap}
+#tray .number-input{width:58px;height:22px;padding:2px 4px;border:1px solid #d9e1d8;border-radius:5px;background:#fff9;color:#426052;text-align:right;font-size:11px;line-height:16px;font-variant-numeric:tabular-nums;appearance:textfield;-moz-appearance:textfield}
+#tray .number-input::-webkit-inner-spin-button,#tray .number-input::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+#tray .number-input:focus{border-color:#438976;background:white;outline:1px solid #438976;outline-offset:0}
+#tray .number-unit{font-size:10px;color:#789085}
+#tray .inline-control{grid-template-columns:58px minmax(0,1fr) 75px}
+#tray .inline-control .number-input{width:57px}
+</style>
+</head>
+<body>
+<main id="stage">
+<canvas id="background" aria-hidden="true"></canvas><canvas id="scene" tabindex="0" aria-label="可旋转的三维人物与视平线场景"></canvas><canvas id="overlay" aria-hidden="true"></canvas>
+<aside class="knowledge" id="knowledge"><p class="lead">平视时，<b>视平线与地平线重合</b>，表示与观察者眼睛等高的水平面。</p><p data-point="1">① <b>身高相近的人</b>站在同一地面，眼睛与观察者等高，处于视平线上。</p><p data-point="2">② <b>身高略低的人</b>，其头顶靠近视平线。</p><p data-point="3">③ <b>身高约成人一半的儿童</b>，头顶约在站立成人的半腰处。</p><p data-point="4">④ <b>踩高跷的人</b>，高跷与自身等高，头顶离地高度为原身高的两倍。</p></aside>
+<div id="fallback">当前浏览器无法显示 3D 场景，请使用支持 WebGL 的浏览器打开。</div>
+</main>
+<button class="tray-open" id="openTray" aria-controls="tray" aria-expanded="false" aria-label="展开工具栏">☰</button>
+<aside id="tray" aria-label="工具栏"><div class="tray-head"><button id="closeTray" aria-label="折叠工具栏">›</button></div><div class="tray-scroll">
+<details open><summary>知识点</summary><div class="section-content knowledge-options"><button class="chip" data-focus="1" aria-pressed="false">等高人物的眼睛</button><button class="chip" data-focus="2" aria-pressed="false">略矮人物的头顶</button><button class="chip" data-focus="3" aria-pressed="false">小孩与成人半高</button><button class="chip" data-focus="4" aria-pressed="false">高跷与双倍身高</button></div></details>
+<details open><summary>视角</summary><div class="section-content"><div class="views"><button data-view="eye" class="active">观察者视角</button><button data-view="global">全局</button><button data-view="parallelFront" title="拖动平移，滚轮缩放">正面平行投影</button><button data-view="parallelSide" title="拖动平移，滚轮缩放">侧面平行投影</button></div><div class="pitch-control"><div class="inline-control"><label for="pitch">俯仰度数</label><input class="range" id="pitch" type="range" min="-65" max="65" step="1" value="0"><span class="numeric-value"><input class="number-input" id="pitchOut" data-number="pitch" aria-label="俯仰度数（°）" type="number" inputmode="decimal" min="-65" max="65" step="1" value="0"><span class="number-unit">°</span></span></div></div></div></details>
+<details open><summary>人物</summary><div class="section-content">
+<div class="range-head height-head"><label for="observerHeight">观察者身高</label><span class="numeric-value"><input class="number-input" id="observerHeightOut" data-number="observerHeight" aria-label="观察者身高（米）" type="number" inputmode="decimal" min="0.4" max="2.4" step="0.001" value="1.72"><span class="number-unit">米</span></span><input class="toggle" id="observer" aria-label="观察者显示开关" type="checkbox" checked></div><div class="range-wrap"><input class="range" id="observerHeight" type="range" min="0.4" max="2.4" step="0.001" value="1.72"><button class="eye-marker" id="observerHeightEye" type="button" data-tip="眼高" aria-label="眼高" tabindex="0"></button></div>
+<div class="range-head height-head"><label for="adultHeight">男人</label><span class="numeric-value"><input class="number-input" id="adultHeightOut" data-number="adultHeight" aria-label="男人身高（米）" type="number" inputmode="decimal" min="0.4" max="2.4" step="0.001" value="1.72"><span class="number-unit">米</span></span><input class="toggle" id="group1" aria-label="男人显示开关" type="checkbox" checked></div><div class="range-wrap"><input class="range" id="adultHeight" type="range" min="0.4" max="2.4" step="0.001" value="1.72"><button class="eye-marker" id="adultHeightEye" type="button" data-tip="眼高" aria-label="眼高" tabindex="0"></button></div>
+<div class="range-head height-head"><label for="womanHeight">女人</label><span class="numeric-value"><input class="number-input" id="womanHeightOut" data-number="womanHeight" aria-label="女人身高（米）" type="number" inputmode="decimal" min="0.4" max="2.4" step="0.001" value="1.6"><span class="number-unit">米</span></span><input class="toggle" id="group2" aria-label="女人显示开关" type="checkbox" checked></div><div class="range-wrap"><input class="range" id="womanHeight" type="range" min="0.4" max="2.4" step="0.001" value="1.6"><button class="eye-marker" id="womanHeightEye" type="button" data-tip="眼高" aria-label="眼高" tabindex="0"></button></div>
+<div class="range-head height-head"><label for="childHeight">小孩身高</label><span class="numeric-value"><input class="number-input" id="childHeightOut" data-number="childHeight" aria-label="小孩身高（米）" type="number" inputmode="decimal" min="0.4" max="1.6" step="0.001" value="0.86"><span class="number-unit">米</span></span><input class="toggle" id="group3" aria-label="小孩显示开关" type="checkbox" checked></div><div class="range-wrap"><input class="range" id="childHeight" type="range" min="0.4" max="1.6" step="0.001" value="0.86"><button class="eye-marker" id="childHeightEye" type="button" data-tip="眼高" aria-label="眼高" tabindex="0"></button></div>
+<div class="range-head height-head"><label for="stiltTotalHeight" title="总高自动等于男人身高的两倍">高跷男人总高</label><span class="numeric-value"><input class="number-input" id="stiltTotalHeightOut" data-number="stiltTotalHeight" aria-label="高跷男人总高（米）" type="number" inputmode="decimal" min="0.8" max="4.8" step=".002" value="3.44"><span class="number-unit">米</span></span><input class="toggle" id="group4" aria-label="踩高跷的男人显示开关" type="checkbox" checked></div><div class="range-wrap"><input class="range" id="stiltTotalHeight" type="range" min="0.8" max="4.8" step="0.001" value="3.44" disabled><button class="eye-marker" id="stiltTotalHeightEye" type="button" data-tip="眼高" aria-label="眼高" tabindex="0"></button></div>
+
+</div></details>
+<details open><summary>距离</summary><div class="section-content"><div class="inline-control"><label for="stiltDistance">高跷前后</label><input class="range" id="stiltDistance" type="range" min="4" max="28" step="0.1" value="8.5"><span class="numeric-value"><input class="number-input" id="stiltDistanceOut" data-number="stiltDistance" aria-label="高跷前后（米）" type="number" inputmode="decimal" min="4" max="28" step="0.1" value="8.5"><span class="number-unit">米</span></span></div><div class="inline-control"><label for="near">近处</label><input class="range" id="near" type="range" min="4.5" max="8" step="0.1" value="6"><span class="numeric-value"><input class="number-input" id="nearOut" data-number="near" aria-label="近处距离（米）" type="number" inputmode="decimal" min="4.5" max="8" step="0.1" value="6"><span class="number-unit">米</span></span></div><div class="inline-control"><label for="middle">中间</label><input class="range" id="middle" type="range" min="8.5" max="14" step="0.1" value="11"><span class="numeric-value"><input class="number-input" id="middleOut" data-number="middle" aria-label="中间距离（米）" type="number" inputmode="decimal" min="8.5" max="14" step="0.1" value="11"><span class="number-unit">米</span></span></div><div class="inline-control"><label for="far">远处</label><input class="range" id="far" type="range" min="14.5" max="28" step="0.1" value="19"><span class="numeric-value"><input class="number-input" id="farOut" data-number="far" aria-label="远处距离（米）" type="number" inputmode="decimal" min="14.5" max="28" step="0.1" value="19"><span class="number-unit">米</span></span></div><div class="inline-control"><label for="rulerX">标尺横向</label><input class="range" id="rulerX" type="range" min="-6" max="6" step="0.1" value="-4.6"><span class="numeric-value"><input class="number-input" id="rulerXOut" data-number="rulerX" aria-label="标尺横向位置（米）" type="number" inputmode="decimal" min="-6" max="6" step="0.1" value="-4.6"><span class="number-unit">米</span></span></div><div class="inline-control"><label for="rulerDistance">标尺前后</label><input class="range" id="rulerDistance" type="range" min="3" max="30" step="0.1" value="8.5"><span class="numeric-value"><input class="number-input" id="rulerDistanceOut" data-number="rulerDistance" aria-label="标尺前后位置（米）" type="number" inputmode="decimal" min="3" max="30" step="0.1" value="8.5"><span class="number-unit">米</span></span></div></div></details>
+<details open><summary>图层</summary><div class="section-content">
+<div class="row"><label for="horizon"><i class="dot" style="background:var(--pink)"></i>视平线</label><input class="toggle" id="horizon" type="checkbox" checked></div>
+<div class="row"><label for="guides">高度辅助线</label><input class="toggle" id="guides" type="checkbox" checked></div>
+<div class="row"><label for="grid">地面网格</label><input class="toggle" id="grid" type="checkbox" checked></div>
+<div class="row"><label for="ruler">标尺</label><input class="toggle" id="ruler" type="checkbox" checked></div>
+<div class="row"><label for="labels">人物标注</label><input class="toggle" id="labels" type="checkbox"></div>
+<div class="row"><label for="text">文字说明</label><input class="toggle" id="text" type="checkbox" checked></div>
+</div></details>
+</div><div class="tray-bottom"><button id="reset">恢复初始</button><button id="fullscreen">全屏</button></div></aside>
+<script>
+'use strict';
+// No network requests or external dependencies. Geometry and renderer are embedded.
+const $=id=>document.getElementById(id), canvas=$('scene'), overlay=$('overlay'),ctx=overlay.getContext('2d'),background=$('background'),bgctx=background.getContext('2d');
+const gl=canvas.getContext('webgl',{antialias:true,alpha:true,preserveDrawingBuffer:true});
+if(!gl){$('fallback').style.display='block';throw new Error('WebGL unavailable');}
+const EYE_RATIO=1.524/1.65;
+const defaults={horizon:true,guides:true,grid:true,ruler:true,labels:false,text:true,group1:true,group2:true,group3:true,group4:true,observer:true,observerHeight:1.72,adultHeight:1.72,womanHeight:1.6,childHeight:.86,near:6,middle:11,far:19,stiltDistance:8.5,rulerX:-4.6,rulerDistance:8.5,pitch:0};
+const state={...defaults,view:'eye',focus:0,observerX:0,observerZ:-5,lookYaw:0,orbitYaw:33,orbitElevation:24,zoom:100,panX:0,panY:0};
+Object.defineProperties(state,{plane:{enumerable:true,get:()=>state.horizon},relations:{enumerable:true,get:()=>state.guides},waist:{enumerable:true,get:()=>state.guides},rays:{enumerable:true,get:()=>false},dimensions:{enumerable:true,get:()=>false},stiltManHeight:{enumerable:true,get:()=>state.adultHeight},stiltHeight:{enumerable:true,get:()=>state.adultHeight},stiltTotalHeight:{enumerable:true,get:()=>state.adultHeight*2}});
+const observerEye=()=>{const t=state.lookYaw*Math.PI/180,offset=state.observerHeight*.066;return [state.observerX+Math.sin(t)*offset,state.observerHeight*EYE_RATIO,state.observerZ+Math.cos(t)*offset];};
+
+const palette={1:[.18,.49,.46],2:[.72,.40,.29],3:[.78,.58,.23],4:[.43,.35,.54],observer:[.22,.32,.36]};
+const hex={1:'#287f79',2:'#b6664e',3:'#ac7e2e',4:'#74648a',observer:'#40545c'};
+let opaque=[],staticOpaque=[],staticPeople=[],translucent=[],lineVerts=[],people=[],marks=[],rulerLabels=[],camera={},width=1,height=1,dpr=1,dirty=true,guidesDirty=true,raf=0,model=null;
+const add=(a,b)=>a.map((v,i)=>v+b[i]), sub=(a,b)=>a.map((v,i)=>v-b[i]),mul=(a,s)=>a.map(v=>v*s),dot=(a,b)=>a.reduce((s,v,i)=>s+v*b[i],0),cross=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]],norm=a=>mul(a,1/(Math.hypot(...a)||1));
+function multiply(a,b){let out=new Float32Array(16);for(let c=0;c<4;c++)for(let r=0;r<4;r++)for(let k=0;k<4;k++)out[c*4+r]+=a[k*4+r]*b[c*4+k];return out;}
+function viewMatrix(pos,target){const f=norm(sub(target,pos)),r=norm(cross(f,[0,1,0])),u=cross(r,f);camera={pos,target,f,r,u};return new Float32Array([r[0],u[0],-f[0],0,r[1],u[1],-f[1],0,r[2],u[2],-f[2],0,-dot(r,pos),-dot(u,pos),dot(f,pos),1]);}
+function perspective(fov,aspect,near,far){let f=1/Math.tan(fov/2),n=1/(near-far);return new Float32Array([f/aspect,0,0,0,0,f,0,0,0,0,(far+near)*n,-1,0,0,2*far*near*n,0]);}
+let matrix;
+function orthographic(span,aspect,near,far){return new Float32Array([2/(span*aspect),0,0,0,0,2/span,0,0,0,0,-2/(far-near),0,0,.20,-(far+near)/(far-near),1]);}
+function project(p){const q=sub(p,camera.pos),z=dot(q,camera.f);if(z<=.05)return null;let scale=camera.kind==='orthographic'?height/camera.span:height/2/Math.tan(camera.fov/2)/z;return {x:width/2+dot(q,camera.r)*scale,y:height*.40-dot(q,camera.u)*scale,z,scale};}
+
+function color(c,t){return c.map(v=>v*t);}
+function rotateX(v,t){return [v[0],v[1]*Math.cos(t)-v[2]*Math.sin(t),v[1]*Math.sin(t)+v[2]*Math.cos(t)];}
+function rotateY(v,t){return [v[0]*Math.cos(t)+v[2]*Math.sin(t),v[1],-v[0]*Math.sin(t)+v[2]*Math.cos(t)];}
+function modelPoint(p){if(!model)return p;let q=p;if(model.head)q=add(model.eye,rotateX(sub(q,model.eye),model.pitch));q=rotateY(q,model.yaw);return add(q,[model.x,model.base,model.z]);}
+function vertex(out,p,n,c,a=1,kind=0){if(model){p=modelPoint(p);if(model.head)n=rotateX(n,model.pitch);n=rotateY(n,model.yaw);}out.push(...p,...n,...c,a,kind);}
+
+function tri(a,b,c,col,alpha=1,kind=0,out=opaque){const n=norm(cross(sub(b,a),sub(c,a)));vertex(out,a,n,col,alpha,kind);vertex(out,b,n,col,alpha,kind);vertex(out,c,n,col,alpha,kind);}
+function quad(a,b,c,d,col,alpha=1,kind=0,out=opaque){tri(a,b,c,col,alpha,kind,out);tri(a,c,d,col,alpha,kind,out);}
+function ellipsoid(center,size,col,lat=10,lon=16){const pt=(a,b)=>[center[0]+size[0]*Math.sin(a)*Math.cos(b),center[1]+size[1]*Math.cos(a),center[2]+size[2]*Math.sin(a)*Math.sin(b)];const vt=p=>vertex(opaque,p,norm(p.map((v,i)=>(v-center[i])/(size[i]*size[i]))),col);for(let j=0;j<lat;j++)for(let i=0;i<lon;i++){let a=j*Math.PI/lat,b=(j+1)*Math.PI/lat,c=i*2*Math.PI/lon,d=(i+1)*2*Math.PI/lon,p=pt(a,c),q=pt(b,c),r=pt(b,d),t=pt(a,d);for(let v of [p,q,r,p,r,t])vt(v);}}
+function garment(profile,h,col,sides=20){for(let j=0;j<profile.length-1;j++){let a=profile[j],b=profile[j+1];for(let i=0;i<sides;i++){let t=i*2*Math.PI/sides,u=(i+1)*2*Math.PI/sides;let pt=(r,ang)=>[r[1]*h*Math.cos(ang),r[0]*h,r[2]*h*Math.sin(ang)],p=pt(a,t),q=pt(b,t),r=pt(b,u),v=pt(a,u);for(let [point,ang]of[[p,t],[q,t],[r,u],[p,t],[r,u],[v,u]])vertex(opaque,point,norm([Math.cos(ang)/a[1],(a[1]-b[1])/(b[0]-a[0]+.0001),Math.sin(ang)/a[2]]),col);}}}
+
+function tapered(a,b,ra,rb,col,sides=10){let w=norm(sub(b,a)),u=norm(cross(w,Math.abs(w[1])<.9?[0,1,0]:[1,0,0])),v=cross(w,u);const point=(p,r,t)=>add(p,add(mul(u,r*Math.cos(t)),mul(v,r*Math.sin(t))));for(let i=0;i<sides;i++){let t=i*2*Math.PI/sides,s=(i+1)*2*Math.PI/sides;let p=point(a,ra,t),q=point(a,ra,s),r=point(b,rb,s),z=point(b,rb,t);quad(p,q,r,z,col);tri(a,q,p,col);tri(b,z,r,col);}}
+function ring(center,rx,rz,col,y=0,out=opaque,alpha=1){const c=[center[0],y,center[2]];for(let i=0;i<32;i++){let t=i*Math.PI/16,s=(i+1)*Math.PI/16;tri(c,[c[0]+rx*Math.cos(t),y,c[2]+rz*Math.sin(t)],[c[0]+rx*Math.cos(s),y,c[2]+rz*Math.sin(s)],col,alpha,0,out);}}
+function line(a,b,col,alpha=1){vertex(lineVerts,a,[0,1,0],col,alpha,2);vertex(lineVerts,b,[0,1,0],col,alpha,2);}
+function dashed(a,b,col,alpha=1,step=.18){let d=sub(b,a),len=Math.hypot(...d),n=Math.ceil(len/step);for(let i=0;i<n;i+=2)line(add(a,mul(d,i/n)),add(a,mul(d,Math.min(i+1,n)/n)),col,alpha);}
+
+function womanModel(h,c,fade){
+const H=p=>p.map(v=>v*h),tone=a=>fade?a.map(v=>v*.32+.61):a;
+const skin=tone([.90,.75,.65]),hair=tone([.24,.16,.13]),leather=tone([.35,.24,.21]),gold=tone([.76,.61,.36]);
+// A continuous oval face with a tapered jaw and interpolated surface normals.
+const rows=[[.848,.012,.012],[.858,.029,.026],[.878,.044,.044],[.900,.051,.055],[.910,.053,.058],[.926,.054,.060],[.951,.052,.058],[.973,.042,.047],[.988,.026,.029],[.996,.001,.001 ]];
+function ovalFace(){const N=56;
+const sample=(j,t)=>{let r=rows[j],a=rows[Math.max(0,j-1)],b=rows[Math.min(rows.length-1,j+1)],dy=b[0]-a[0],dx=(b[1]-a[1])/dy,dz=(b[2]-a[2])/dy;const x=r[1]*Math.cos(t),y=r[0],front=Math.max(0,-Math.sin(t));return {p:H([x,y,r[2]*Math.sin(t)-noseDepth(x,y)*front**8]),n:faceNormal(x,y,t,r,dx,dz)};};
+for(let j=0;j<rows.length-1;j++)for(let i=0;i<N;i++){let a=sample(j,i*2*Math.PI/N),b=sample(j+1,i*2*Math.PI/N),d=sample(j,(i+1)*2*Math.PI/N),e=sample(j+1,(i+1)*2*Math.PI/N);for(let v of [a,b,e,a,e,d])vertex(opaque,v.p,v.n,skin);}}
+function faceNormal(x,y,t,r,dx,dz){let n=norm([Math.cos(t)/r[1],-dx/r[1]*Math.cos(t)**2-dz/r[2]*Math.sin(t)**2,Math.sin(t)/r[2]]),d=noseDepth(x,y)*Math.max(0,-Math.sin(t))**8,z=Math.abs(n[2]);return norm([n[0]+2*x/.0001*d*z,n[1]+2*(y-(EYE_RATIO-.024))/.000324*d*z,n[2]]);}
+function noseDepth(x,y){return .0105*Math.exp(-((x/.010)**2)-((y-(EYE_RATIO-.024))/.018)**2);}
+function faceDepth(x,y){let j=0;while(j<rows.length-2&&rows[j+1][0]<y)j++;const a=rows[j],b=rows[j+1],t=Math.max(0,Math.min(1,(y-a[0])/(b[0]-a[0]))),rx=a[1]+(b[1]-a[1])*t,rz=a[2]+(b[2]-a[2])*t;return -rz*Math.sqrt(Math.max(.05,1-(x/rx)**2))-noseDepth(x,y);}
+function patch(x,y,rx,ry,col,bump=.001){let center=H([x,y,faceDepth(x,y)-bump]);for(let i=0;i<24;i++){let a=i*Math.PI/12,b=(i+1)*Math.PI/12,point=t=>{const xx=x+rx*Math.cos(t),yy=y+ry*Math.sin(t);return H([xx,yy,faceDepth(xx,yy)-bump]);};tri(center,point(a),point(b),col);}}
+function limb(a,b,ra,rb,col,N=24){const w=norm(sub(b,a)),u=norm(cross(w,Math.abs(w[1])<.9?[0,1,0]:[1,0,0])),v=cross(w,u),slope=(ra-rb)/Math.hypot(...sub(b,a));const pt=(p,r,t)=>add(p,add(mul(u,r*Math.cos(t)),mul(v,r*Math.sin(t)))),normal=t=>norm(add(add(mul(u,Math.cos(t)),mul(v,Math.sin(t))),mul(w,slope)));for(let i=0;i<N;i++){let t=i*2*Math.PI/N,q=(i+1)*2*Math.PI/N;for(let [p,r,ang]of[[a,ra,t],[a,ra,q],[b,rb,q],[a,ra,t],[b,rb,q],[b,rb,t]])vertex(opaque,pt(p,r,ang),normal(ang),col);}}
+for(let sign of [-1,1]){
+const ankle=H([sign*.045,.053,.009]),knee=H([sign*.050,.252,.003]),hip=H([sign*.049,.492,.004]);
+limb(ankle,knee,h*.018,h*.030,skin,18);limb(knee,hip,h*.030,h*.040,skin,18);ellipsoid(knee,[h*.030,h*.032,h*.030],skin,10,16);
+ellipsoid(H([sign*.045,.020,-.018]),[h*.032,h*.019,h*.064],leather,10,20);
+ellipsoid(H([sign*.045,.034,.006]),[h*.026,h*.025,h*.036],skin,10,16);
+}
+// Softly flared midi dress, fitted bodice, narrow belt and a defined hem.
+garment([[.325,.145,.087],[.365,.139,.084],[.435,.120,.078],[.515,.101,.066],[.588,.075,.050],[.625,.067,.047]],h,c,40);
+garment([[.618,.068,.048],[.669,.073,.051],[.724,.092,.061],[.768,.092,.058],[.795,.060,.040],[.811,.033,.028]],h,c,40);
+garment([[.610,.070,.049],[.625,.069,.049]],h,tone([.55,.32,.27]),40);
+garment([[.325,.146,.088],[.334,.145,.087]],h,color(c,.89),40);
+for(let sign of [-1,1]){
+const shoulder=H([sign*.094,.755,0]),sleeve=H([sign*.111,.715,-.001]),elbow=H([sign*.129,.624,-.010]),wrist=H([sign*(sign<0?.128:.119),.515,sign<0?-.025:-.043]);
+ellipsoid(shoulder,[h*.025,h*.027,h*.030],c,14,24);limb(shoulder,sleeve,h*.025,h*.023,c);
+limb(sleeve,elbow,h*.021,h*.017,skin,18);ellipsoid(elbow,[h*.018,h*.021,h*.019],skin,10,16);limb(elbow,wrist,h*.017,h*.0115,skin,18);
+ellipsoid(add(wrist,H([-.002*sign,-.026,-.002])),[h*.014,h*.028,h*.012],skin,12,18);
+ellipsoid(add(wrist,H([-.010*sign,-.019,-.012])),[h*.006,h*.016,h*.006],skin,10,14);
+}
+limb(H([0,.792,.003]),H([0,.861,.005]),h*.023,h*.025,skin,24);
+// A small necklace follows the neckline instead of covering the face.
+for(let sign of [-1,1])limb(H([sign*.026,.807,-.026]),H([0,.779,-.050]),h*.0011,h*.0011,gold,8);
+ellipsoid(H([0,.776,-.052]),[h*.0035,h*.006,h*.002],gold,8,12);
+model.head=true;ovalFace();
+for(let sign of [-1,1]){
+ellipsoid(H([sign*.054,.913,.002]),[h*.008,h*.016,h*.010],skin,12,16);
+ellipsoid(H([sign*.055,.893,-.005]),[h*.0035,h*.0065,h*.003],gold,10,14);
+}
+// A side-parted bob wraps the skull while leaving eyes and cheeks open.
+const hairPoint=(a,t)=>H([.061*Math.sin(a)*Math.cos(t),.923+.077*Math.cos(a),.004+.068*Math.sin(a)*Math.sin(t)]);
+const edge=t=>{let front=Math.max(0,-Math.sin(t)),back=Math.max(0,Math.sin(t));return 2.19+.19*back-1.04*front+.14*Math.cos(t)*front;};
+const hairSample=(j,t)=>{let a=j/14*edge(t),p=hairPoint(a,t);return {p,n:norm([Math.sin(a)*Math.cos(t)/.061,Math.cos(a)/.077,Math.sin(a)*Math.sin(t)/.068])};};
+for(let j=0;j<14;j++)for(let i=0;i<40;i++){let t=i*Math.PI/20,u=(i+1)*Math.PI/20,a=hairSample(j,t),b=hairSample(j+1,t),d=hairSample(j,u),e=hairSample(j+1,u);for(let v of [a,b,e,a,e,d])vertex(opaque,v.p,v.n,hair);}
+for(let t of [-2.35,-2.02,-1.16,-.78,.35,2.5]){for(let j=3;j<12;j++){let a=j/14*edge(t),b=(j+1)/14*edge(t),p=hairPoint(a,t),q=hairPoint(b,t);line(p,q,color(hair,1.15),.45);}}
+model.z+=h*.040;
+garment([[.768,.024,.010],[.780,.039,.017],[.810,.046,.023],[.850,.049,.030],[.893,.054,.040],[.930,.045,.033]],h,hair,48);
+model.z-=h*.040;
+const eyes=tone([.28,.22,.19]),white=tone([.95,.93,.87]),lips=tone([.67,.37,.35]);
+for(let sign of [-1,1]){
+const ex=sign*.023;
+patch(ex,EYE_RATIO,.0102,.0036,white,.0009);
+patch(ex,EYE_RATIO,.0033,.0036,eyes,.0013);
+patch(ex-sign*.001,EYE_RATIO+.0012,.0009,.001,tone([.98,.97,.92]),.0018);
+const brow=[[sign*.013,EYE_RATIO+.013],[sign*.024,EYE_RATIO+.016],[sign*.035,EYE_RATIO+.014]];
+for(let i=0;i<2;i++){let a=brow[i],b=brow[i+1];limb(H([a[0],a[1],faceDepth(...a)-.0012]),H([b[0],b[1],faceDepth(...b)-.0012]),h*(i?.0015:.0011),h*(i?.0007:.0015),hair,12);}
+}
+patch(0,EYE_RATIO-.043,.011,.0016,lips,.0008);
+patch(0,EYE_RATIO-.046,.009,.0016,color(lips,1.08),.001);
+
+}
+function manModel(h,c,fade){
+const H=p=>p.map(v=>v*h),tone=a=>fade?a.map(v=>v*.32+.61):a;
+const skin=tone([.88,.73,.62]),hair=tone([.20,.17,.15]),pants=tone([.57,.58,.50]),leather=tone([.27,.22,.19]);
+const rows=[[.848,.020,.018],[.858,.036,.029],[.878,.049,.045],[.900,.055,.058],[.910,.057,.061],[.926,.058,.063],[.951,.055,.060],[.973,.044,.048],[.988,.027,.029],[.996,.001,.001 ]];
+function ovalFace(){const N=56;
+const sample=(j,t)=>{let r=rows[j],a=rows[Math.max(0,j-1)],b=rows[Math.min(rows.length-1,j+1)],dy=b[0]-a[0],dx=(b[1]-a[1])/dy,dz=(b[2]-a[2])/dy;const x=r[1]*Math.cos(t),y=r[0],front=Math.max(0,-Math.sin(t));return {p:H([x,y,r[2]*Math.sin(t)-noseDepth(x,y)*front**8]),n:faceNormal(x,y,t,r,dx,dz)};};
+for(let j=0;j<rows.length-1;j++)for(let i=0;i<N;i++){let a=sample(j,i*2*Math.PI/N),b=sample(j+1,i*2*Math.PI/N),d=sample(j,(i+1)*2*Math.PI/N),e=sample(j+1,(i+1)*2*Math.PI/N);for(let v of [a,b,e,a,e,d])vertex(opaque,v.p,v.n,skin);}}
+function faceNormal(x,y,t,r,dx,dz){let n=norm([Math.cos(t)/r[1],-dx/r[1]*Math.cos(t)**2-dz/r[2]*Math.sin(t)**2,Math.sin(t)/r[2]]),d=noseDepth(x,y)*Math.max(0,-Math.sin(t))**8,z=Math.abs(n[2]);return norm([n[0]+2*x/.0001*d*z,n[1]+2*(y-(EYE_RATIO-.024))/.000324*d*z,n[2]]);}
+function noseDepth(x,y){return .0115*Math.exp(-((x/.010)**2)-((y-(EYE_RATIO-.024))/.018)**2);}
+function faceDepth(x,y){let j=0;while(j<rows.length-2&&rows[j+1][0]<y)j++;const a=rows[j],b=rows[j+1],t=Math.max(0,Math.min(1,(y-a[0])/(b[0]-a[0]))),rx=a[1]+(b[1]-a[1])*t,rz=a[2]+(b[2]-a[2])*t;return -rz*Math.sqrt(Math.max(.05,1-(x/rx)**2))-noseDepth(x,y);}
+function patch(x,y,rx,ry,col,bump=.001){let center=H([x,y,faceDepth(x,y)-bump]);for(let i=0;i<24;i++){let a=i*Math.PI/12,b=(i+1)*Math.PI/12,point=t=>{const xx=x+rx*Math.cos(t),yy=y+ry*Math.sin(t);return H([xx,yy,faceDepth(xx,yy)-bump]);};tri(center,point(a),point(b),col);}}
+function limb(a,b,ra,rb,col,N=24){const w=norm(sub(b,a)),u=norm(cross(w,Math.abs(w[1])<.9?[0,1,0]:[1,0,0])),v=cross(w,u),slope=(ra-rb)/Math.hypot(...sub(b,a));const pt=(p,r,t)=>add(p,add(mul(u,r*Math.cos(t)),mul(v,r*Math.sin(t)))),normal=t=>norm(add(add(mul(u,Math.cos(t)),mul(v,Math.sin(t))),mul(w,slope)));for(let i=0;i<N;i++){let t=i*2*Math.PI/N,q=(i+1)*2*Math.PI/N;for(let [p,r,ang]of[[a,ra,t],[a,ra,q],[b,rb,q],[a,ra,t],[b,rb,q],[b,rb,t]])vertex(opaque,pt(p,r,ang),normal(ang),col);}}
+
+// Tapered chinos and shaped leather shoes.
+for(let sign of [-1,1]){
+const ankle=H([sign*.057,.062,.007]),knee=H([sign*.054,.265,.003]),hip=H([sign*.050,.481,0]);
+limb(ankle,knee,h*.023,h*.032,pants,28);limb(knee,hip,h*.032,h*.042,pants,28);ellipsoid(knee,[h*.032,h*.035,h*.032],pants,12,20);
+ellipsoid(H([sign*.057,.023,-.021]),[h*.034,h*.022,h*.068],leather,14,24);
+ellipsoid(H([sign*.057,.039,.015]),[h*.028,h*.022,h*.040],leather,12,20);
+}
+garment([[.445,.090,.055],[.491,.095,.059],[.534,.090,.053]],h,pants,40);
+garment([[.515,.091,.055],[.530,.092,.055]],h,leather,40);
+// A fitted shirt with softly rolled sleeves.
+const shirtRows=[[.525,.090,.056],[.590,.090,.057],[.666,.100,.063],[.728,.110,.068],[.771,.108,.061],[.795,.073,.043],[.810,.033,.029]];
+garment(shirtRows,h,c,40);
+function shirtFront(x,y,offset=.002){let j=0;while(j<shirtRows.length-2&&shirtRows[j+1][0]<y)j++;const a=shirtRows[j],b=shirtRows[j+1],t=(y-a[0])/(b[0]-a[0]),rx=a[1]+(b[1]-a[1])*t,rz=a[2]+(b[2]-a[2])*t;return H([x,y,-rz*Math.sqrt(Math.max(.02,1-(x/rx)**2))-offset]);}
+for(let sign of [-1,1]){
+const shoulder=H([sign*.108,.757,0]),sleeve=H([sign*.133,.651,-.006]),elbow=H([sign*.138,.628,-.010]),wrist=H([sign*(sign<0?.145:.140),.511,sign<0?-.025:-.042]);
+ellipsoid(shoulder,[h*.026,h*.029,h*.035],c,14,24);limb(shoulder,sleeve,h*.026,h*.024,c,28);
+limb(H([sign*.129,.668,-.005]),sleeve,h*.027,h*.026,color(c,1.12),28);
+ellipsoid(elbow,[h*.020,h*.023,h*.021],skin,12,20);limb(sleeve,elbow,h*.021,h*.020,skin,24);limb(elbow,wrist,h*.020,h*.0125,skin,28);
+ellipsoid(add(wrist,H([0,-.027,-.002])),[h*.016,h*.030,h*.014],skin,14,22);
+ellipsoid(add(wrist,H([-.012*sign,-.018,-.014])),[h*.006,h*.018,h*.006],skin,12,18);
+}
+const pivot=model.eye,upper=add(pivot,rotateX(sub(H([0,.866,.003]),pivot),model.pitch));
+limb(H([0,.797,.002]),upper,h*.026,h*.028,skin,28);
+const collar=c.map(v=>v*.78+.17);
+tri(shirtFront(-.016,.797),shirtFront(.016,.797),shirtFront(0,.755),tone([.91,.89,.81]));
+for(let sign of [-1,1])quad(shirtFront(sign*.023,.805,.003),shirtFront(sign*.056,.785,.003),shirtFront(sign*.026,.754,.003),shirtFront(sign*.008,.781,.003),collar);
+const ys=[.735,.710,.670,.630,.590,.550,.534];for(let i=0;i<ys.length-1;i++)quad(shirtFront(-.004,ys[i]),shirtFront(.004,ys[i]),shirtFront(.004,ys[i+1]),shirtFront(-.004,ys[i+1]),color(c,.89));
+for(let y of [.713,.657,.600,.548])ellipsoid(shirtFront(0,y,.003),[h*.0022,h*.0022,h*.0012],tone([.88,.87,.78]),8,10);
+model.head=true;ovalFace();
+for(let sign of [-1,1])ellipsoid(H([sign*.058,.916,.002]),[h*.0085,h*.017,h*.011],skin,12,20);
+// A neat side part and softly swept short hair, capped at the exact body height.
+const hairPoint=(a,t)=>H([.064*Math.sin(a)*Math.cos(t),.926+.074*Math.cos(a),.004+.068*Math.sin(a)*Math.sin(t)]);
+const edge=t=>1.79+.17*Math.max(0,Math.sin(t))-.63*Math.max(0,-Math.sin(t))+.23*Math.cos(t)*Math.max(0,-Math.sin(t));
+const hairSample=(j,t)=>{const a=j/12*edge(t);return {p:hairPoint(a,t),n:norm([Math.sin(a)*Math.cos(t)/.064,Math.cos(a)/.074,Math.sin(a)*Math.sin(t)/.068])};};
+for(let j=0;j<12;j++)for(let i=0;i<48;i++){let t=i*Math.PI/24,u=(i+1)*Math.PI/24,a=hairSample(j,t),b=hairSample(j+1,t),d=hairSample(j,u),e=hairSample(j+1,u);for(let v of [a,b,e,a,e,d])vertex(opaque,v.p,v.n,hair);}
+for(let t of [-2.55,-2.30,-2.02,-1.72,-1.08,-.78,.60,2.45])for(let j=2;j<11;j++)line(hairPoint(j/12*edge(t),t),hairPoint((j+1)/12*edge(t),t),color(hair,1.14),.45);
+const eyes=tone([.25,.26,.22]),white=tone([.94,.93,.87]),lips=tone([.57,.36,.31]);
+for(let sign of [-1,1]){
+const ex=sign*.025;
+patch(ex,EYE_RATIO,.0100,.0035,white,.0009);
+patch(ex,EYE_RATIO,.0033,.0036,eyes,.0013);
+patch(ex-sign*.001,EYE_RATIO+.0012,.0009,.001,tone([.98,.97,.92]),.0018);
+const brow=[[sign*.013,EYE_RATIO+.013],[sign*.024,EYE_RATIO+.016],[sign*.035,EYE_RATIO+.014]];
+for(let i=0;i<2;i++){let a=brow[i],b=brow[i+1];limb(H([a[0],a[1],faceDepth(...a)-.0012]),H([b[0],b[1],faceDepth(...b)-.0012]),h*(i?.0020:.0016),h*(i?.0010:.0020),hair,12);}
+}
+patch(0,EYE_RATIO-.043,.011,.0016,lips,.0008);
+patch(0,EYE_RATIO-.046,.009,.0016,color(lips,1.08),.001);
+}
+function childModel(h,c,fade){
+const H=p=>p.map(v=>v*h),tone=a=>fade?a.map(v=>v*.32+.61):a;
+const skin=tone([.92,.77,.65]),hair=tone([.30,.22,.16]),shorts=tone([.30,.47,.48]),cream=tone([.92,.91,.82]);
+const rows=[[.812,.015,.013],[.824,.036,.028],[.846,.056,.049],[.874,.067,.061],[.900,.071,.068],[.926,.071,.070],[.949,.064,.064],[.973,.047,.049],[.990,.026,.028],[.997,.001,.001 ]];
+function ovalFace(){const N=56;
+const sample=(j,t)=>{let r=rows[j],a=rows[Math.max(0,j-1)],b=rows[Math.min(rows.length-1,j+1)],dy=b[0]-a[0],dx=(b[1]-a[1])/dy,dz=(b[2]-a[2])/dy;const x=r[1]*Math.cos(t),y=r[0],front=Math.max(0,-Math.sin(t));return {p:H([x,y,r[2]*Math.sin(t)-noseDepth(x,y)*front**8]),n:faceNormal(x,y,t,r,dx,dz)};};
+for(let j=0;j<rows.length-1;j++)for(let i=0;i<N;i++){let a=sample(j,i*2*Math.PI/N),b=sample(j+1,i*2*Math.PI/N),d=sample(j,(i+1)*2*Math.PI/N),e=sample(j+1,(i+1)*2*Math.PI/N);for(let v of [a,b,e,a,e,d])vertex(opaque,v.p,v.n,skin);}}
+function faceNormal(x,y,t,r,dx,dz){let n=norm([Math.cos(t)/r[1],-dx/r[1]*Math.cos(t)**2-dz/r[2]*Math.sin(t)**2,Math.sin(t)/r[2]]),d=noseDepth(x,y)*Math.max(0,-Math.sin(t))**8,z=Math.abs(n[2]);return norm([n[0]+2*x/.0001*d*z,n[1]+2*(y-(EYE_RATIO-.024))/.000324*d*z,n[2]]);}
+function noseDepth(x,y){return .0055*Math.exp(-((x/.010)**2)-((y-(EYE_RATIO-.024))/.018)**2);}
+function faceDepth(x,y){let j=0;while(j<rows.length-2&&rows[j+1][0]<y)j++;const a=rows[j],b=rows[j+1],t=Math.max(0,Math.min(1,(y-a[0])/(b[0]-a[0]))),rx=a[1]+(b[1]-a[1])*t,rz=a[2]+(b[2]-a[2])*t;return -rz*Math.sqrt(Math.max(.05,1-(x/rx)**2))-noseDepth(x,y);}
+function patch(x,y,rx,ry,col,bump=.001){let center=H([x,y,faceDepth(x,y)-bump]);for(let i=0;i<24;i++){let a=i*Math.PI/12,b=(i+1)*Math.PI/12,point=t=>{const xx=x+rx*Math.cos(t),yy=y+ry*Math.sin(t);return H([xx,yy,faceDepth(xx,yy)-bump]);};tri(center,point(a),point(b),col);}}
+function limb(a,b,ra,rb,col,N=24){const w=norm(sub(b,a)),u=norm(cross(w,Math.abs(w[1])<.9?[0,1,0]:[1,0,0])),v=cross(w,u),slope=(ra-rb)/Math.hypot(...sub(b,a));const pt=(p,r,t)=>add(p,add(mul(u,r*Math.cos(t)),mul(v,r*Math.sin(t)))),normal=t=>norm(add(add(mul(u,Math.cos(t)),mul(v,Math.sin(t))),mul(w,slope)));for(let i=0;i<N;i++){let t=i*2*Math.PI/N,q=(i+1)*2*Math.PI/N;for(let [p,r,ang]of[[a,ra,t],[a,ra,q],[b,rb,q],[a,ra,t],[b,rb,q],[b,rb,t]])vertex(opaque,pt(p,r,ang),normal(ang),col);}}
+
+
+for(let sign of [-1,1]){
+const ankle=H([sign*.052,.068,.005]),knee=H([sign*.050,.253,0]),hip=H([sign*.050,.473,.005]);
+limb(ankle,knee,h*.022,h*.029,skin,24);limb(knee,hip,h*.029,h*.042,skin,24);ellipsoid(knee,[h*.030,h*.029,h*.031],skin,12,18);
+limb(H([sign*.052,.065,.005]),H([sign*.052,.124,.004]),h*.024,h*.026,cream,24);
+ellipsoid(H([sign*.052,.027,-.018]),[h*.037,h*.026,h*.066],cream,14,24);
+ellipsoid(H([sign*.052,.047,.012]),[h*.032,h*.023,h*.041],cream,12,20);
+ellipsoid(H([sign*.052,.014,-.020]),[h*.038,h*.010,h*.065],tone([.73,.80,.76]),10,20);
+for(let y of [.044,.053])limb(H([sign*.052-.018,y,-.045]),H([sign*.052+.018,y,-.045]),h*.0016,h*.0016,tone([.73,.75,.67]),8);
+limb(H([sign*.052,.376,.002]),hip,h*.045,h*.043,shorts,28);
+limb(H([sign*.052,.375,.002]),H([sign*.052,.390,.002]),h*.046,h*.046,color(shorts,1.10),28);
+}
+garment([[.445,.094,.060],[.482,.096,.061],[.510,.090,.055]],h,shorts,40);
+const shirtRows=[[.497,.090,.057],[.571,.092,.059],[.650,.096,.061],[.710,.092,.062],[.750,.068,.045],[.774,.029,.025]];
+garment(shirtRows,h,c,40);
+garment([[.759,.047,.034],[.777,.029,.026]],h,cream,32);
+for(let sign of [-1,1]){
+const shoulder=H([sign*.090,.710,0]),sleeve=H([sign*.108,.664,-.003]),elbow=H([sign*.121,.602,-.007]),wrist=H([sign*.124,.513,-.027]);
+ellipsoid(shoulder,[h*.027,h*.028,h*.032],c,14,22);limb(shoulder,sleeve,h*.025,h*.025,c,24);
+limb(sleeve,elbow,h*.019,h*.016,skin,24);ellipsoid(elbow,[h*.017,h*.020,h*.018],skin,10,18);limb(elbow,wrist,h*.016,h*.011,skin,24);
+ellipsoid(add(wrist,H([0,-.024,-.001])),[h*.015,h*.025,h*.013],skin,12,20);
+ellipsoid(add(wrist,H([-.010*sign,-.017,-.010])),[h*.005,h*.014,h*.005],skin,10,16);
+}
+limb(H([0,.762,.003]),H([0,.832,.003]),h*.023,h*.025,skin,24);
+// Rounded face and a softly swept, slightly uneven fringe.
+model.head=true;ovalFace();
+for(let sign of [-1,1])ellipsoid(H([sign*.071,.910,.004]),[h*.008,h*.016,h*.010],skin,12,18);
+const edge=t=>1.91+.12*Math.max(0,Math.sin(t))-.72*Math.max(0,-Math.sin(t))+.16*Math.cos(t)*Math.max(0,-Math.sin(t))+.07*Math.sin(5*t)*Math.max(0,-Math.sin(t));
+const hairPoint=(a,t)=>H([.075*Math.sin(a)*Math.cos(t),.925+.075*Math.cos(a),.005+.076*Math.sin(a)*Math.sin(t)]);
+const hairSample=(j,t)=>{const a=j/12*edge(t);return {p:hairPoint(a,t),n:norm([Math.sin(a)*Math.cos(t)/.075,Math.cos(a)/.075,Math.sin(a)*Math.sin(t)/.076])};};
+for(let j=0;j<12;j++)for(let i=0;i<48;i++){const t=i*Math.PI/24,u=(i+1)*Math.PI/24,a=hairSample(j,t),b=hairSample(j+1,t),d=hairSample(j,u),e=hairSample(j+1,u);for(let v of [a,b,e,a,e,d])vertex(opaque,v.p,v.n,hair);}
+for(let t of [-2.30,-1.94,-1.65,-1.10,-.75,2.35])for(let j=3;j<11;j++)line(hairPoint(j/12*edge(t),t),hairPoint((j+1)/12*edge(t),t),color(hair,1.16),.4);
+const eye=tone([.26,.22,.17]),white=tone([.97,.95,.90]);
+for(let sign of [-1,1]){
+const ex=sign*.029;
+patch(ex,EYE_RATIO,.0115,.0046,white,.0009);patch(ex,EYE_RATIO,.0041,.0044,eye,.0014);patch(ex-sign*.0012,EYE_RATIO+.0014,.0012,.0013,cream,.0019);
+const brow=[[sign*.018,EYE_RATIO+.014],[sign*.028,EYE_RATIO+.017],[sign*.039,EYE_RATIO+.015]];
+for(let i=0;i<2;i++){const a=brow[i],b=brow[i+1];limb(H([a[0],a[1],faceDepth(...a)-.0009]),H([b[0],b[1],faceDepth(...b)-.0009]),h*.0013,h*.0011,hair,12);}
+}
+const lip=tone([.64,.39,.34]);for(let i=0;i<12;i++){const x=-.014+i*.028/12,u=-.014+(i+1)*.028/12,y=EYE_RATIO-.052+.004*(x/.014)**2,v=EYE_RATIO-.052+.004*(u/.014)**2;limb(H([x,y,faceDepth(x,y)-.001]),H([u,v,faceDepth(u,v)-.001]),h*.0008,h*.0008,lip,10);}
+patch(0,EYE_RATIO-.055,.009,.0015,tone([.78,.52,.45]),.0007);
+}
+function humanoid(x,z,h,type,idx=0,base=0){const isObserver=type==='observer',child=type===3,female=type===2,fade=state.focus&&state.focus!==type&&!isObserver;let c=palette[type];if(fade)c=c.map(v=>v*.32+.61);const skin=fade?[.82,.81,.75]:[.84,.68,.52],hair=fade?[.69,.71,.66]:female?[.26,.18,.14]:[.21,.20,.18],pants=fade?[.68,.73,.67]:[.22,.30,.30],shoe=fade?[.65,.69,.65]:[.20,.25,.25];const H=p=>p.map(v=>v*h);const yaw=isObserver?Math.PI+state.lookYaw*Math.PI/180:0,pitch=isObserver?state.pitch*Math.PI/180:0;
+for(let j=4;j>0;j--)ring([x,0,z],h*(.15+j*.021),h*(.09+j*.024),[.75-j*.013,.80-j*.013,.73-j*.013],.001+(5-j)*.0003);
+model={x,z,base,yaw,pitch,head:false,eye:H([0,EYE_RATIO,-.066])};
+if(female){womanModel(h,c,fade);}else if(child){childModel(h,c,fade);}else{manModel(h,c,fade);}
+let person={x,z,h,type,idx,base,yaw,pitch,eye:[x,base+h*EYE_RATIO,z-.066*h],top:[x,base+h,z],waist:[x,base+h*.47,z]};if(isObserver)person.eye=observerEye();people.push(person);model=null;
+if(type===4){const wood=[.53,.35,.20],strap=[.30,.28,.24];for(let sign of [-1,1]){let sx=x+sign*.055*h;tapered([sx,.012,z+.026*h],[sx,base+.48*h,z+.026*h],.017,.017,wood,12);quad([sx-.045,base-.018,z-.07],[sx+.045,base-.018,z-.07],[sx+.045,base-.018,z+.07],[sx-.045,base-.018,z+.07],wood);tapered([sx,base+.10*h,z-.035*h],[sx,base+.10*h,z+.05*h],h*.030,h*.030,strap,10);}}
+return person;}
+function rebuild(){opaque=[];people=[];model=null;
+quad([-4000,0,-4000],[-4000,0,4000],[4000,0,4000],[4000,0,-4000],[.86,.89,.83],1,1);
+let ds=[state.near,state.middle,state.far],xs=[-1.9,.15,2.1];for(let row=2;row>=0;row--)for(let t=1;t<=3;t++){if(!state['group'+t])continue;let x=xs[t-1]+(row===1?.48:row===2?-.35:0),z=ds[row]-5,h=t===1?state.adultHeight:t===2?state.womanHeight:state.childHeight;humanoid(x,z,h,t,row);}
+if(state.group4)humanoid(-3.6,state.stiltDistance-5,state.stiltManHeight,4,0,state.stiltHeight);
+staticOpaque=opaque;staticPeople=people;setBuffer(staticOpaque,staticBuffer);dirty=false;rebuildGuides();}
+function physicalRulerVisible(){return state.ruler&&state.view!=='parallelFront'&&state.view!=='parallelSide';}
+function rebuildGuides(){opaque=[];translucent=[];lineVerts=[];people=staticPeople.slice();marks=[];rulerLabels=[];model=null;
+if(state.observer&&state.view!=='eye')humanoid(state.observerX,state.observerZ,state.observerHeight,'observer');
+const lineC=[.69,.32,.43],halfC=[.72,.56,.24],eye=observerEye(),eyeY=eye[1],ds=[state.near,state.middle,state.far];
+if(state.plane)quad([-5,eyeY,-7],[-5,eyeY,state.far-3],[5,eyeY,state.far-3],[5,eyeY,-7],lineC,.045,2,translucent);
+if(state.horizon&&state.view!=='eye'){for(let x of [-5,5])line([x,eyeY,-7],[x,eyeY,state.far-3],lineC,.6);for(let z of [-7,state.far-3])line([-5,eyeY,z],[5,eyeY,z],lineC,.6);}
+for(let row=0;row<3;row++){let ps=staticPeople.filter(p=>p.idx===row&&p.type!==4),z=ds[row]-5;
+if(state.relations){dashed([-2.6,eyeY,z],[2.65,eyeY,z],lineC,.76,.16);for(let p of ps){let key=p.type===1?p.eye:p.top;marks.push({p:key,type:p.type,kind:'key',idx:row});if(p.type===2)dashed([p.x,eyeY,z],p.top,palette[2],.85,.04);}}
+if(state.waist&&(!state.focus||state.focus===3)){dashed([-2.3,state.childHeight,z],[2.45,state.childHeight,z],halfC,.66,.14);for(let p of ps.filter(p=>p.type===1||p.type===3))marks.push({p:[p.x,state.childHeight,z],type:3,kind:'waist',idx:row});}}
+if(state.relations&&state.group4){let p=staticPeople.find(p=>p.type===4);marks.push({p:p.eye,type:4,kind:'key',idx:0});dashed([p.x-.4,p.eye[1],p.z],[p.x+.4,p.eye[1],p.z],palette[4],.85,.1);}
+if(state.rays)for(let p of staticPeople)dashed(eye,p.type===1||p.type===4?p.eye:p.top,palette[p.type],.6,.24);
+if(state.dimensions)for(let p of people){const c=palette[p.type],x=p.x-.27,z=p.z;line([x,p.base,z],[x,p.base+p.h,z],c,.9);for(let i=0;i<=Math.floor(p.h*10);i++){let y=p.base+i/10,major=i%5===0;line([x-(major?.05:.025),y,z],[x+(major?.05:.025),y,z],c,.8);}line([x-.06,p.base+p.h,z],[x+.06,p.base+p.h,z],c,.9);}
+if(state.view==='parallelFront')line([-100,0,4],[100,0,4],[.60,.68,.59],.9);if(state.view==='parallelSide')line([0,0,-100],[0,0,100],[.60,.68,.59],.9);
+if(physicalRulerVisible()){let x=state.rulerX,z=state.rulerDistance-5,h=Math.max(3.2,state.stiltHeight+state.stiltManHeight+.2),c=[.37,.45,.40];tapered([x,0,z],[x,h,z],.013,.013,[.58,.63,.54],12);for(let i=0;i<=Math.floor(h*10);i++){let y=i/10,major=i%5===0;line([x-.015,y,z],[x+(major?.15:.07),y,z],c,.95);if(major)rulerLabels.push({p:[x-.07,y,z],text:y.toFixed(1)+' 米'});}ring([x,0,z],.14,.14,[.57,.62,.53],.004);}
+if(state.view!=='eye'&&(state.horizon||state.rays||state.plane)){ellipsoid(eye,[.024,.024,.024],lineC,8,12);marks.push({p:eye,type:'observer',kind:'eye',idx:0});}
+setBuffer(opaque,opaqueBuffer);setBuffer(translucent,transBuffer);setBuffer(lineVerts,lineBuffer);guidesDirty=false;}
+
+const vs=`attribute vec3 aPos; attribute vec3 aNormal; attribute vec4 aColor; attribute float aKind; uniform mat4 uMatrix; varying vec3 vPos; varying vec3 vNormal; varying vec4 vColor; varying float vKind; void main(){vPos=aPos;vNormal=aNormal;vColor=aColor;vKind=aKind;gl_Position=uMatrix*vec4(aPos,1.0);}`;
+const fs=`precision highp float; varying vec3 vPos; varying vec3 vNormal; varying vec4 vColor; varying float vKind; uniform vec3 uEye; uniform float uGrid; void main(){vec3 sky=vec3(0.927,0.95,0.923);float depth=length(vPos-uEye);vec3 c=vColor.rgb;if(vKind<0.5){vec3 n=normalize(vNormal);float light=0.67+0.29*abs(dot(n,normalize(vec3(-0.45,0.8,-0.6))));c*=light;}else if(vKind<1.5){vec2 g=abs(fract(vPos.xz+0.5)-0.5);float th=0.009+min(depth,60.0)*0.00045;float grid=1.0-smoothstep(th,th*2.0,min(g.x,g.y));c=mix(c,vec3(0.70,0.77,0.69),grid*0.45*uGrid*exp(-depth*0.028));}float fog=1.0-exp(-depth*0.014);if(vKind<1.5)c=mix(c,sky,min(fog,0.985));gl_FragColor=vec4(c,vColor.a);}`;
+function shader(type,src){let sh=gl.createShader(type);gl.shaderSource(sh,src);gl.compileShader(sh);if(!gl.getShaderParameter(sh,gl.COMPILE_STATUS))throw new Error(gl.getShaderInfoLog(sh));return sh;}
+const program=gl.createProgram();gl.attachShader(program,shader(gl.VERTEX_SHADER,vs));gl.attachShader(program,shader(gl.FRAGMENT_SHADER,fs));gl.linkProgram(program);if(!gl.getProgramParameter(program,gl.LINK_STATUS))throw new Error(gl.getProgramInfoLog(program));gl.useProgram(program);
+const attr={p:gl.getAttribLocation(program,'aPos'),n:gl.getAttribLocation(program,'aNormal'),c:gl.getAttribLocation(program,'aColor'),k:gl.getAttribLocation(program,'aKind')},uni={m:gl.getUniformLocation(program,'uMatrix'),eye:gl.getUniformLocation(program,'uEye'),grid:gl.getUniformLocation(program,'uGrid')};
+const staticBuffer=gl.createBuffer(),opaqueBuffer=gl.createBuffer(),transBuffer=gl.createBuffer(),lineBuffer=gl.createBuffer();
+function setBuffer(vertices,buffer){gl.bindBuffer(gl.ARRAY_BUFFER,buffer);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(vertices),gl.STATIC_DRAW);}
+function drawBuffer(buffer,n,mode){if(!n)return;gl.bindBuffer(gl.ARRAY_BUFFER,buffer);for(let [id,size,offset]of[[attr.p,3,0],[attr.n,3,12],[attr.c,4,24],[attr.k,1,40]]){gl.enableVertexAttribArray(id);gl.vertexAttribPointer(id,size,gl.FLOAT,false,44,offset);}gl.drawArrays(mode,0,n/11);}
+function updateCamera(){let pos,target,parallel=state.view==='parallelFront'||state.view==='parallelSide',span;
+if(parallel){let aspect=width/height,side=state.view==='parallelSide',minZ=Math.min(state.near-5,state.observer?state.observerZ:state.near-5,state.group4?state.stiltDistance-5:state.near-5,physicalRulerVisible()?state.rulerDistance-5:state.near-5),maxZ=Math.max(state.far-5,state.observer?state.observerZ:state.far-5,state.group4?state.stiltDistance-5:state.far-5,physicalRulerVisible()?state.rulerDistance-5:state.far-5),minX=Math.min(-3.9,physicalRulerVisible()?state.rulerX-.35:-3.9,state.observer?state.observerX-.25:-3.9),maxX=Math.max(3,physicalRulerVisible()?state.rulerX+.45:3,state.observer?state.observerX+.25:3),maxH=Math.max(state.adultHeight,state.womanHeight,state.childHeight,state.observer?state.observerHeight:0,state.group4||physicalRulerVisible()?state.stiltTotalHeight+.2:0),baseSpan=Math.max(6.4,maxH/.66,(side?maxZ-minZ+3:maxX-minX+1.5)/aspect);span=baseSpan*100/state.zoom;target=side?[0,.26*baseSpan,(minZ+maxZ)/2]:[(minX+maxX)/2,.26*baseSpan,4];let right=side?[0,0,-1]:[-1,0,0];target=add(target,add(mul(right,state.panX),[0,state.panY,0]));pos=add(target,side?[40,0,0]:[0,0,-40]);}else if(state.view==='eye'){const t=state.lookYaw*Math.PI/180,p=state.pitch*Math.PI/180;pos=observerEye();target=add(pos,[Math.sin(t)*Math.cos(p)*15,Math.sin(p)*15,Math.cos(t)*Math.cos(p)*15]);}else{target=[-.3,.9,4];let t=state.orbitYaw*Math.PI/180,p=state.orbitElevation*Math.PI/180,r=19*100/state.zoom;pos=[target[0]+Math.sin(t)*Math.cos(p)*r,target[1]+Math.sin(p)*r,target[2]-Math.cos(t)*Math.cos(p)*r];}
+const vm=viewMatrix(pos,target);camera.kind=parallel?'orthographic':'perspective';camera.span=span;camera.fov=2*Math.atan(Math.max(Math.tan(49*Math.PI/360),Math.tan(63*Math.PI/360)*height/width)*(state.view==='eye'?100/state.zoom:1));let pm;if(parallel)pm=orthographic(span,width/height,.07,10000);else{pm=perspective(camera.fov,width/height,.07,10000);pm[9]=-.20;}matrix=multiply(pm,vm);}
+
+function pill(text,x,y,c='#425d52',bg='#fbfcf4ed',align='left',size=11){ctx.font=`500 ${size}px "Microsoft YaHei",sans-serif`;let tw=ctx.measureText(text).width,w=tw+18,h=size+15;if(align==='center')x-=w/2;if(align==='right')x-=w;ctx.fillStyle=bg;ctx.beginPath();ctx.roundRect(x,y-h/2,w,h,6);ctx.fill();ctx.fillStyle=c;ctx.fillText(text,x+9,y+size*.35);}
+function circle(p,c,r=4){ctx.beginPath();ctx.arc(p.x,p.y,r,0,Math.PI*2);ctx.fillStyle='#f7faf1';ctx.fill();ctx.lineWidth=1.5;ctx.strokeStyle=c;ctx.stroke();}
+function overlayDraw(){ctx.clearRect(0,0,width,height);
+if(state.horizon&&state.view==='eye'){let theta=state.lookYaw*Math.PI/180;let p=project(add(camera.pos,[Math.sin(theta)*1e6,0,Math.cos(theta)*1e6]));if(p&&p.y>0&&p.y<height){ctx.strokeStyle='#b55f7799';ctx.lineWidth=1;ctx.setLineDash([9,6]);ctx.beginPath();ctx.moveTo(0,p.y);ctx.lineTo(width,p.y);ctx.stroke();ctx.setLineDash([]);pill(Math.abs(state.pitch)<.01?'视平线 = 地平线':'地平线',width-20,p.y-14,'#a4546c','#faf8f2e0','right',12);}}
+if(state.horizon&&state.view==='global'){let p=project([-5,observerEye()[1],4]);if(p&&p.x>0&&p.x<width)pill('与眼睛等高的水平面',p.x,p.y-18,'#a4546c','#faf8f2e0','left',11);}
+if(state.horizon&&camera.kind==='orthographic'){let p=project([camera.target[0],observerEye()[1],camera.target[2]]);if(p&&p.y>0&&p.y<height){ctx.strokeStyle='#b55f7799';ctx.lineWidth=1;ctx.setLineDash([9,6]);ctx.beginPath();ctx.moveTo(0,p.y);ctx.lineTo(width,p.y);ctx.stroke();ctx.setLineDash([]);pill('与眼睛等高的水平面',width-20,p.y-14,'#a4546c','#faf8f2e0','right',11);}}
+for(let m of marks){if(state.focus&&m.type!==state.focus&&m.type!=='observer')continue;let p=project(m.p);if(!p||p.x<5||p.x>width-5||p.y<5||p.y>height-5)continue;circle(p,m.kind==='eye'?'#b55f77':hex[m.type],m.idx===0?4:2.5);}
+if(state.labels)for(let p of people){if(p.type==='observer'){let q=project([p.x,p.base+p.h+.16,p.z]);if(q)pill('观察者',q.x,q.y,hex.observer,undefined,'center');continue;}if(state.focus&&p.type!==state.focus)continue;if(p.idx>0)continue;let q=project([p.x,p.base+p.h+.18,p.z]);if(!q||q.x<10||q.x>width-10||q.y<(q.x>width*.55?40:170)||q.y>height-20)continue;let text=p.type===1?'① 眼睛':p.type===2?'② 头顶':p.type===4?'高跷男人':'③ 儿童头顶';pill(text,q.x,q.y,hex[p.type],undefined,'center',12);}
+if(state.dimensions)for(let p of people){if(p.type==='observer')continue;let q=project([p.x-.4,p.base+p.h*.5,p.z]);if(q&&q.x>0&&q.x<width&&q.y>0&&q.y<height)pill(p.h.toFixed(3)+' 米',q.x,q.y,hex[p.type],undefined,'right',10);}
+if(state.labels&&state.waist&&(!state.focus||state.focus===3)&&state.group1){let p=people.find(p=>p.type===1&&p.idx===0);if(p){let q=project([p.x-.3,state.childHeight,p.z]);if(q&&q.x>20&&q.x<width-20)pill('约半腰',q.x-7,q.y,hex[3],undefined,'right',10);}}
+for(let label of rulerLabels){let q=project(label.p);if(q&&q.x>12&&q.x<width-12&&q.y>100&&q.y<height-30)pill(label.text,q.x,q.y,'#617466','#f7faf1c9','left',10);}
+}
+function backgroundTicks(){if(camera.kind!=='orthographic'||!state.ruler)return [];let scale=height/camera.span,start=Math.max(0,Math.ceil((camera.target[1]-.6*camera.span)*10)),end=Math.ceil((camera.target[1]+.4*camera.span)*10),step=scale*.1<7?5:1;start=Math.ceil(start/step)*step;let ticks=[];for(let i=start;i<=end;i+=step){const p=project([camera.target[0],i/10,camera.target[2]]);if(p&&p.y>=0&&p.y<=height)ticks.push({height:i/10,y:p.y,major:i%5===0,whole:i%10===0});}return ticks;}
+function drawBackground(){bgctx.clearRect(0,0,width,height);bgctx.fillStyle='#edf2ed';bgctx.fillRect(0,0,width,height);if(camera.kind!=='orthographic')return;const scale=height/camera.span,ground=project([camera.target[0],0,camera.target[2]]);if(ground&&ground.y<height){bgctx.fillStyle='#e5ecdf';bgctx.fillRect(0,Math.max(0,ground.y),width,height-Math.max(0,ground.y));}if(!state.ruler)return;bgctx.font='10px "Microsoft YaHei",sans-serif';bgctx.textAlign='right';for(let tick of backgroundTicks()){let y=tick.height,q={y:tick.y},major=tick.major,whole=tick.whole;bgctx.strokeStyle=whole?'#bac9b6':major?'#ced9c9':'#e0e7dc';bgctx.lineWidth=whole?.8:.5;bgctx.beginPath();bgctx.moveTo(0,q.y);bgctx.lineTo(width,q.y);bgctx.stroke();if(major){let text=y.toFixed(1)+' 米',w=bgctx.measureText(text).width;bgctx.fillStyle='#edf2eddd';bgctx.fillRect(width-w-22,q.y-13,w+12,14);bgctx.fillStyle='#7b8f77';bgctx.fillText(text,width-16,q.y-3);}}}
+
+const heldKeys=new Set();let lastFrame=0;
+function advanceMovement(dt){if(state.view!=='eye'||!heldKeys.size)return false;let forward=(heldKeys.has('KeyW')?1:0)-(heldKeys.has('KeyS')?1:0),side=(heldKeys.has('KeyD')?1:0)-(heldKeys.has('KeyA')?1:0);if(!forward&&!side)return false;let len=Math.hypot(forward,side),step=dt*(heldKeys.has('ShiftLeft')||heldKeys.has('ShiftRight')?3.3:1.7)/len,t=state.lookYaw*Math.PI/180;state.observerX+=step*(Math.sin(t)*forward-Math.cos(t)*side);state.observerZ+=step*(Math.cos(t)*forward+Math.sin(t)*side);state.observerX=Math.min(35,Math.max(-35,state.observerX));state.observerZ=Math.min(45,Math.max(-35,state.observerZ));guidesDirty=true;return true;}
+function render(timestamp=0){raf=0;let dt=lastFrame?Math.min(.05,Math.max(0,(timestamp-lastFrame)/1000)):0;lastFrame=timestamp;advanceMovement(dt);const w=Math.max(1,canvas.clientWidth),h=Math.max(1,canvas.clientHeight),d=Math.min(window.devicePixelRatio||1,2);if(w!==width||h!==height||d!==dpr){width=w;height=h;dpr=d;canvas.width=overlay.width=background.width=Math.round(w*d);canvas.height=overlay.height=background.height=Math.round(h*d);ctx.setTransform(d,0,0,d,0,0);bgctx.setTransform(d,0,0,d,0,0);}if(dirty)rebuild();else if(guidesDirty)rebuildGuides();updateCamera();drawBackground();gl.viewport(0,0,canvas.width,canvas.height);if(camera.kind==='orthographic')gl.clearColor(0,0,0,0);else gl.clearColor(.927,.95,.923,1);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);gl.enable(gl.DEPTH_TEST);gl.depthMask(true);gl.disable(gl.CULL_FACE);gl.disable(gl.BLEND);gl.uniformMatrix4fv(uni.m,false,matrix);gl.uniform3fv(uni.eye,camera.pos);gl.uniform1f(uni.grid,state.grid?1:0);drawBuffer(staticBuffer,staticOpaque.length,gl.TRIANGLES);drawBuffer(opaqueBuffer,opaque.length,gl.TRIANGLES);gl.enable(gl.BLEND);gl.blendFuncSeparate(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA,gl.ONE,gl.ONE_MINUS_SRC_ALPHA);gl.depthMask(false);drawBuffer(lineBuffer,lineVerts.length,gl.LINES);drawBuffer(transBuffer,translucent.length,gl.TRIANGLES);gl.depthMask(true);overlayDraw();if(state.view==='eye'&&heldKeys.size)schedule();}
+function schedule(rebuildGeometry=false){if(rebuildGeometry===true)dirty=true;if(rebuildGeometry==='guides')guidesDirty=true;if(!raf)raf=requestAnimationFrame(render);}
+function numberText(key){const value=state[key];return key==='pitch'?String(Math.round(value)):['near','middle','far','stiltDistance','rulerX','rulerDistance'].includes(key)?Number(value).toFixed(1):Number(value).toFixed(3);}
+function sync(){for(let key of Object.keys(defaults)){let input=$(key);if(!input)continue;if(input.type==='checkbox')input.checked=state[key];else input.value=state[key];let out=$(key+'Out');if(out&&document.activeElement!==out)out.value=numberText(key);}
+$('stiltTotalHeight').value=state.stiltTotalHeight;if(document.activeElement!==$('stiltTotalHeightOut'))$('stiltTotalHeightOut').value=numberText('stiltTotalHeight');
+for(let key of ['observerHeight','adultHeight','womanHeight','childHeight','stiltTotalHeight']){const marker=$(key+'Eye'),input=$(key),relative=key==='stiltTotalHeight'?state.adultHeight*(1+EYE_RATIO):state[key]*EYE_RATIO,eye=relative;let fraction=Math.min(1,Math.max(0,(relative-Number(input.min))/(Number(input.max)-Number(input.min))));marker.style.left=`calc(${fraction*100}% + ${8-16*fraction}px)`;marker.dataset.tip='眼高 '+eye.toFixed(3)+' 米';marker.setAttribute('aria-label',marker.dataset.tip);}
+document.querySelectorAll('[data-view]').forEach(b=>{let active=b.dataset.view===state.view;b.classList.toggle('active',active);b.setAttribute('aria-pressed',active);});document.querySelectorAll('[data-focus]').forEach(b=>{let active=+b.dataset.focus===state.focus;b.classList.toggle('active',active);b.setAttribute('aria-pressed',active);});document.querySelectorAll('[data-point]').forEach(p=>p.classList.toggle('muted',state.focus&&+p.dataset.point!==state.focus));$('knowledge').classList.toggle('hidden',!state.text);}
+function setView(view){if(!['eye','global','parallelFront','parallelSide'].includes(view))return;heldKeys.clear();state.view=view;state.zoom=100;state.panX=state.panY=0;if(view==='global'){state.orbitYaw=33;state.orbitElevation=24;}sync();schedule('guides');}
+for(let key of Object.keys(defaults))$(key).addEventListener('input',()=>{let el=$(key);state[key]=el.type==='checkbox'?el.checked:Number(el.value);sync();let staticKeys=['group1','group2','group3','group4','adultHeight','womanHeight','childHeight','near','middle','far','stiltDistance'];schedule(staticKeys.includes(key)?true:['grid','text','labels'].includes(key)?false:'guides');});
+function commitNumber(key){const out=$(key+'Out'),slider=$(key);let value=Number(out.value);if(out.value.trim()===''||!Number.isFinite(value)){out.value=numberText(key);return;}value=Math.max(Number(slider.min),Math.min(Number(slider.max),value));let step=Number(slider.step)||.001;value=Number((Math.round(value/step)*step).toFixed(6));const target=key==='stiltTotalHeight'?'adultHeight':key;if(key==='stiltTotalHeight')value=Number((Math.round(value/2*1000)/1000).toFixed(3));state[target]=value;out.value=numberText(key);sync();const staticKeys=['adultHeight','womanHeight','childHeight','near','middle','far','stiltDistance'];schedule(staticKeys.includes(target)?true:'guides');}
+for(const key of [...Object.keys(defaults),'stiltTotalHeight']){const out=$(key+'Out');if(!out)continue;out.addEventListener('focus',()=>{heldKeys.clear();out.select?.();});out.addEventListener('change',()=>commitNumber(key));out.addEventListener('blur',()=>commitNumber(key));out.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();e.stopPropagation?.();commitNumber(key);out.blur?.();}else if(e.key==='Escape'){e.preventDefault();e.stopPropagation?.();out.value=numberText(key);out.blur?.();}});}
+document.querySelectorAll('[data-view]').forEach(b=>b.addEventListener('click',()=>setView(b.dataset.view)));
+document.querySelectorAll('[data-focus]').forEach(b=>b.addEventListener('click',()=>{const next=+b.dataset.focus;state.focus=state.focus===next?0:next;sync();schedule(true);}));
+$('reset').onclick=()=>{heldKeys.clear();Object.assign(state,defaults,{view:'eye',focus:0,observerX:0,observerZ:-5,lookYaw:0,orbitYaw:33,orbitElevation:24,zoom:100,panX:0,panY:0});sync();schedule(true);};
+
+function tray(open){document.body.classList.toggle('tray-closed',!open);$('openTray').setAttribute('aria-expanded',String(open));schedule();}
+$('closeTray').onclick=()=>tray(false);$('openTray').onclick=()=>tray(true);document.addEventListener('keydown',e=>{if(e.key==='Escape')tray(false);if(state.view!=='eye'||!['KeyW','KeyA','KeyS','KeyD','ShiftLeft','ShiftRight'].includes(e.code)||e.target?.matches?.('input,textarea,select,[contenteditable="true"]'))return;e.preventDefault();heldKeys.add(e.code);schedule();});document.addEventListener('keyup',e=>heldKeys.delete(e.code));window.addEventListener('blur',()=>heldKeys.clear());document.addEventListener('visibilitychange',()=>{if(document.hidden)heldKeys.clear();});
+$('fullscreen').onclick=async()=>{try{if(!document.fullscreenElement)await document.documentElement.requestFullscreen();else await document.exitFullscreen();}catch(e){$('fullscreen').textContent='全屏不可用';}schedule();};
+let pointers=new Map(),last=null,pinch=null;
+canvas.addEventListener('pointerdown',e=>{canvas.focus({preventScroll:true});canvas.setPointerCapture(e.pointerId);pointers.set(e.pointerId,[e.clientX,e.clientY]);last=[e.clientX,e.clientY];if(pointers.size===2){let a=[...pointers.values()];pinch={d:Math.hypot(a[0][0]-a[1][0],a[0][1]-a[1][1]),zoom:state.zoom};}});
+canvas.addEventListener('pointermove',e=>{if(!pointers.has(e.pointerId))return;pointers.set(e.pointerId,[e.clientX,e.clientY]);let neckChanged=false;if(pointers.size===2&&pinch){let a=[...pointers.values()],d=Math.hypot(a[0][0]-a[1][0],a[0][1]-a[1][1]);state.zoom=Math.min(170,Math.max(55,pinch.zoom*d/Math.max(1,pinch.d)));}else if(last){let dx=e.clientX-last[0],dy=e.clientY-last[1];if(state.view==='eye'){state.lookYaw=((state.lookYaw-dx*.22+540)%360)-180;state.pitch=Math.max(-65,Math.min(65,state.pitch+dy*.16));neckChanged=true;}else if(state.view==='parallelFront'||state.view==='parallelSide'){state.panX-=dx*camera.span/height;state.panY+=dy*camera.span/height;}else{state.orbitYaw=((state.orbitYaw-dx*.22+540)%360)-180;state.orbitElevation=Math.max(-5,Math.min(75,state.orbitElevation-dy*.16));}}last=[e.clientX,e.clientY];sync();schedule(neckChanged?'guides':false);});
+
+function pointerUp(e){pointers.delete(e.pointerId);last=pointers.size?[...pointers.values()][0]:null;pinch=null;}canvas.addEventListener('pointerup',pointerUp);canvas.addEventListener('pointercancel',pointerUp);canvas.addEventListener('wheel',e=>{e.preventDefault();state.zoom=Math.max(55,Math.min(170,state.zoom-e.deltaY*.05));sync();schedule();},{passive:false});
+canvas.addEventListener('dblclick',()=>setView('eye'));window.addEventListener('resize',()=>schedule());new ResizeObserver(()=>schedule()).observe($('stage'));if(window.matchMedia('(max-width:640px)').matches)tray(false);sync();schedule(true);
+// Geometry and interaction inspection for offline verification.
+window.sceneInspection=()=>({state:{...state},camera,people,marks,width,height,opaque:[...staticOpaque,...opaque],lineVerts,translucent,rulerLabels,physicalRulerVisible:physicalRulerVisible(),project,eyeRatio:EYE_RATIO,observerEye:observerEye(),matrix:Array.from(matrix),rulerPosition:[state.rulerX,0,state.rulerDistance-5],backgroundTicks:backgroundTicks(),heldKeys:[...heldKeys],advanceMovement});
+</script>
+</body>
+</html>

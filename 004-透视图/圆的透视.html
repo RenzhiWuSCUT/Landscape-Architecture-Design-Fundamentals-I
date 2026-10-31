@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>圆的透视</title>
+<style>
+:root{font-family:system-ui,-apple-system,"Microsoft YaHei",sans-serif;color:#353938;background:#eeede8;color-scheme:light}
+*{box-sizing:border-box}html,body{height:100%;margin:0;overflow:hidden}body{display:flex;flex-direction:column}
+main{flex:1;min-height:0;position:relative}canvas{display:block;width:100%;height:100%}
+.angle{position:absolute;top:25px;right:30px;font-size:15px;font-variant-numeric:tabular-nums;color:#6c716d}
+footer{flex:none;padding:19px 28px 22px;background:#fafaf7;border-top:1px solid #dcded7}
+.panel{max-width:1050px;margin:auto}.timeline{display:flex;align-items:center;gap:18px;margin-bottom:17px}
+.timeline input{flex:1;min-width:60px}.frame{display:flex;align-items:center;gap:5px;color:#868c87;font-size:12px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.frame input{width:55px;min-width:0;text-align:center;background:transparent;border:1px solid #dadfd8;border-radius:6px;color:#475047;padding:5px;font:inherit}
+input[type=range]{height:5px;accent-color:#457762;cursor:pointer}input[type=checkbox]{accent-color:#457762;width:15px;height:15px;margin:0}
+.controls{display:flex;align-items:center;justify-content:space-between;gap:15px;flex-wrap:wrap}.buttons,.options{display:flex;align-items:center;gap:8px}
+button,select{font:inherit;font-size:13px;border:1px solid #dfe3dd;background:#fff;border-radius:9px;color:#4c574e;height:37px;cursor:pointer;transition:background .12s}
+button{padding:0 15px;display:flex;align-items:center;justify-content:center;gap:6px}button:hover{background:#edf2eb}button.active{background:#416d57;color:#fff;border-color:#416d57}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid #5d9478;outline-offset:3px}button.icon{width:38px;padding:0}svg{width:14px;height:14px;fill:currentColor}
+.options{gap:18px;font-size:12px;color:#717a72}.options label{display:flex;align-items:center;gap:7px;cursor:pointer}select{height:32px;font-size:12px;padding:0 8px;background:transparent}
+@media(max-width:650px){footer{padding:15px 16px 18px}.controls{justify-content:center;gap:14px}.buttons{gap:5px}button{padding:0 11px}.timeline{gap:10px;margin-bottom:14px}.angle{top:18px;right:19px}.options{gap:18px}}
+</style>
+</head>
+<body>
+<main><canvas id="scene" aria-label="桌面上的红蓝圆形纸片，观察视角从垂直桌面变为倾斜"></canvas><output class="angle" id="angle">0°</output></main>
+<footer><div class="panel">
+<div class="timeline"><input id="timeline" aria-label="动画帧" type="range" min="0" max="240" step="1" value="0"><div class="frame"><input id="frame" aria-label="当前帧" type="number" min="0" max="240" step="1" value="0"><span>/ 240 帧</span></div></div>
+<div class="controls"><div class="buttons">
+<button class="icon" id="reset" aria-label="回到俯视" title="回到俯视"><svg viewBox="0 0 20 20"><path d="M4 3h2v14H4zm12 1v12L7 10z"/></svg></button>
+<button class="icon" id="prev" aria-label="上一帧" title="上一帧"><svg viewBox="0 0 20 20"><path d="M14 4v12L5 10z"/></svg></button>
+<button id="forward"><svg viewBox="0 0 20 20"><path d="M6 3v14l11-7z"/></svg>正放</button>
+<button id="pause" class="active"><svg viewBox="0 0 20 20"><path d="M5 4h3v12H5zm7 0h3v12h-3z"/></svg>暂停</button>
+<button id="reverse"><svg viewBox="0 0 20 20"><path d="M14 3v14L3 10z"/></svg>倒放</button>
+<button class="icon" id="next" aria-label="下一帧" title="下一帧"><svg viewBox="0 0 20 20"><path d="M6 4v12l9-6z"/></svg></button>
+</div><div class="options"><label><input id="centerline" type="checkbox">椭圆中心线</label><select id="speed" aria-label="播放速度"><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="2">2×</option></select></div></div>
+</div></footer>
+<script>
+'use strict';
+const canvas=document.getElementById('scene'),ctx=canvas.getContext('2d');
+const ui=Object.fromEntries(['angle','timeline','frame','forward','reverse','pause','reset','prev','next','centerline','speed'].map(id=>[id,document.getElementById(id)]));
+const TOTAL=240,MAX_ANGLE=74*Math.PI/180,DISTANCE=4.2,HALF_W=1.9,HALF_D=1.55;
+let width=0,height=0,pixelRadius=0,frame=0,direction=0,lastTime=0,carry=0;
+let sinAngle=0,cosAngle=1,focal=1,cx=0,cy=0;
+// A fixed-radius camera orbit looks at the paper's center. Every surface and
+// paper sample goes through the same pinhole perspective projection.
+function project(x,y,z=0){
+ const depth=DISTANCE+y*sinAngle-z*cosAngle;
+ return [cx+focal*x/depth,cy-focal*(y*cosAngle+z*sinAngle)/depth];
+}
+function polygon(points,fill,stroke=null,lineWidth=1){
+ ctx.beginPath();points.forEach((p,i)=>{const q=project(...p);i?ctx.lineTo(...q):ctx.moveTo(...q)});ctx.closePath();
+ if(fill){ctx.fillStyle=fill;ctx.fill()}if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=lineWidth;ctx.stroke()}
+}
+function line(a,b,color,lineWidth=1){const p=project(...a),q=project(...b);ctx.beginPath();ctx.moveTo(...p);ctx.lineTo(...q);ctx.strokeStyle=color;ctx.lineWidth=lineWidth;ctx.stroke()}
+function circlePoints(start=0,end=Math.PI*2,radius=1,z=0,count=320){
+ const a=[];for(let i=0;i<=count;i++){const t=start+(end-start)*i/count;a.push([radius*Math.cos(t),radius*Math.sin(t),z])}return a;
+}
+let randomSeed=21;function random(){randomSeed=(randomSeed*1664525+1013904223)>>>0;return randomSeed/4294967296}
+const fibers=[];for(let i=0;i<1600;i++){let x=random()*2-1,y=random()*2-1;if(x*x+y*y<.993)fibers.push([x,y,.009+random()*.016,random()>.5])}
+function draw(){
+ const theta=frame/TOTAL*MAX_ANGLE;sinAngle=Math.sin(theta);cosAngle=Math.cos(theta);
+ focal=DISTANCE*pixelRadius;cx=width/2;cy=height*.47;
+ ctx.clearRect(0,0,width,height);
+ const bg=ctx.createLinearGradient(0,0,0,height);bg.addColorStop(0,'#efeee9');bg.addColorStop(1,'#e3e4dd');ctx.fillStyle=bg;ctx.fillRect(0,0,width,height);
+ // The table is a three-dimensional slab, with legs below the near corners.
+ const tabletop=-.016,bottom=-.105;
+ for(const x of [-1.64,1.64]){
+   polygon([[x-.055,-1.28,bottom],[x+.055,-1.28,bottom],[x+.055,-1.28,-.77],[x-.055,-1.28,-.77]],'#aea48f');
+   polygon([[x+.055,-1.28,bottom],[x+.055,-1.17,bottom],[x+.055,-1.17,-.77],[x+.055,-1.28,-.77]],'#958d7d');
+ }
+ polygon([[-HALF_W,-HALF_D,tabletop],[HALF_W,-HALF_D,tabletop],[HALF_W,-HALF_D,bottom],[-HALF_W,-HALF_D,bottom]],'#bdaf94');
+ polygon([[-HALF_W,-HALF_D,tabletop],[-HALF_W,HALF_D,tabletop],[-HALF_W,HALF_D,bottom],[-HALF_W,-HALF_D,bottom]],'#b3a58a');
+ polygon([[-HALF_W,-HALF_D,tabletop],[HALF_W,-HALF_D,tabletop],[HALF_W,HALF_D,tabletop],[-HALF_W,HALF_D,tabletop]],'#d8ccb1','#c5bba4',1);
+ for(let i=0;i<23;i++){
+   const y=-HALF_D+(i+.5)*2*HALF_D/23;
+   line([-HALF_W,y,tabletop],[HALF_W,y+.009,tabletop],'rgba(145,124,83,.065)',.7);
+ }
+ // Contact shadow and the thin physical edge of the sheet.
+ polygon(circlePoints(0,Math.PI*2,1.023,tabletop), 'rgba(65,55,43,.065)');
+ polygon(circlePoints(0,Math.PI*2,1.010,-.009), '#c9c3b8');
+ polygon(circlePoints(0,Math.PI,1,0,220), '#2888ce');
+ polygon(circlePoints(Math.PI,Math.PI*2,1,0,220), '#eb565d');
+ // Subtle paper grain stays fixed to the paper in world coordinates.
+ for(const [x,y,length,light] of fibers){
+  line([x,y,0],[x+length*.65,y+length*.24,0],light?'rgba(255,255,255,.055)':'rgba(27,39,48,.028)',.65);
+ }
+ polygon(circlePoints(),null,'rgba(255,255,255,.52)',1.15);
+ if(ui.centerline.checked){
+  // Center of the projected conic, not the projection of the physical center.
+  // At z=0 the horizontal diameter remains at cy, while the ellipse center
+  // shifts toward the near side by f sin(theta) cos(theta)/(d²-sin²(theta)).
+  const worldY=-sinAngle/DISTANCE,worldX=Math.sqrt(1-worldY*worldY);
+  ctx.save();ctx.setLineDash([6,5]);line([-worldX,worldY,0],[worldX,worldY,0],'rgba(255,255,255,.95)',1.35);ctx.restore();
+ }
+}
+function sync(){
+ ui.timeline.value=frame;ui.frame.value=frame;ui.angle.textContent=(frame/TOTAL*74).toFixed(frame===0?0:1)+'°';
+ ui.forward.classList.toggle('active',direction===1);ui.reverse.classList.toggle('active',direction===-1);ui.pause.classList.toggle('active',direction===0);
+ for(const [id,value] of [['forward',1],['reverse',-1],['pause',0]])ui[id].setAttribute('aria-pressed',String(direction===value));
+}
+function setFrame(value){const n=Number(value);frame=Math.max(0,Math.min(TOTAL,Number.isFinite(n)?Math.round(n):0));sync();draw()}
+function stop(){direction=0;carry=0;sync()}
+function play(dir){if(dir===1&&frame===TOTAL)setFrame(0);if(dir===-1&&frame===0)setFrame(TOTAL);direction=dir;carry=0;sync()}
+ui.forward.onclick=()=>play(1);ui.reverse.onclick=()=>play(-1);ui.pause.onclick=stop;
+ui.reset.onclick=()=>{stop();setFrame(0)};ui.prev.onclick=()=>{stop();setFrame(frame-1)};ui.next.onclick=()=>{stop();setFrame(frame+1)};
+ui.timeline.oninput=()=>{const value=ui.timeline.value;stop();setFrame(value)};ui.frame.onchange=()=>{const value=ui.frame.value;stop();setFrame(value)};ui.centerline.onchange=draw;
+document.addEventListener('keydown',event=>{
+ if(['INPUT','SELECT','BUTTON'].includes(document.activeElement.tagName))return;
+ if(event.code==='Space'){event.preventDefault();direction?stop():play(1)}
+ if(event.code==='ArrowRight'){event.preventDefault();stop();setFrame(frame+1)}
+ if(event.code==='ArrowLeft'){event.preventDefault();stop();setFrame(frame-1)}
+});
+function resize(){const rect=canvas.getBoundingClientRect();width=rect.width;height=rect.height;const dpr=Math.min(window.devicePixelRatio||1,2);canvas.width=Math.round(width*dpr);canvas.height=Math.round(height*dpr);ctx.setTransform(dpr,0,0,dpr,0,0);pixelRadius=Math.min(width*.285,height*.29);draw()}
+function animate(time){
+ const elapsed=lastTime?Math.min((time-lastTime)/1000,.12):0;lastTime=time;
+ if(direction){carry+=elapsed*30*Number(ui.speed.value);const step=Math.floor(carry);if(step){carry-=step;setFrame(frame+step*direction);if((direction===1&&frame===TOTAL)||(direction===-1&&frame===0))stop()}}
+ requestAnimationFrame(animate);
+}
+new ResizeObserver(resize).observe(canvas);sync();resize();requestAnimationFrame(animate);
+</script>
+</body>
+</html>
