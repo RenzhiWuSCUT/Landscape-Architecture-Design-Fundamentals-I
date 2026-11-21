@@ -1,0 +1,551 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#f1f3ee">
+<title>园林构件图线识读｜木坐凳</title>
+<style>
+:root {
+  color-scheme: light;
+  --bg:#f1f3ee;
+  --paper:#fafcf8;
+  --ink:#172c25;
+  --muted:#566761;
+  --green:#185740;
+  --soft:#e9f2eb;
+  --border:#dce4dc;
+  --line:#203831;
+  --active:#a34b20;
+  --wood:#edf4ee;
+  --steel:#e7efea;
+  --earth:#eef0ed;
+  --b:4;
+  font:14px/1.55 "Microsoft YaHei","PingFang SC","Noto Sans CJK SC",sans-serif;
+}
+* { box-sizing:border-box; }
+body { margin:0; background:var(--bg); color:var(--ink); }
+button { font:inherit; color:inherit; cursor:pointer; }
+button:focus-visible, summary:focus-visible, a:focus-visible, input:focus-visible { outline:2px solid #287357; outline-offset:3px; }
+[hidden] { display:none !important; }
+.layout { width:min(1460px,100%); margin:auto; padding:30px clamp(13px,3vw,44px) 24px; }
+.masthead { margin-bottom:19px; }
+.eyebrow { display:flex; flex-wrap:wrap; align-items:center; gap:9px; color:var(--muted); font-size:12px; }
+.eyebrow strong { color:var(--green); font:650 12px/1.5 system-ui,sans-serif; letter-spacing:.045em; }
+.eyebrow strong::before { content:""; display:inline-block; height:10px; margin-right:9px; border-left:1px solid #becdc2; }
+h1 { margin:1px 0 0; font-size:clamp(29px,4vw,44px); line-height:1.26; letter-spacing:-.045em; }
+.workspace { display:grid; grid-template-columns:minmax(0,1fr) 310px; align-items:start; gap:16px; }
+.board, details { min-width:0; background:white; border:1px solid var(--border); border-radius:15px; overflow:hidden; }
+.board-header { display:flex; flex-wrap:wrap; align-items:end; justify-content:space-between; gap:7px 14px; padding:14px 20px; }
+h2 { margin:2px 0 0; font-size:clamp(18px,2vw,23px); line-height:1.35; letter-spacing:-.025em; }
+.units { margin:0; color:var(--muted); font-size:11px; }
+.board-body {
+  border-top:1px solid var(--border);
+  padding:11px;
+  background:radial-gradient(#d8e4d9 .75px,transparent .75px) 0 0 / 15px 15px var(--paper);
+}
+.figures { display:grid; gap:8px; }
+.figures.local { grid-template-columns:repeat(2,minmax(0,1fr)); }
+.figures.local .wide { grid-column:1/-1; }
+figure { margin:0; min-width:0; overflow:hidden; border:1px solid #e0e9e1; border-radius:9px; background:#fff; }
+figure.current-figure { border-color:#d4b29f; }
+.figure-head { display:flex; align-items:baseline; justify-content:space-between; gap:8px; padding:9px 12px 1px; }
+.figure-title { margin:0; font-size:13px; font-weight:720; }
+.figure-context { color:var(--muted); text-align:right; font-size:11px; }
+.draft { display:block; width:100%; height:auto; user-select:none; }
+.figures:not(.local) .draft, .figures .wide .draft { max-height:268px; }
+.figures.local figure:not(.wide) .draft { height:clamp(116px,16vw,205px); }
+.tray { display:grid; gap:8px; }
+summary { display:flex; align-items:center; gap:7px; list-style:none; cursor:pointer; min-height:42px; padding:9px 12px; font-weight:700; }
+summary::-webkit-details-marker { display:none; }
+summary:focus-visible { outline-offset:-4px; }
+summary::after { content:""; width:7px; height:7px; margin-left:auto; margin-right:5px; border-right:1.5px solid #5d7669; border-bottom:1.5px solid #5d7669; transform:rotate(45deg); }
+details[open] summary::after { transform:rotate(225deg); }
+.summary-icon { width:15px; height:15px; fill:none; stroke:var(--green); stroke-width:1.6; }
+.panel { padding:0 11px 10px; }
+.view-buttons { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:4px; }
+.view-button, .tool-button {
+  padding:5px 8px; min-height:32px; border:1px solid #e1e9e1; border-radius:6px;
+  background:#f7f9f6; font-size:12px;
+}
+.view-button:hover, .tool-button:hover { border-color:#c5d9cb; background:var(--soft); }
+.view-button[aria-pressed="true"] { border-color:var(--green); background:var(--green); color:#fff; font-weight:700; }
+.legend { display:grid; gap:3px; }
+.legend-button {
+  display:grid; grid-template-columns:43px minmax(0,1fr) auto; align-items:center; gap:7px;
+  width:100%; min-height:30px; padding:4px 7px; text-align:left;
+  border:1px solid #e5ece5; border-radius:6px; background:#f8faf7;
+}
+.legend-button:hover { border-color:#c5d9cb; background:var(--soft); }
+.legend-button[aria-pressed="true"] { border-color:#c5d9cb; background:var(--soft); color:var(--green); }
+.legend-button[data-line="all"] { grid-template-columns:minmax(0,1fr); padding-left:9px; }
+.legend-name { font-size:11.5px; font-weight:680; }
+.legend-width { color:var(--muted); font:550 10px/1 system-ui,sans-serif; white-space:nowrap; }
+.selection-note { margin:7px 0 0; padding:5px 7px; background:var(--soft); border-radius:5px; color:var(--muted); font-size:11.5px; }
+.selection-note:empty { margin:0; padding:0; }
+.swatch { display:block; width:100%; max-width:94px; height:17px; overflow:visible; }
+.tool-panel { display:grid; gap:7px; }
+.tool-panel label { display:flex; align-items:center; gap:4px; font-size:12px; }
+input[type="checkbox"] { accent-color:var(--green); }
+.tool-actions { display:flex; gap:5px; }
+.tool-button { flex:1; }
+.tool-button:disabled { cursor:default; opacity:.5; }
+.source-links { margin:11px 0 0; display:flex; flex-wrap:wrap; gap:5px 12px; color:var(--muted); font-size:11px; }
+.source-links a { color:var(--green); text-underline-offset:3px; }
+.stroke { fill:none; stroke:var(--line); stroke-linejoin:round; stroke-linecap:butt; }
+.w1 { stroke-width:calc(var(--b) * 1px); }
+.w7 { stroke-width:calc(var(--b) * .7px); }
+.w5 { stroke-width:calc(var(--b) * .5px); }
+.w25 { stroke-width:calc(var(--b) * .25px); }
+.wood { fill:var(--wood); }
+.steel { fill:var(--steel); }
+.earth { fill:var(--earth); }
+.paper { fill:white; }
+.dim-number { fill:var(--line); text-anchor:middle; font:550 17px/1 system-ui,sans-serif; font-variant-numeric:tabular-nums; }
+.section-number { fill:var(--line); text-anchor:middle; font:720 18px/1 system-ui,sans-serif; }
+.revision-number { font-size:13px; }
+.revision-symbol { stroke-width:1.3px; }
+.hit { cursor:pointer; transition:opacity 110ms ease; }
+.hit:focus { outline:none; }
+.hit:focus-visible .stroke, .hit:hover .stroke, .hit.is-active .stroke { stroke:var(--active); }
+.hit:focus-visible .dim-number, .hit:hover .dim-number, .hit.is-active .dim-number,
+.hit:focus-visible .section-number, .hit:hover .section-number, .hit.is-active .section-number { fill:var(--active); }
+.hit-zone { fill:none; stroke:transparent; stroke-width:15; pointer-events:stroke; }
+.isolate .hit:not(.is-active):not(:hover):not(:focus-visible) { opacity:.21; }
+.ink { --line:#191d1a; --wood:#fff; --steel:#fff; --earth:#f6f6f6; }
+.ink .board-body { background:#f7f8f6; }
+.sheet { overflow:hidden; background:white; border:1px solid #e0e9e1; border-radius:9px; }
+.sheet table { border-collapse:collapse; width:100%; font-size:12px; }
+.sheet th, .sheet td { padding:6px 9px; text-align:left; border-bottom:1px solid #e8eee8; vertical-align:middle; }
+.sheet thead { background:#eaf2eb; color:var(--green); }
+.sheet tbody tr:last-child > * { border-bottom:0; }
+.sheet tbody th { font-weight:650; }
+.sheet .type { width:17%; }
+.sheet .name { width:19%; }
+.sheet .sample { width:16%; }
+.sheet .width { width:10%; white-space:nowrap; font-family:system-ui,sans-serif; }
+@media(max-width:1050px) {
+  .workspace { grid-template-columns:minmax(0,1fr) 267px; gap:11px; }
+  .board-header { padding-inline:13px; }
+}
+@media(max-width:740px) {
+  .layout { padding-top:18px; }
+  .workspace { grid-template-columns:minmax(0,1fr); gap:9px; }
+  .tray { grid-row:1; grid-template-columns:repeat(2,minmax(0,1fr)); align-items:start; }
+  .tray details:first-child { grid-column:1/-1; }
+  .view-buttons { grid-template-columns:repeat(4,minmax(0,1fr)); }
+  .tray details:nth-child(2) { grid-column:1/-1; }
+  .legend { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .tray details:last-child { grid-column:1/-1; }
+  .tool-panel { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .tool-actions { grid-column:1/-1; }
+  .board-body { padding:6px; }
+  .figure-head { padding-inline:8px; }
+  .sheet th,.sheet td { padding:5px 4px; font-size:11px; }
+}
+@media(max-width:470px) {
+  .figures.local { grid-template-columns:1fr; }
+  .figures.local .wide { grid-column:auto; }
+  .figures.local figure:not(.wide) .draft { height:150px; }
+  .view-button { padding-inline:3px; }
+  .legend-button { grid-template-columns:31px minmax(0,1fr) auto; gap:4px; padding-inline:5px; }
+  .legend-name { font-size:11px; }
+}
+@media (prefers-reduced-motion:reduce) { .hit { transition:none; } }
+@media print {
+  :root { --line:#000; --bg:#fff; --wood:#fff; --steel:#fff; --earth:#f6f6f6; }
+  .layout { padding:0; }
+  .workspace { display:block; }
+  .tray { display:none; }
+  .board-body { background:#fff; }
+  .isolate .hit { opacity:1 !important; }
+  .hit.is-active .stroke { stroke:var(--line); }
+  figure { break-inside:avoid; }
+}
+</style>
+</head>
+<body>
+<main class="layout">
+  <header class="masthead">
+    <div class="eyebrow"><span>房屋建筑制图统一标准</span><strong>GB/T 50001–2017</strong></div>
+    <h1>园林构件图线识读</h1>
+  </header>
+  <div class="workspace">
+    <section class="board" aria-labelledby="view-title">
+      <header class="board-header">
+        <h2 id="view-title"></h2>
+        <p class="units" id="units">尺寸单位 mm</p>
+      </header>
+      <div class="board-body" id="board-body"></div>
+    </section>
+    <aside class="tray" aria-label="教学托盘">
+      <details open>
+        <summary><svg class="summary-icon" viewBox="0 0 20 20" aria-hidden="true"><rect x="3" y="4" width="14" height="12" rx="1"/><path d="M3 8h14m-9 0v8"/></svg>图样</summary>
+        <div class="panel"><div class="view-buttons" id="views"></div></div>
+      </details>
+      <details id="legend-tray" open>
+        <summary><svg class="summary-icon" viewBox="0 0 20 20" aria-hidden="true"><path d="M3 5h14M3 10h4m2 0h4m2 0h2M3 15h14"/></svg>图线</summary>
+        <div class="panel"><div class="legend" id="legend"></div><p class="selection-note" id="explanation" aria-live="polite"></p></div>
+      </details>
+      <details>
+        <summary><svg class="summary-icon" viewBox="0 0 20 20" aria-hidden="true"><path d="M3 6h14M3 14h14"/><circle cx="7" cy="6" r="2" fill="white"/><circle cx="12" cy="14" r="2" fill="white"/></svg>显示工具</summary>
+        <div class="panel tool-panel">
+          <label><input type="checkbox" id="isolation" checked> 高亮时弱化其他图线</label>
+          <label><input type="checkbox" id="ink"> 黑白图纸</label>
+          <div class="tool-actions"><button class="tool-button" id="fullscreen">全屏</button><button class="tool-button" id="reset">重置</button></div>
+        </div>
+      </details>
+    </aside>
+  </div>
+  <footer class="source-links">
+    <span>规范依据</span>
+    <a href="https://gf.cabr-fire.com/article-45597.htm" target="_blank" rel="noopener">第 4 章 图线</a>
+    <a href="https://gf.cabr-fire.com/article-45606.htm" target="_blank" rel="noopener">第 7.1 节 剖切符号</a>
+    <a href="https://gf.cabr-fire.com/article-45617.htm" target="_blank" rel="noopener">第 7.4 节 其他符号</a>
+    <a href="https://gf.cabr-fire.com/article-45686.htm" target="_blank" rel="noopener">第 11.1 节 尺寸标注</a>
+  </footer>
+</main>
+<script>
+"use strict";
+
+const lines = {
+  main: {type:"粗实线", use:"座板外轮廓", width:"b", stroke:"w1", note:"勾出座板的主要可见边界。"},
+  visible: {type:"中粗实线", use:"钢支座可见轮廓", width:"0.7b", stroke:"w7", note:"从正面能看到方钢柱和底板。"},
+  seam: {type:"中实线", use:"座板细部线", width:"0.5b", stroke:"w5", note:"平面画拼缝，立面画倒角分界。"},
+  hiddenPlate: {type:"中粗虚线", use:"底板不可见轮廓", width:"0.7b", stroke:"w7", pattern:"dash", note:"俯视时，座板遮住两块钢底板。"},
+  hiddenPost: {type:"中虚线", use:"方钢柱不可见轮廓", width:"0.5b", stroke:"w5", pattern:"dash", note:"虚线小框是座板下方钢柱的投影。"},
+  dimension: {type:"细实线", use:"尺寸线", width:"0.25b", stroke:"w25", note:"1800 是全长，450 是座宽或座高。"},
+  extension: {type:"细实线", use:"尺寸界线", width:"0.25b", stroke:"w25", note:"把被量部位的两端引至尺寸线。"},
+  tick: {type:"中粗斜短线", use:"尺寸起止符号", width:"0.7b", stroke:"w7", pattern:"tick", note:"在两线交点标出尺寸的起止位置。"},
+  plateEdge: {type:"粗实线", use:"钢底板外轮廓", width:"b", stroke:"w1", note:"勾出底板在俯视图中的边界。"},
+  hole: {type:"中实线", use:"锚栓孔轮廓", width:"0.5b", stroke:"w5", note:"圆线表示未装锚栓时可见的孔边。"},
+  center: {type:"细单点长画线", use:"孔中心线", width:"0.25b", stroke:"w25", pattern:"center", note:"横线对齐两个孔心，纵线各过一个孔心。"},
+  cutting: {type:"粗实线", use:"剖切位置线", width:"b", stroke:"w1", note:"两段粗横线定位 1–1 剖切面。"},
+  direction: {type:"粗实线", use:"剖视方向线", width:"b", stroke:"w1", pattern:"vertical", note:"两段竖短线指示 1–1 剖视方向。"},
+  cut: {type:"粗实线", use:"剖面轮廓", width:"b", stroke:"w1", note:"勾出剖到的钢件和混凝土基础。"},
+  hatch: {type:"细实线", use:"钢材剖面填充线", width:"0.25b", stroke:"w25", pattern:"hatch", note:"细斜线填在剖到的钢材内。"},
+  concrete: {type:"细实线", use:"混凝土图例线", width:"0.25b", stroke:"w25", pattern:"aggregate", note:"散布的小图形表示混凝土。"},
+  fastener: {type:"中实线", use:"锚栓轮廓", width:"0.5b", stroke:"w5", note:"勾出螺母、垫圈和锚杆。"},
+  wave: {type:"细波浪线", use:"局部剖开边界", width:"0.25b", stroke:"w25", pattern:"wave", note:"波浪线右侧露出锚栓孔。"},
+  zigzag: {type:"细折断线", use:"省略边界", width:"0.25b", stroke:"w25", pattern:"zigzag", note:"两道折断线之间省画一段，1800 仍是全长。"},
+  cloud: {type:"中粗云线", use:"变更范围", width:"0.7b", stroke:"w7", pattern:"cloud", note:"云线圈出修改处，三角形内标版次。"}
+};
+const lineName = item => item.type+" · "+item.use;
+
+const line = (x1,y1,x2,y2,classes="stroke") =>
+  `<line class="${classes}" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"/>`;
+const path = (d,classes="stroke") => `<path class="${classes}" d="${d}"/>`;
+const rect = (x,y,w,h,classes="stroke") => `<rect class="${classes}" x="${x}" y="${y}" width="${w}" height="${h}"/>`;
+const circle = (x,y,r,classes="stroke") => `<circle class="${classes}" cx="${x}" cy="${y}" r="${r}"/>`;
+const label = (x,y,value,classes="dim-number",angle=0) =>
+  `<text class="${classes}" x="${x}" y="${y}"${angle ? ` transform="rotate(${angle} ${x} ${y})"` : ""}>${value}</text>`;
+const group = (key,art,hit="") =>
+  `<g class="hit ${lines[key].stroke}" data-line="${key}" role="button" tabindex="0" aria-label="${lineName(lines[key])}" aria-pressed="false">${hit}${art}</g>`;
+const hit = d => path(d,"hit-zone");
+const ticks = points => points.map(([x,y])=>line(x-4.5,y+4.5,x+4.5,y-4.5)).join("");
+
+function horizontalSize(a,b,y,edge,value) {
+  const side=Math.sign(y-edge), start=edge+6*side, end=y+8*side;
+  return group("extension",line(a,start,a,end)+line(b,start,b,end),hit(`M${a} ${start}V${end} M${b} ${start}V${end}`))+
+    group("dimension",line(a,y,b,y)+label((a+b)/2,y-6,value),hit(`M${a} ${y}H${b}`))+
+    group("tick",ticks([[a,y],[b,y]]),hit(`M${a-4.5} ${y+4.5}l9 -9 M${b-4.5} ${y+4.5}l9 -9`));
+}
+function verticalSize(a,b,x,upperEdge,value,lowerEdge=upperEdge) {
+  return group("extension",line(upperEdge+6,a,x+8,a)+line(lowerEdge+6,b,x+8,b),hit(`M${upperEdge+6} ${a}H${x+8} M${lowerEdge+6} ${b}H${x+8}`))+
+    group("dimension",line(x,a,x,b)+label(x-7,(a+b)/2,value,"dim-number",-90),hit(`M${x} ${a}V${b}`))+
+    group("tick",ticks([[x,a],[x,b]]),hit(`M${x-4.5} ${a+4.5}l9 -9 M${x-4.5} ${b+4.5}l9 -9`));
+}
+
+function hiddenRectangle(x,y,w,h) {
+  const a=4, right=x+w, bottom=y+h, dash=6;
+  const dashes = (length,segment) => {
+    const count=Math.round((length-2*a-4)/10);
+    const gap=(length-2*a-count*dash)/(count+1);
+    return Array.from({length:count},(_,i)=>segment(a+gap+i*(dash+gap))).join("");
+  };
+  const corners=`M${x} ${y+a}V${y}h${a} M${right-a} ${y}h${a}v${a} M${right} ${bottom-a}v${a}h-${a} M${x+a} ${bottom}h-${a}v-${a}`;
+  return path(corners+dashes(w,d=>`M${x+d} ${y}h${dash} M${x+d} ${bottom}h${dash} `)+
+    dashes(h,d=>`M${x} ${y+d}v${dash} M${right} ${y+d}v${dash} `));
+}
+function plan() {
+  const seams=[52.75,86.5,120.25].map(y=>line(90,y,630,y)).join("");
+  const plates=[138,510].map(x=>hiddenRectangle(x,62.5,72,48)).join("");
+  const posts=[162,534].map(x=>hiddenRectangle(x,74.5,24,24)).join("");
+  return rect(90,19,540,135,"wood")+
+    group("main",rect(90,19,540,135),rect(90,19,540,135,"hit-zone"))+
+    group("seam",seams,hit("M90 52.75H630 M90 86.5H630 M90 120.25H630"))+
+    group("hiddenPlate",plates,rect(138,62.5,72,48,"hit-zone")+rect(510,62.5,72,48,"hit-zone"))+
+    group("hiddenPost",posts,rect(162,74.5,24,24,"hit-zone")+rect(534,74.5,24,24,"hit-zone"))+
+    verticalSize(19,154,683,630,"450")+horizontalSize(90,630,186,154,"1800");
+}
+function support(x) {
+  const y=42.6, foot=161.4;
+  const fills=rect(x+24,y,24,foot-y,"steel")+rect(x,foot,72,3.6,"steel");
+  const outline=`M${x+24} ${y}V${foot} M${x+48} ${y}V${foot} M${x} ${foot}h72v3.6h-72Z`;
+  return fills+group("visible",path(outline),hit(`M${x+24} ${y}V${foot} M${x+48} ${y}V${foot}`)+rect(x,foot,72,3.6,"hit-zone"));
+}
+function brokenSeat(left,right) {
+  const a=331, b=389;
+  const boardEdge=x=>`V32 L${x-10} 34 L${x+10} 39 L${x} 41 V42.6`;
+  const fills=`M${left} 30H${a}${boardEdge(a)}H${left}Z M${b} 30H${right}V42.6H${b}V41L${b+10} 39L${b-10} 34L${b} 32Z`;
+  const outline=`M${a} 30H${left}V42.6H${a} M${b} 30H${right}V42.6H${b}`;
+  const seam=`M${left} 35H${a-6} M${b-6} 35H${right}`;
+  const folds=[a,b].map(x=>`M${x} 19${boardEdge(x)}V54`).join(" ");
+  return path(fills,"wood")+group("main",path(outline),hit(outline))+
+    group("seam",path(seam),hit(seam))+group("zigzag",path(folds),hit(folds));
+}
+function elevation(broken=false) {
+  const left=broken?127:90, right=broken?593:630;
+  const supports=support(left+48)+support(right-120);
+  const seat=broken
+    ? brokenSeat(left,right)
+    : rect(90,30,540,12.6,"wood")+group("main",rect(90,30,540,12.6),rect(90,30,540,12.6,"hit-zone"))+
+      group("seam",line(90,35,630,35),hit("M90 35H630"));
+  const drawing=supports+seat+(broken ? "" : verticalSize(30,165,683,right,"450",right-48))+
+    horizontalSize(left,right,0,30,"1800");
+  return `<g transform="translate(0 26)">${drawing}</g>`;
+}
+
+const plateOutline="M206 38H554V270H206Z";
+const boreY=154;
+const boreCenters=[264,496];
+function platePlan(revision=false) {
+  const holes=boreCenters.map(x=>circle(x,boreY,13.05)).join("");
+  const holeFill=boreCenters.map(x=>circle(x,boreY,13.05,"paper")).join("");
+  const plate=path(plateOutline,"steel")+holeFill;
+  if (revision) return plate+path(plateOutline,"stroke w1")+`<g class="w5">${holes}</g>`+cloudAtHole();
+  const sharedAxis="M211 154h13"+ " m9 0h4 m9 0h36".repeat(5)+" m9 0h4 m9 0h13";
+  const verticalAxes=boreCenters.map(x=>`M${x} 112v18 m0 6v3 m0 6v18 m0 6v3 m0 6v18`).join(" ");
+  const cutMarks="M160 154H187 M600 154H573";
+  const directionMarks="M160 136V154 M600 136V154";
+  return plate+group("plateEdge",path(plateOutline),hit(plateOutline))+
+    group("hole",holes,boreCenters.map(x=>circle(x,boreY,13.05,"hit-zone")).join(""))+
+    group("center",path(sharedAxis)+path(verticalAxes),hit("M211 154H549 M264 112v84 M496 112v84"))+
+    group("cutting",path(cutMarks),hit(cutMarks))+
+    group("direction",path(directionMarks)+label(160,129,"1","section-number")+label(600,129,"1","section-number"),hit(directionMarks));
+}
+
+function hatchRect(x,y,w,h,interval=9) {
+  const segments=[];
+  for (let d=interval; d<w+h; d+=interval) {
+    const start=Math.max(0,d-h), end=Math.min(w,d);
+    segments.push(`M${x+start} ${y+d-start}L${x+end} ${y+d-end}`);
+  }
+  return path(segments.join(" "));
+}
+function section() {
+  const plates=[[206,146,44.95,17.4],[277.05,146,205.9,17.4],[509.05,146,44.95,17.4]];
+  const tube=[[322,50,7.25,96],[430.75,50,7.25,96]];
+  const metal=plates.concat(tube);
+  const cutOutline="M206 146H250.95V163.4H206Z M277.05 146H322V50H329.25V146H430.75V50H438V146H482.95V163.4H277.05Z M509.05 146H554V163.4H509.05Z";
+  const slab="M153 163.4H607V226H153Z";
+  const slabEdges="M206 163.4H153V226H607V163.4H554 M250.95 163.4H277.05 M482.95 163.4H509.05";
+  const bolts=boreCenters.map(x=>`M${x-8} 116h16v11h8v12h-32v-12h8Z
+    M${x-7} 145v53h14v-53Z M${x-19} 140h38v5h-38Z`).join(" ");
+  const aggregates=[[180,181],[209,202],[238,176],[296,188],[318,214],[350,176],[374,200],[413,184],[447,210],[472,182],[533,195],[568,177],[582,212]];
+  const material=aggregates.map(([x,y],i)=>i%3===0?path(`M${x} ${y}l4 -3 3 6Z`):circle(x,y,1.2)).join("");
+  return path(slab,"earth")+group("concrete",material,aggregates.map(([x,y])=>circle(x,y,2,"hit-zone")).join(""))+
+    metal.map(([x,y,w,h])=>rect(x,y,w,h,"steel")).join("")+
+    group("hatch",metal.map(([x,y,w,h])=>hatchRect(x,y,w,h)).join(""),metal.map(([x,y,w,h])=>rect(x,y,w,h,"hit-zone")).join(""))+
+    group("cut",path(cutOutline)+path(slabEdges),hit(cutOutline)+hit(slabEdges))+
+    group("fastener",path(bolts,"paper")+path(bolts),hit(bolts));
+}
+function localWave() {
+  const outline="M31 62H389V131H31Z";
+  const wave="M224 62 C215 70 233 75 223 84 S232 97 222 107 S229 119 224 131";
+  const cutShape=wave+"H389V62Z M312 62H337V131H312Z";
+  const edges="M312 63V130 M337 63V130";
+  return `<defs><clipPath id="exposed-steel"><path d="${cutShape}" clip-rule="evenodd"/></clipPath></defs>`+
+    path(outline,"steel")+rect(312,62,25,69,"paper")+
+    `<g clip-path="url(#exposed-steel)" class="w25">${hatchRect(213,62,176,69,8)}</g>`+
+    path(outline,"stroke w1")+path(edges,"stroke w5")+
+    group("wave",path(wave),hit(wave));
+}
+function cloudAtHole() {
+  const points=[[438,120],[459,111],[483,111],[507,111],[530,120],[540,142],[540,166],
+    [530,188],[507,197],[483,197],[459,197],[438,188],[428,166],[428,142]];
+  const arcs=points.map(([x,y],i)=>{
+    const [endX,endY]=points[(i+1)%points.length];
+    const radius=(Math.hypot(endX-x,endY-y)*.62).toFixed(2);
+    return `A${radius} ${radius} 0 0 1 ${endX} ${endY}`;
+  }).join(" ");
+  const cloud=`M${points[0].join(" ")} ${arcs}Z`;
+  return group("cloud",path(cloud)+path("M576 93l-12 20.78h24Z","stroke revision-symbol")+
+    label(576,110,"1","section-number revision-number"),hit(cloud));
+}
+
+const views = {
+  overall: {
+    button:"木坐凳平立面", title:"木坐凳平面与正立面",
+    keys:["main","visible","seam","hiddenPlate","hiddenPost","dimension","extension","tick"],
+    figures:[
+      {title:"平面图", box:"0 0 760 200", draw:plan},
+      {title:"正立面图", box:"0 0 760 209", draw:elevation}
+    ]
+  },
+  joint: {
+    button:"支座节点", title:"钢底板与锚栓",
+    keys:["plateEdge","hole","center","cutting","direction","cut","hatch","concrete","fastener"],
+    figures:[
+      {title:"底板俯视图", context:"未装锚栓", box:"0 26 760 256", draw:platePlan},
+      {title:"1–1 支座剖面", box:"0 35 760 206", draw:section}
+    ]
+  },
+  local: {
+    button:"局部画法", title:"局部剖开、折断与变更",
+    keys:["wave","zigzag","cloud"],
+    figures:[
+      {title:"钢底板局部剖开", box:"0 35 420 135", draw:localWave},
+      {title:"锚栓孔位变更", box:"180 24 430 260", draw:()=>platePlan(true)},
+      {title:"木坐凳折断立面", box:"0 0 760 203", draw:()=>elevation(true), wide:true}
+    ]
+  },
+  reference: {button:"线型速查", title:"图线线型与用途速查"}
+};
+
+const row = (type,weight,stroke,width,use,pattern="") => ({type,weight,stroke,width,use,pattern});
+const referenceRows = [
+  row("实线","粗","w1","b","主要可见轮廓，如座板外边"),
+  row("实线","中粗","w7","0.7b","可见轮廓，如正立面支座"),
+  row("实线","中","w5","0.5b","可见细部，如板缝、倒角"),
+  row("实线","细","w25","0.25b","剖面填充、尺寸线、尺寸界线"),
+  row("虚线","粗","w1","b","按相应专业制图标准选用","dash"),
+  row("虚线","中粗","w7","0.7b","不可见轮廓，如座面下的钢底板","dash"),
+  row("虚线","中","w5","0.5b","不可见轮廓或图例线，如座面下的方钢柱投影","dash"),
+  row("虚线","细","w25","0.25b","依图例使用，如图例填充线、家具线","dash"),
+  row("单点长画线","粗","w1","b","按相应专业制图标准选用","center"),
+  row("单点长画线","中","w5","0.5b","按相应专业制图标准选用","center"),
+  row("单点长画线","细","w25","0.25b","中心线、对称线、轴线等","center"),
+  row("尺寸起止符号","中粗斜短线","w7","0.7b","本例线性尺寸的起止标记","tick"),
+  row("剖切位置线","粗实线","w1","b","常用剖视符号的一部分","cut"),
+  row("波浪线","细","w25","0.25b","局部剖开或部分省略时的边界","wave"),
+  row("折断线","细","w25","0.25b","本例座板中段省略的边界","zigzag"),
+  row("变更云线","中粗","w7","0.7b","图纸修改范围，另注修改版次","cloud")
+];
+
+function sample(style) {
+  const patterns = {
+    dash:"M3 10h10 m7 0h10 m7 0h10 m7 0h10 m7 0h10",
+    center:"M3 10h19 m7 0h3 m7 0h18 m7 0h3 m7 0h18",
+    tick:"M30 15l10 -10 M54 15l10 -10",
+    cut:"M14 10h23 M58 10h23",
+    vertical:"M28 3v14 M66 3v14",
+    hatch:"M9 15l10 -10 M23 15l10 -10 M37 15l10 -10 M51 15l10 -10 M65 15l10 -10",
+    aggregate:"M13 14l5 -5 4 5Z M39 8a1.2 1.2 0 1 0 2.4 0a1.2 1.2 0 1 0 -2.4 0 M61 13l6 -6 3 6Z",
+    wave:"M3 10Q11 2 19 10T35 10T51 10T67 10T83 10",
+    zigzag:"M3 10H39l2 6 8 -12 2 6H92",
+    cloud:"M5 13a9.3 9.3 0 0 1 15 0a9.3 9.3 0 0 1 15 0a9.3 9.3 0 0 1 15 0a9.3 9.3 0 0 1 15 0a9.3 9.3 0 0 1 15 0"
+  };
+  return `<svg class="swatch" viewBox="0 0 95 20" aria-hidden="true">${path(patterns[style.pattern]||"M3 10H92",`stroke ${style.stroke}`)}</svg>`;
+}
+
+const byId = id => document.getElementById(id);
+const board=byId("board-body"), viewButtons=byId("views"), legend=byId("legend"), isolation=byId("isolation");
+let viewId="overall", active=null;
+
+function figureMarkup(figure) {
+  return `<figure${figure.wide ? ' class="wide"' : ""}>
+    <div class="figure-head"><h3 class="figure-title">${figure.title}</h3>${figure.context ? `<span class="figure-context">${figure.context}</span>` : ""}</div>
+    <svg class="draft" viewBox="${figure.box}" role="group" aria-label="${figure.title}">${figure.draw()}</svg>
+  </figure>`;
+}
+function referenceTable() {
+  return `<div class="sheet"><table aria-label="图线线型与用途">
+    <thead><tr><th class="type" scope="col">名称</th><th class="name" scope="col">分类</th><th class="sample" scope="col">线型</th><th class="width" scope="col">线宽</th><th scope="col">用途</th></tr></thead>
+    <tbody>${referenceRows.map(item=>`<tr><th scope="row">${item.type}</th><td>${item.weight}</td><td>${sample(item)}</td><td class="width">${item.width}</td><td>${item.use}</td></tr>`).join("")}</tbody>
+  </table></div>`;
+}
+function syncSelection() {
+  const item=lines[active];
+  board.classList.toggle("isolate",Boolean(item&&isolation.checked));
+  for (const element of board.querySelectorAll(".hit")) {
+    const selected=element.dataset.line===active;
+    element.classList.toggle("is-active",selected);
+    element.setAttribute("aria-pressed",String(selected));
+  }
+  for (const figure of board.querySelectorAll("figure")) {
+    figure.classList.toggle("current-figure",Boolean(figure.querySelector(".is-active")));
+  }
+  for (const button of legend.querySelectorAll("button")) {
+    button.setAttribute("aria-pressed",String(button.dataset.line===(active||"all")));
+  }
+  byId("explanation").textContent=item?.note || "";
+}
+function selectLine(key) {
+  active=key==="all"||active===key ? null : key;
+  if (active) byId("legend-tray").open=true;
+  syncSelection();
+}
+function render() {
+  const view=views[viewId];
+  const hasDrawing=Boolean(view.figures);
+  byId("view-title").textContent=view.title;
+  byId("units").hidden=viewId==="reference"||viewId==="joint";
+  byId("legend-tray").hidden=!hasDrawing;
+  for (const button of viewButtons.querySelectorAll("button")) {
+    button.setAttribute("aria-pressed",String(button.dataset.view===viewId));
+  }
+  board.innerHTML=hasDrawing ? `<div class="figures ${viewId}">${view.figures.map(figureMarkup).join("")}</div>` : referenceTable();
+  for (const element of board.querySelectorAll(".hit")) {
+    if (view.keys.includes(element.dataset.line)) continue;
+    element.classList.remove("hit");
+    for (const attribute of ["data-line","role","tabindex","aria-label","aria-pressed"]) element.removeAttribute(attribute);
+    for (const zone of element.querySelectorAll(".hit-zone")) zone.remove();
+  }
+  legend.innerHTML=hasDrawing ? `<button class="legend-button" data-line="all"><span class="legend-name">全部图线</span></button>`+
+    view.keys.map(key=>{
+      const item=lines[key];
+      return `<button class="legend-button" data-line="${key}">${sample(item)}<span class="legend-name">${lineName(item)}</span><span class="legend-width">${item.width}</span></button>`;
+    }).join("") : "";
+  syncSelection();
+}
+viewButtons.innerHTML=Object.entries(views).map(([id,view])=>`<button class="view-button" data-view="${id}">${view.button}</button>`).join("");
+viewButtons.addEventListener("click",event=>{
+  const button=event.target.closest("button[data-view]");
+  if (!button) return;
+  viewId=button.dataset.view;
+  active=null;
+  render();
+});
+legend.addEventListener("click",event=>{
+  const button=event.target.closest("button[data-line]");
+  if (button) selectLine(button.dataset.line);
+});
+board.addEventListener("click",event=>{
+  const target=event.target.closest(".hit");
+  if (target) selectLine(target.dataset.line);
+});
+board.addEventListener("keydown",event=>{
+  if ((event.key==="Enter"||event.key===" ")&&event.target.matches(".hit")) {
+    event.preventDefault();
+    selectLine(event.target.dataset.line);
+  }
+});
+document.addEventListener("keydown",event=>{
+  if (event.key==="Escape"&&active) selectLine("all");
+});
+isolation.addEventListener("change",syncSelection);
+byId("ink").addEventListener("change",event=>document.body.classList.toggle("ink",event.target.checked));
+byId("reset").addEventListener("click",()=>{
+  isolation.checked=true;
+  byId("ink").checked=false;
+  document.body.classList.remove("ink");
+  viewId="overall";
+  active=null;
+  render();
+});
+const fullscreen=byId("fullscreen");
+fullscreen.disabled=!document.fullscreenEnabled;
+fullscreen.addEventListener("click",async()=>{
+  try {
+    if (document.fullscreenElement) await document.exitFullscreen();
+    else await document.documentElement.requestFullscreen();
+  } catch {
+    fullscreen.disabled=true;
+  }
+});
+document.addEventListener("fullscreenchange",()=>{ fullscreen.textContent=document.fullscreenElement?"退出全屏":"全屏"; });
+render();
+</script>
+</body>
+</html>

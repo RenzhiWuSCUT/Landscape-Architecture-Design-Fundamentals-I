@@ -1,0 +1,709 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>剖切符号识读</title>
+<style>
+:root{--page:#ecf0eb;--white:#fff;--paper:#fffefa;--ink:#23332b;--muted:#52655b;--green:#15533e;--accent:#a6502c;--line:#d8e1d7;--tint:#edf5ed;--warm:#faf0e5;--projection:#5b7667;font-family:"Microsoft YaHei","PingFang SC","Noto Sans CJK SC",sans-serif;color-scheme:light}
+*{box-sizing:border-box}body{margin:0;background:var(--page);color:var(--ink);font-size:14px}button,select,input{font:inherit}button{color:inherit;cursor:pointer}button:disabled{cursor:default;opacity:.45}button:focus-visible,summary:focus-visible,select:focus-visible{outline:2px solid #418c6c;outline-offset:2px}button svg{pointer-events:none}[hidden]{display:none!important}
+.app{max-width:1730px;margin:auto;padding:0 22px 20px}.mast{min-height:68px;display:flex;align-items:center;justify-content:space-between;gap:12px}.branding{display:flex;gap:13px;align-items:center}.logo{display:grid;place-items:center;width:44px;height:44px;border-radius:9px;background:var(--green);color:white;flex:none}.logo .icon{width:27px;height:27px}.mast h1{margin:0;font-size:clamp(21px,2.25vw,31px);line-height:1.2;letter-spacing:.045em}.code{white-space:nowrap;font-size:12px;border:1px solid #ccdacf;border-radius:6px;color:var(--green);padding:7px 10px;background:#f5f8f4}
+.workspace{display:grid;grid-template-columns:minmax(0,1fr) minmax(328px,26%);gap:14px;align-items:start}.drawing{border:1px solid var(--line);border-radius:12px;overflow:hidden;background:white;min-width:0}.scene-strip{display:flex;gap:3px;align-items:stretch;padding:0 8px;overflow:auto;max-width:100%;scrollbar-width:thin}.scene-strip button{flex:none;border:0;border-bottom:3px solid transparent;background:transparent;color:var(--muted);padding:13px 14px 10px;white-space:nowrap;font-size:14px}.scene-strip button[aria-selected=true]{color:var(--green);font-weight:750;border-bottom-color:var(--green)}.scene-strip button:hover{background:#f3f7f2}
+.drawing-bar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1px 5px}.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0}.views{display:flex;gap:4px;flex-wrap:wrap;padding:5px 8px}.views button,.seg button{background:#fff;border:1px solid #dce5db;border-radius:6px;padding:5px 8px;font-size:12px;white-space:nowrap}.views button:hover,.seg button:hover{background:#f3f7f2}.views button[aria-pressed=true],.seg button[aria-pressed=true]{background:#e9f2e8;border-color:#a9cbb3;color:var(--green);font-weight:750}
+.plot{position:relative;overflow:hidden;background:var(--paper);border-block:1px solid #e1e7dd}.plot #sheet{display:block;width:100%;height:auto;aspect-ratio:1000/635;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;touch-action:pan-y}.plot #sheet.zoomed{cursor:grab;touch-action:none}.plot #sheet.dragging{cursor:grabbing}.tip{position:absolute;z-index:2;max-width:90%;pointer-events:none;background:#204b39;color:white;border-radius:5px;padding:6px 9px;font-size:13px}
+.icon{display:block;width:17px;height:17px}.rail{display:grid;gap:8px}.panel{background:#fff;border:1px solid var(--line);border-radius:10px;overflow:hidden}.panel>summary{display:flex;gap:8px;align-items:center;list-style:none;min-height:43px;padding:10px 13px;font-weight:750;cursor:pointer}.panel>summary::-webkit-details-marker{display:none}.panel>summary::after{content:"";width:7px;height:7px;margin:-4px 2px 0 auto;border-bottom:1.5px solid #668072;border-right:1.5px solid #668072;transform:rotate(45deg)}.panel[open]>summary::after{margin-top:4px;transform:rotate(225deg)}.panel>summary:hover{background:#f5f8f4}.panel>summary .icon{color:var(--green)}.panel-body{padding:0 12px 12px}.seg{display:grid;grid-template-columns:1fr 1fr;gap:5px}.seg button{min-height:32px;padding:6px 3px}.topic-type button{font-size:13px}
+.topic-type{margin-bottom:5px}.explain{margin:8px 0 5px;padding:9px 10px;background:#f5faf5;border:1px solid #d7e8dc;border-radius:7px}.explain-hello{display:grid;grid-template-columns:106px minmax(0,1fr);gap:8px;align-items:center}.explain .desc{font-size:12px;line-height:1.4;margin:0;color:var(--green)}.explain svg{display:block;width:106px;height:51px;border:1px solid #e2ebe1;border-radius:5px;background:white}.link-button{padding:5px 7px;border:1px solid #cfdfd2;border-radius:5px;background:white;color:var(--green);font-size:11px;margin-top:7px}.link-button:hover{background:#eff6ef}.jog-btn{margin-top:5px}.jog-btn[aria-pressed=true]{background:var(--tint);border-color:#a9cbb3;font-weight:700}
+.compare-table{width:100%;border-collapse:collapse;font-size:11.5px;line-height:1.4;table-layout:fixed}.compare-table th,.compare-table td{padding:5px 6px;border:1px solid #dce6dc;vertical-align:middle;text-align:left;word-wrap:break-word}.compare-table th{color:#355244;background:#eef4ed;font-weight:700}.compare-table th:first-child{width:22%}.compare-table tbody th{background:#f7f8f5;font-weight:650;color:#456052}
+.checks{display:grid;grid-template-columns:1fr 1fr;gap:7px 4px}.checks label{display:flex;align-items:center;gap:5px;font-size:12px}.checks input{width:15px;height:15px;accent-color:var(--green);margin:0}.zoom{display:flex;align-items:center;gap:5px;margin-top:10px}.zoom button,.zoom output{min-width:30px;min-height:30px;display:grid;place-items:center;border:1px solid #dce5db;border-radius:5px;background:white}.zoom output{border-color:transparent;font-size:12px;width:43px}.zoom button:hover:not(:disabled){background:var(--tint)}.source-line{margin:0;font-size:12px;line-height:1.7;color:var(--muted)}
+#sheet text{user-select:none}.mark{color:#202923;cursor:pointer;outline:0}.mark:focus-visible,.mark:hover{color:#875135}.mark.selected{color:#a34b29}
+.app:fullscreen{overflow:auto;background:var(--page);max-width:none;padding-inline:22px}.app:fullscreen .workspace{grid-template-columns:minmax(0,1fr) minmax(335px,26%)}
+.hide-direction #detail-direction{display:none}.detail-index{display:block;width:100%;height:auto;background:#f8faf6;border:1px solid #dce6dc;border-radius:6px;margin-bottom:7px}
+@media(max-width:1060px){.app{padding-inline:12px}.workspace{gap:9px}.scene-strip button{padding-inline:9px}.views button{padding-inline:5px}}
+@media(max-width:770px){.mast{min-height:66px}.code{display:none}.app,.app:fullscreen{padding-inline:8px}.workspace,.app:fullscreen .workspace{grid-template-columns:1fr}.rail{grid-template-columns:1fr 1fr}.wide-panel{grid-column:1/-1}.plot #sheet{min-height:260px}.scene-strip button{font-size:12px}.views button{font-size:11px}.explain .desc{font-size:13px}}
+@media(max-width:405px){.rail{grid-template-columns:1fr}.views{justify-content:flex-start}.scene-strip{padding-inline:3px}.scene-strip button{padding-inline:7px}}
+@media print{.mast,.drawing-bar,.rail{display:none}.app{padding:0;background:white}.workspace{display:block}.drawing,.plot{border:0}}
+</style>
+</head>
+<body>
+<svg aria-hidden="true" width="0" height="0" style="position:absolute;overflow:hidden">
+<symbol id="i-brand" viewBox="0 0 24 24"><path d="M3 18.5h18M4.5 16V8.5l5-3 5 3V16m4.5 0V9m-2 2 2-4.5 2 4.5M7.5 16v-4m4 4v-4" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+<symbol id="i-book" viewBox="0 0 24 24"><path d="M12 6v14M3 5.5c4-1.5 6.5-1 9 1 2.5-2 5-2.5 9-1v13c-4-1.5-6.5-1-9 1-2.5-2-5-2.5-9-1z" fill="none" stroke="currentColor" stroke-width="1.55" stroke-linejoin="round"/></symbol>
+<symbol id="i-layer" viewBox="0 0 24 24"><path d="m3 9 9-5 9 5-9 5-9-5zm0 4 9 5 9-5M3 17l9 5 9-5" fill="none" stroke="currentColor" stroke-width="1.55" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+<symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></symbol>
+<symbol id="i-minus" viewBox="0 0 24 24"><path d="M5 12h14" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></symbol>
+<symbol id="i-reset" viewBox="0 0 24 24"><path d="M4 11a8 8 0 1 1 2.1 6.3M4 5v6h6" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+<symbol id="i-full" viewBox="0 0 24 24"><path d="M4 9V4h5m6 0h5v5m0 6v5h-5m-6 0H4v-5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+</svg>
+<div class="app" id="app">
+<header class="mast">
+  <div class="branding"><div class="logo"><svg class="icon" aria-hidden="true"><use href="#i-brand"/></svg></div><div><h1>剖切符号识读</h1></div></div>
+  <span class="code">GB/T 50001—2017 · §7.1 / §10.3</span>
+</header>
+<main class="workspace">
+  <section class="drawing" aria-label="图纸画面">
+    <h2 id="drawing-title" class="sr-only"></h2>
+    <div class="drawing-bar">
+      <div id="scenes" class="scene-strip" role="tablist" aria-label="教学案例"></div>
+      <div class="views" id="views" role="group" aria-label="图纸视图"></div>
+    </div>
+    <div id="plot" class="plot" role="tabpanel" aria-labelledby="scene-house">
+      <svg id="sheet" viewBox="0 0 1000 635" aria-label="剖切平面图和结果图"></svg>
+      <div class="tip" id="bubble" hidden></div>
+    </div>
+  </section>
+  <aside class="rail" aria-label="教学工具托盘">
+    <details class="panel wide-panel" id="knowledge" open>
+      <summary><svg class="icon" aria-hidden="true"><use href="#i-book"/></svg>知识点</summary>
+      <div class="panel-body">
+        <div id="types" class="seg topic-type" role="group" aria-label="符号类型">
+          <button type="button" data-type="section">剖视剖切符号</button>
+          <button type="button" data-type="cross">断面剖切符号</button>
+        </div>
+        <div id="methods" class="seg" role="group" aria-label="画法">
+          <button type="button" data-method="common">常用画法</button>
+          <button type="button" data-method="intl">国际通用画法</button>
+        </div>
+        <article id="explain" class="explain" aria-live="polite"></article>
+        <button type="button" id="jog" class="link-button jog-btn" aria-pressed="false">转折剖切示例</button>
+      </div>
+    </details>
+    <details class="panel wide-panel" open>
+      <summary><svg class="icon" aria-hidden="true"><use href="#i-layer"/></svg>图层</summary>
+      <div class="panel-body checks">
+        <label><input id="base" type="checkbox" checked>底图</label>
+        <label><input id="annotations" type="checkbox" checked>标注</label>
+        <label><input id="direction" type="checkbox" checked>观看方向</label>
+        <label><input id="guide" type="checkbox">剖切路径</label>
+      </div>
+    </details>
+    <details class="panel wide-panel">
+      <summary><svg class="icon" aria-hidden="true"><use href="#i-book"/></svg>剖视与断面对照</summary>
+      <div class="panel-body">
+        <table class="compare-table">
+          <thead><tr><th scope="col">对比</th><th scope="col">剖面</th><th scope="col">断面</th></tr></thead>
+          <tbody id="comparison"></tbody>
+        </table>
+      </div>
+    </details>
+    <details class="panel wide-panel">
+      <summary><svg class="icon" aria-hidden="true"><use href="#i-book"/></svg>剖视详图索引</summary>
+      <div class="panel-body">
+        <svg class="detail-index" viewBox="0 0 360 156" role="img" aria-label="图 7.2.2(c) 剖视详图索引。细引出线位于粗剖切位置线上方，向上观看。上半圆为详图号 3，下半圆为图纸号 4。">
+          <g fill="none" stroke="#24362e">
+            <circle cx="96" cy="85" r="32" stroke-width="1.3"/>
+            <path d="M64 85H270" stroke-width="1.3"/>
+            <path d="M212 94H270" stroke-width="3.2"/>
+          </g>
+          <g fill="none" stroke="#60776a" stroke-width="1">
+            <path d="M168 62L157 81M218 118L229 99"/>
+          </g>
+          <g font-size="19" fill="#24362e" text-anchor="middle">
+            <text x="96" y="77">3</text>
+            <text x="96" y="107">4</text>
+          </g>
+          <g font-size="13" fill="#344f42">
+            <text x="140" y="56">引出线</text>
+            <text x="181" y="134">剖切位置线</text>
+          </g>
+          <g id="detail-direction" fill="#236a4f">
+            <path d="M247 79V43m-5 6 5-6 5 6" fill="none" stroke="#236a4f" stroke-width="1.9"/>
+            <text x="260" y="49" font-size="13">观看方向</text>
+          </g>
+        </svg>
+        <p class="source-line">图 7.2.2(c)　引出线在上，向上看。</p>
+      </div>
+    </details>
+    <details class="panel">
+      <summary>视图工具</summary>
+      <div class="panel-body"><div class="zoom" role="group" aria-label="视图工具">
+        <button id="minus" type="button" aria-label="缩小"><svg class="icon"><use href="#i-minus"/></svg></button>
+        <output id="zoom-value" aria-label="缩放比例">100%</output>
+        <button id="plus" type="button" aria-label="放大"><svg class="icon"><use href="#i-plus"/></svg></button>
+        <button id="reset" type="button" aria-label="复位视图"><svg class="icon"><use href="#i-reset"/></svg></button>
+        <button id="full" type="button" aria-label="全屏教学"><svg class="icon"><use href="#i-full"/></svg></button>
+      </div></div>
+    </details>
+    <details class="panel">
+      <summary><svg class="icon" aria-hidden="true"><use href="#i-book"/></svg>规范依据</summary>
+      <div class="panel-body"><p class="source-line">GB/T 50001—2017《房屋建筑制图统一标准》§7.1、§7.2、§10.3.1。宜优先采用国际通用画法，同一套图纸统一画法。</p></div>
+    </details>
+  </aside>
+</main>
+</div>
+<script>
+"use strict";
+const byId = id => document.getElementById(id);
+const NS = "http://www.w3.org/2000/svg";
+const state = {
+  scene:"house", view:"plan", type:"section", method:"common", jog:false, picked:false,
+  base:true, annotations:true, direction:true, guide:false, zoom:1, cx:500, cy:317.5
+};
+const drawingLayers=["base","annotations","direction","guide"];
+const scenes = {
+  house:{
+    title:"坡屋顶小屋",tab:"房子",code:"A", ends:[[172,250],[728,250]],
+    viewTarget:[425,129]
+  },
+  park:{
+    title:"河岸草地景观",tab:"草地 · 河 · 桥 · 亭",code:"L",ends:[[20,322],[880,322]],
+    viewTarget:[701,181]
+  },
+  bridge:{
+    title:"园林步桥构件",tab:"独立步桥构件",code:"B",ends:[[468,92],[468,394]],
+    viewTarget:[753,243]
+  }
+};
+const cutTypes={
+  section:{title:"剖视剖切符号",result:"剖面图",n:"1"},
+  cross:{title:"断面剖切符号",result:"断面图",n:"2"}
+};
+const views={plan:"平面图",compare:"同位对照",section:"剖面图",cross:"断面图"};
+const sheetFor=(scene,type)=>scene.code+(type==="section"?"02":"03");
+const titleFor = type => cutTypes[type].n+"–"+cutTypes[type].n+" "+cutTypes[type].result;
+const safe = value => String(value).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[c]);
+const rect=(x,y,w,h,fill,stroke="none",sw=1,rx=0)=>`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${rx}" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/>`;
+const circle=(x,y,r,fill,stroke="none",sw=1)=>`<circle cx="${x}" cy="${y}" r="${r}" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/>`;
+const path=(d,stroke="none",sw=1,fill="none",dash="")=>`<path d="${d}" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"${dash?` stroke-dasharray="${dash}"`:""}/>`;
+const text=(x,y,v,size=15,color="#324b3f",anchor="start",weight=550)=>`<text x="${x}" y="${y}" fill="${color}" font-size="${size}" text-anchor="${anchor}" font-weight="${weight}" font-family="Microsoft YaHei,PingFang SC,Noto Sans CJK SC,sans-serif" pointer-events="none">${safe(v)}</text>`;
+const number=(x,y,v,size=15,weight=650)=>`<text x="${x}" y="${y}" fill="currentColor" font-family="Arial,sans-serif" dominant-baseline="central" text-anchor="middle" font-size="${size}" font-weight="${weight}" pointer-events="none">${safe(v)}</text>`;
+const group=(body,transform="")=>`<g${transform?` transform="${transform}"`:""}>${body}</g>`;
+const polyline=points=>points.map(([x,y],i)=>(i?"L":"M")+x+" "+y).join("");
+const layer=(kind,body)=>`<g data-projection="${kind}">${body}</g>`;
+const drawingDefs=`<defs>
+  <pattern id="grid" width="22" height="22" patternUnits="userSpaceOnUse"><path d="M22 0H0V22" fill="none" stroke="#e8ede2" stroke-width=".68"/></pattern>
+  <pattern id="grass" width="29" height="24" patternUnits="userSpaceOnUse"><rect width="29" height="24" fill="#edf2df"/><path d="M5 7l2-3 1 3m10 11 1-2 2 2M24 4l2 2M8 21l1-2" stroke="#a2b396" stroke-width=".6" fill="none"/></pattern>
+  <pattern id="water" width="38" height="22" patternUnits="userSpaceOnUse"><rect width="38" height="22" fill="#dbece9"/><path d="M2 6h15m4 10h13" fill="none" stroke="#8eadaa" stroke-width=".7"/></pattern>
+  <pattern id="walk" width="22" height="18" patternUnits="userSpaceOnUse"><rect width="22" height="18" fill="#f2eadb"/><path d="M0 0H22V18M0 9H22M11 0V9" fill="none" stroke="#c9bc9e" stroke-width=".65"/></pattern>
+  <pattern id="wood" width="12" height="33" patternUnits="userSpaceOnUse"><rect width="12" height="33" fill="#e9d7b5"/><path d="M0 0V33M0 16h12" stroke="#a98c61" stroke-width=".67" fill="none"/></pattern>
+  <pattern id="floor" width="24" height="24" patternUnits="userSpaceOnUse"><rect width="24" height="24" fill="#f8f3e9"/><path d="M0 24V0H24" fill="none" stroke="#caba9e" stroke-width=".66"/></pattern>
+  <pattern id="cut-material" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="8" height="8" fill="#e7ede5"/><path d="M0 0v8" stroke="#859787" stroke-width="1.1"/></pattern>
+  <pattern id="cut-wood" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="8" height="8" fill="#ebdfc5"/><path d="M0 0v8" stroke="#a49069" stroke-width="1.1"/></pattern>
+  <pattern id="brick-cut" width="10" height="8" patternUnits="userSpaceOnUse"><rect width="10" height="8" fill="#e7dccc"/><path d="M0 0H10M0 4H10M5 0V4M0 4V8" stroke="#aa9278" stroke-width=".6" fill="none"/></pattern>
+  <pattern id="soil" width="22" height="14" patternUnits="userSpaceOnUse"><rect width="22" height="14" fill="#eee5d5"/><path d="M2 7l4-2 1 1m8 6 4-2m-4-6 2-2" stroke="#a5987c" stroke-width=".65" fill="none"/></pattern>
+</defs>`;
+function tree(x,y,s=1){
+  return group(path("M-28-10Q-28-20-18-23Q-10-32 1-29Q11-33 19-24Q29-23 28-12Q35-5 29 5Q32 17 22 21Q18 29 8 28Q0 33-8 28Q-21 30-24 19Q-33 14-29 5Q-34-2-28-10Z","#789870",1,"#dce9d0")+
+    path("M0 0l-16-16m16 16L4-21M0 0l17-11M0 0l16 12M0 0l-3 18M0 0l-18 9","#86a07b",.8)+circle(0,0,3,"#f8faf1","#5c7853"),`translate(${x} ${y}) scale(${s})`);
+}
+function silhouetteTree(x,y,s=1){
+  return group(path("M0 0v-78m0 40-18-23m18 10 15-22","#778e75",2)+path("M-36-70q-7-17 4-27 3-16 20-16 10-17 26-7 15-5 22 9 16 5 15 20 9 10-1 23-11 10-24 6-11 13-24 4-17 5-28-4-9-2-11-8Z","#789272",1.15,"#dfe9d9"),`translate(${x} ${y}) scale(${s})`);
+}
+function north(x,y){
+  return group(circle(0,0,14,"#fffefa","#627a69",.9)+path("M0-14 6 9 0 5-6 9Z","#3b5849",1,"#fffefa")+path("M0-14V5L-6 9Z","none",1,"#3b5849")+text(0,-19,"北",12,"#355746","middle"),`translate(${x} ${y})`);
+}
+function furnishing(x,y){
+  return rect(x,y,52,22,"#dcccac","#8f8064",.9,2)+rect(x+8,y-9,13,9,"#f7f2e5","#9c8d72",.8,2)+rect(x+30,y+22,13,9,"#f7f2e5","#9c8d72",.8,2);
+}
+const houseWindows=[[286,386],[400,504],[518,614]];
+function housePlan(){
+  const wall="#42574a", glazing="#aaccc7";
+  let d=rect(74,37,752,406,"url(#grass)","#8b9c83",1);
+  d+=rect(119,118,652,252,"url(#walk)","#a29d89",.9,5)+rect(404,365,92,78,"url(#walk)","#a29d89",.9);
+  d+=path("M214 101H686V389H214ZM450 101V389","#788e7e",1,"none","6 5");
+  d+=rect(242,119,416,251,"url(#floor)","#526b5c",1);
+  d+=rect(242,119,23,251,wall)+rect(635,119,23,251,wall);
+  d+=rect(265,347,153,23,wall)+rect(482,347,153,23,wall);
+  let wallStart=265;
+  for(const [x0,x1] of houseWindows){
+    d+=rect(wallStart,119,x0-wallStart,23,wall);
+    d+=rect(x0,122,x1-x0,17,"#e3eeec","#577266",1);
+    d+=path(`M${x0} 129H${x1}M${(x0+x1)/2} 122V139`,glazing,1.3);
+    wallStart=x1;
+  }
+  d+=rect(wallStart,119,635-wallStart,23,wall);
+  d+=path("M418 350V318a32 32 0 0 1 32 32m32 0V318a32 32 0 0 0-32 32","#6e7d70",1.1);
+  d+=rect(287,150,326,20,"url(#wood)","#8e7e60",.9);
+  d+=furnishing(303,281)+furnishing(418,282)+furnishing(544,283);
+  d+=tree(160,81,.91)+tree(727,81,1.02)+tree(160,396,.98)+tree(735,400,1.03)+tree(793,330,.65);
+  return d;
+}
+function parkPlan(){
+  let d=rect(58,32,784,420,"url(#grass)","#829680",1.1);
+  d+=path("M383 32C396 115 337 171 356 250C371 297 396 345 383 409L368 452H528C531 411 525 355 520 324C516 289 542 214 536 175C532 120 569 75 556 32Z","#739f94",1.8,"url(#water)");
+  d+=path("M60 308H840V337H60Z","#b0a488",1,"url(#walk)");
+  d+=rect(354,290,194,63,"url(#wood)","#526657",1.65,2);
+  d+=rect(351,287,200,7,"#6b7660","#435447",1)+rect(351,350,200,7,"#6b7660","#435447",1);
+  d+=rect(347,294,9,55,"#c8c0ac","#657266",1)+rect(545,294,9,55,"#c8c0ac","#657266",1);
+  d+=path("M706 244v64m-12-64v64","#a39370",1.2);
+  d+=rect(646,122,111,122,"url(#walk)","#84917d",1,3);
+  const hex="M701 127l45 27v54l-45 27-45-27v-54Z";
+  d+=path(hex,"#536c5c",1.9,"#e8c4a4")+path("M701 181v-54m0 54 45-27m-45 27 45 27m-45-27v54m0-54-45 27m45-27-45-27","#9c785c",1.1);
+  d+=tree(134,110,1.05)+tree(210,160,1.1)+tree(311,100,.93)+tree(773,103,1.19)+tree(794,224,.96)+tree(248,407,1.07)+tree(725,400,.97)+tree(802,400,.72);
+  return d;
+}
+function bridgePlan(){
+  let d=rect(99,128,698,222,"url(#water)","#8aa99e",1);
+  d+=rect(98,156,92,174,"url(#soil)","#776c58",1.4)+rect(709,156,89,174,"url(#soil)","#776c58",1.4);
+  d+=rect(159,157,580,171,"url(#wood)","#4a6253",2);
+  d+=rect(165,153,568,12,"#d2b487","#586858",1.5)+rect(165,320,568,12,"#d2b487","#586858",1.5);
+  d+=path("M179 194h543m-543 94h543","#638275",1.25,"none","9 6");
+  [198,302,406,518,628,705].forEach(x=>{d+=rect(x,151,11,17,"#587166","#3f5548",1)+rect(x,317,11,17,"#587166","#3f5548",1);});
+  return d;
+}
+function houseResult(withBack) {
+  const line="#293c32", light="#789184", timber="#795734";
+  const wallMap=x=>400+(x-450)*472/416;
+  let projected="";
+  if(withBack) {
+    projected=path("M190 253V122L400 51 610 122V253Z","none",1,"#f5f7ef");
+    for(const [start,end] of houseWindows){
+      const x=wallMap(start), w=wallMap(end)-x;
+      projected+=rect(x,163,w,49,"#e1eeeb",light,1.15)+path(`M${x+w/2} 163v49`,light,.85);
+    }
+    const benchStart=wallMap(287), benchEnd=wallMap(613);
+    projected+=rect(benchStart,229,benchEnd-benchStart,6,"#dbddc8",light,1)+
+      path(`M${benchStart+18} 235v18M${benchEnd-18} 235v18`,light,.9);
+  }
+
+  let cut=path("M99 270H164V265H636V270H701V325H99Z","#a99676",1,"url(#soil)");
+  cut+=rect(190,253,420,12,"url(#cut-material)",line,1.7);
+  cut+=rect(190,250,420,3,"#d8cfb8",line,.9);
+  for(const x of [164,610]){
+    // Each cut wall continues down to a strip footing and supports a horizontal ring beam.
+    cut+=rect(x-16,300,58,16,"url(#cut-material)",line,1.7);
+    cut+=rect(x-4,270,34,30,"url(#brick-cut)",line,1.6);
+    cut+=rect(x,145,26,125,"url(#brick-cut)",line,1.8);
+    cut+=rect(x,130,26,15,"url(#cut-material)",line,1.7);
+    cut+=rect(x+3,123,20,7,"url(#cut-wood)",timber,1.15);
+  }
+  // Pitched timber truss with both heels bearing on the wall plates.
+  const leftChord=path("M133 115L400 28V42L139 130Z",timber,1.55,"url(#cut-wood)");
+  cut+=leftChord+group(leftChord,"translate(800 0) scale(-1 1)");
+  cut+=path("M396 42H404V111H396Z",timber,1.35,"url(#cut-wood)");
+  const brace=path("M394 111L308 72L300 75L380 111Z",timber,1.3,"url(#cut-wood)");
+  cut+=brace+group(brace,"translate(800 0) scale(-1 1)");
+  cut+=rect(168,111,464,12,"url(#cut-wood)",timber,1.65);
+  for(const x of [177,623]) cut+=path(`M${x-3} 121H${x+3}M${x} 121V139`,line,1);
+  cut+=path("M130 108L400 21L670 108L667 116L400 30L133 116Z",line,1.9,"#73867a");
+  return layer("behind",projected)+layer("cut",cut);
+}
+function pavilion(x,y){
+  return group(path("M-56-60Q-21-62 0-95 23-62 56-60H-56Z","#668273",1.5,"#dcd6bb")+
+    path("M-41-59V-4m14-55v55m54-55v55m14-55v55","#658478",1.35)+rect(-53,-6,106,8,"#e3ead8","#658478",1.05),`translate(${x} ${y})`);
+}
+function parkResult(withBack) {
+  const line="#304439", light="#617d6c";
+  const sx=x=>64+(x-58)*675/784;
+  const west=sx(377),east=sx(520),left=sx(347),right=sx(554),pier=sx(453);
+  let projected="";
+  if(withBack){
+    projected+=silhouetteTree(sx(134),186,.75)+silhouetteTree(sx(210),186,.60)+
+      silhouetteTree(sx(773),186,.67)+pavilion(sx(scenes.park.viewTarget[0]),188);
+    projected+=path(`M${left} 139H${right}M${left} 163H${right}`,light,1.5);
+    for(const x of [351,397,443,489,535,550]){
+      projected+=path(`M${sx(x)} 139v42`,light,1.35);
+    }
+  }
+  let cut=path(`M64 190H${west}L${west+26} 242Q${pier-3} 270 ${east-33} 253L${east-13} 237 ${east} 190H739V272H64Z`,line,2.1,"url(#soil)");
+  cut+=path(`M${west+18} 225H${east-10}L${east-13} 237 ${east-33} 253Q${pier-3} 270 ${west+26} 242Z`,"#84a59a",1.05,"url(#water)");
+  cut+=rect(left,180,right-left,13,"url(#cut-wood)",line,2.25)+rect(sx(350),193,13,21,"url(#cut-material)",line,1.8)+
+    rect(sx(544)-10,193,13,23,"url(#cut-material)",line,1.8);
+  cut+=rect(pier-8,193,16,67,"url(#cut-material)",line,2.1);
+  return layer("behind",projected)+layer("cut",cut);
+}
+function bridgeResult(withBack) {
+  const line="#293f36", light="#668373";
+  // Looking east, the north edge (smaller plan y) appears at the left in section.
+  const sx=y=>190+(y-157)*419/171;
+  const rails=[sx(159),sx(326)];
+  let projected="";
+  if(withBack){
+    for(const x of rails) projected+=rect(x-7,92,14,112,"#d9e7da",light,1.2);
+    projected+=rect(241,214,317,15,"#dde7da",light,1.35)+path("M257 217h284m-270 11v12m257-12v12",light,1.2);
+  }
+  let cut=rect(190,193,419,24,"url(#cut-wood)",line,2.5);
+  for(const x of rails){
+    cut+=rect(x-15,86,30,13,"url(#cut-wood)",line,2.2)+rect(x-6,144,12,10,"url(#cut-material)",line,1.7);
+  }
+  for(const y of [194,288]){
+    const x=sx(y);
+    cut+=path(`M${x-24} 218h48v7h-20v42h20v7h-48v-7h20v-42h-20Z`,line,2.05,"url(#cut-material)");
+  }
+  return layer("behind",projected)+layer("cut",cut);
+}
+const planArt = {house:housePlan,park:parkPlan,bridge:bridgePlan};
+const planLabels = {
+  house:()=>text(450,190,"木凳",15,"#546a59","middle")+north(806,74),
+  park:()=>text(731,274,"亭",17,"#4b664f","middle",700)+text(450,103,"河道",17,"#4d766b","middle",700)+
+    text(448,281,"步桥",16,"#4e5f4d","middle",700)+north(815,57),
+  bridge:()=>text(330,248,"桥面",17,"#63523b","middle")+path("M288 152v-45h-82","#7c896f",1.1)+
+    text(200,111,"栏杆",16,"#587160","end")+text(147,379,"桥台",15,"#516c5c","middle")+north(796,92)
+};
+const resultArt = {house:houseResult,park:parkResult,bridge:bridgeResult};
+const facing={up:[0,-1,0],right:[1,0,90],down:[0,1,180],left:[-1,0,270]};
+function viewingFromPlan(scene){
+  const [[x,y],[,endY]]=scene.ends;
+  const [tx,ty]=scene.viewTarget;
+  if(y===endY) return {dir:ty<y?"up":"down",arrow:[tx,y]};
+  return {dir:tx>x?"right":"left",arrow:[x,ty]};
+}
+function along(a,b,d){
+  const length=Math.hypot(b[0]-a[0],b[1]-a[1]);
+  return [a[0]+(b[0]-a[0])*d/length,a[1]+(b[1]-a[1])*d/length];
+}
+function indexBall(x,y,n,page,dir,r){
+  const t=r*Math.SQRT2;
+  return group(`<path d="M${-t} 0L0 ${-t}L${t} 0Z" fill="currentColor" transform="rotate(${facing[dir][2]})"/>`+
+    circle(0,0,r,"#fffefa","currentColor",1.05)+path(`M${-r} 0H${r}`,"currentColor",.98)+
+    number(0,-r*.50,n,r*.85,650)+number(0,r*.49,page,r*.58,550),`translate(${x} ${y})`);
+}
+function symbol(points,dir,type,method,page,mini=false){
+  const [dx,dy]=facing[dir];
+  const a=points[0], b=points[points.length-1];
+  const cross=type==="cross", n=cutTypes[type].n;
+  if(method==="intl"){
+    const r=mini?8.7:15.5;
+    const lineEnds=[along(a,points[1],r),...points.slice(1,-1),cross?b:along(b,points.at(-2),r)];
+    return path(polyline(lineEnds),"currentColor",mini?1:1.22)+indexBall(...a,n,page,dir,r)+
+      (cross?path(`M${b[0]} ${b[1]}l${dx*(mini?14:25)} ${dy*(mini?14:25)}`,"currentColor",mini?3:5.6):indexBall(...b,n,page,dir,r));
+  }
+  const positionLength=mini?18:32, directionLength=mini?11:19, heavy=mini?2.25:3.35;
+  function cap(p,q,first){
+    const [x,y]=p, t=along(p,q,positionLength);
+    if(cross){
+      const mid=[(x+t[0])/2,(y+t[1])/2];
+      const off=mini?8.8:12.3;
+      return path(polyline([p,t]),"currentColor",heavy)+number(mid[0]+dx*off,mid[1]+dy*off,n,mini?10:16)+
+        (first?number(mid[0]-dx*(mini?8.7:13.7),mid[1]-dy*(mini?8.7:13.7),page,mini?7.6:11,500):"");
+    }
+    const elbow=[x+dx*directionLength,y+dy*directionLength];
+    return path(polyline([t,p,elbow]),"currentColor",heavy)+
+      number(elbow[0]+dx*(mini?7:11),elbow[1]+dy*(mini?7:11),n,mini?10:16)+
+      (first?number(x-dx*(mini?8.7:13.7),y-dy*(mini?8.7:13.7),page,mini?7.6:11,500):"");
+  }
+  const corners=points.slice(1,-1).map((p,i)=>{
+    const q=along(p,points[i],mini?8:19),r=along(p,points[i+2],mini?8:19);
+    const tx=p[0]-Math.sign(q[0]+r[0]-2*p[0])*(mini?10:21);
+    const ty=p[1]-Math.sign(q[1]+r[1]-2*p[1])*(mini?10:21);
+    return path(polyline([q,p,r]),"currentColor",heavy)+number(tx,ty,n,mini?10:16);
+  });
+  return cap(a,points[1],true)+corners.join("")+cap(b,points.at(-2),false);
+}
+function exampleCut(scene,jog=false){
+  if(jog) return {points:[[28,44],[63,44],[63,27],[133,27]],dir:"up"};
+  const {dir}=viewingFromPlan(scene);
+  const points=scene.ends[0][1]===scene.ends[1][1]?[[29,36],[130,36]]:[[72,12],[72,54]];
+  return {points,dir};
+}
+function exampleSymbol(type,scene,jog=false){
+  const {points,dir}=exampleCut(scene,jog);
+  return `<g color="#202923">${symbol(points,dir,type,state.method,sheetFor(scene,type),true)}</g>`;
+}
+function svgWrap(content,viewBox){
+  return `<svg viewBox="${viewBox}" aria-hidden="true">${content}</svg>`;
+}
+function marker(type,body,extra=""){
+  const label=cutTypes[type].title;
+  return `<g class="mark${state.picked&&state.type===type?" selected":""}" tabindex="0" role="button" aria-label="${label}" data-marker="${type}" ${extra}>${body}</g>`;
+}
+function drawingLayer(key,content){
+  return state[key]?`<g data-drawing-layer="${key}">${content}</g>`:"";
+}
+function pathGuide(points,width=2.6){
+  return path(polyline(points),"#a9623d",width,"none","6 5");
+}
+function directionGuide(x,y,dir,scale=1){
+  const shape="M0 22V-20M-8-12L0-20 8-12";
+  return `<g data-heading="${dir}" transform="translate(${x} ${y}) rotate(${facing[dir][2]}) scale(${scale})" pointer-events="none" stroke-linecap="round" stroke-linejoin="round">
+    ${path(shape,"#fffefa",5.7)}${path(shape,"#236a4f",2.7)}
+  </g>`;
+}
+function hitArea(x,y,w,h){
+  return `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="#fff" fill-opacity="0" pointer-events="all"/>`;
+}
+function planMark(scene,dir){
+  const type=state.type, points=scene.ends;
+  const targets=points.map(([x,y])=>hitArea(x-35,y-35,70,70)).join("");
+  const hitline=state.method==="intl" ? `<path d="${polyline(points)}" fill="none" stroke="#fff" stroke-opacity="0" stroke-width="20" pointer-events="stroke"/>`:"";
+  return marker(type,targets+hitline+symbol(points,dir,type,state.method,sheetFor(scene,type)));
+}
+function sheetFrame(tag,title){
+  const frame=rect(18,17,964,601,"none","#cbd5c8",1.05)+rect(33,66,934,502,"url(#grid)")+
+    path("M33 59H967M33 575H967","#d1dbcd",1);
+  const names=text(958,43,tag,13,"#5b7162","end")+text(43,602,title,20,"#244737","start",750);
+  return rect(0,0,1000,635,"#fffefa")+drawingLayer("base",frame)+drawingLayer("annotations",names);
+}
+function planSheet(scene) {
+  const {dir,arrow}=viewingFromPlan(scene);
+  const content=drawingLayer("base",planArt[state.scene]())+drawingLayer("guide",pathGuide(scene.ends))+
+    drawingLayer("annotations",planLabels[state.scene]()+planMark(scene,dir))+
+    drawingLayer("direction",directionGuide(...arrow,dir));
+  return sheetFrame(scene.code+"01",scene.title+"平面图")+group(content,"translate(50 74)");
+}
+function resultFor(type){
+  return resultArt[state.scene](type==="section");
+}
+function singleSheet(scene,type) {
+  return sheetFrame(sheetFor(scene,type),titleFor(type)+" · "+scene.title)+
+    drawingLayer("base",group(resultFor(type),"translate(38 103) scale(1.155)"));
+}
+function compareCard(type,scene,x){
+  const isSection=type==="section",current=state.type===type;
+  const label=current?"#184a39":"#496a5b";
+  const frame=rect(x,82,444,455,isSection?"#f8faf5":"#fcfbf8",current?"#76a58b":"#d1ded2",current?1.65:1,8)+
+    path(`M${x+18} 129h408`,"#d7e2d8",1)+group(resultFor(type),`translate(${x+15} 232) scale(.52)`);
+  const labels=text(x+19,117,titleFor(type),22,label,"start",750)+text(x+425,116,sheetFor(scene,type),13,"#587365","end")+
+    text(x+222,490,isSection?"切到 + 后方可见":"只画切到",15,"#486456","middle",650)+
+    text(x+213,185,cutTypes[type].title,15,"#3d5a4a");
+  const {points,dir}=exampleCut(scene);
+  const center=[(points[0][0]+points[1][0])/2,(points[0][1]+points[1][1])/2];
+  const miniature=drawingLayer("base",rect(0,0,161,69,"#fffefa","#d9e4d9",1,5))+
+    drawingLayer("guide",pathGuide(points,2))+
+    drawingLayer("annotations",marker(type,hitArea(0,0,161,68)+
+      symbol(points,dir,type,state.method,sheetFor(scene,type),true)))+
+    drawingLayer("direction",directionGuide(...center,dir,.55));
+  return drawingLayer("base",frame)+drawingLayer("annotations",labels)+group(miniature,`translate(${x+28} 146)`);
+}
+function compareSheet(scene) {
+  return sheetFrame(scene.code+"02 / "+scene.code+"03","同位对照")+
+    compareCard("section",scene,46)+compareCard("cross",scene,510);
+}
+function jogSheet(){
+  const scene=scenes[state.scene];
+  const pts=[[145,369],[455,369],[455,221],[854,221]];
+  const ground=rect(220,126,578,321,"#f7f5e9","#6d8071",2)+rect(269,154,167,128,"url(#floor)","#a3aea0",.8)+rect(584,291,147,118,"url(#floor)","#a3aea0",.8)+
+    rect(269,332,167,76,"url(#wood)","#a8a18d",.8)+rect(584,174,147,81,"url(#wood)","#a8a18d",.8);
+  const hit=`<path d="${polyline(pts)}" fill="none" stroke="#fff" stroke-opacity="0" stroke-width="25" pointer-events="stroke"/>`;
+  const mark=marker("section",hit+symbol(pts,"up","section",state.method,sheetFor(scene,"section"))+
+    text(145,404,cutTypes.section.title,12,"#52685b"));
+  return sheetFrame("§7.1","转折剖切")+drawingLayer("base",ground)+drawingLayer("guide",pathGuide(pts))+
+    drawingLayer("annotations",mark)+drawingLayer("direction",directionGuide(350,369,"up")+directionGuide(660,221,"up"));
+}
+const commonDescriptions={
+  section:{ref:"§7.1.4 · 图 7.1.4-1",rule:"长线定位，短线指向。"},
+  cross:{ref:"§7.1.4 · 图 7.1.4-2",rule:"粗线定位，朝剖切编号侧看。"}
+};
+const intlDescriptions={
+  section:{ref:"§7.1.3 · 图 7.1.3",rule:"两端索引圆，朝箭头看。"},
+  cross:{ref:"§7.1.3 · 图 7.1.3",rule:"一端索引圆，朝箭头看。"}
+};
+function renderExplanation(){
+  const scene=scenes[state.scene];
+  const description=(state.method==="common"?commonDescriptions:intlDescriptions)[state.type];
+  const jog=state.view==="jog";
+  const ref=jog?(state.method==="common"?"§7.1.4 第3款":"§7.1.3 第3款"):description.ref;
+  const rule=jog?(state.method==="common"?"转角外侧标相同剖号。":"转折处连续画线。"):description.rule;
+  const returnToPlan=jog||state.view==="section"||state.view==="cross";
+  const button=returnToPlan?'<button type="button" class="link-button" data-view="plan">← 返回平面图</button>':
+    `<button type="button" class="link-button" data-view="${state.type}">查看 ${titleFor(state.type)} →</button>`;
+  const explain=byId("explain");
+  explain.title=ref;
+  explain.innerHTML=`<div class="explain-hello">
+    ${svgWrap(exampleSymbol(state.type,scene,jog),"0 0 160 68")}
+    <div><p class="desc">${rule}</p>${button}</div>
+    </div>`;
+}
+function renderComparison(){
+  const common=state.method==="common";
+  const rows=[
+    ["画什么","切到 + 后方可见","只画切到"],
+    ["朝哪看",common?"方向线":"索引箭头",common?"剖切编号侧":"索引箭头"]
+  ];
+  byId("comparison").innerHTML=rows.map(([label,a,b])=>`<tr><th scope="row">${label}</th><td>${a}</td><td>${b}</td></tr>`).join("");
+}
+const svg=byId("sheet");
+function draw(){
+  const scene=scenes[state.scene],view=state.view;
+  const renderSheet=view==="plan"?planSheet(scene):view==="compare"?compareSheet(scene):view==="jog"?jogSheet():singleSheet(scene,view);
+  byId("app").classList.toggle("hide-direction",!state.direction);
+  svg.innerHTML=`<title>${view==="jog"?"转折剖切示意":scene.title+" "+views[view]}</title>${drawingDefs}${renderSheet}`;
+  updateViewBox();
+}
+function setButtons(id,key,value){
+  byId(id).querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset[key]===value)));
+}
+function render(){
+  const scene=scenes[state.scene],view=state.view;
+  byId("drawing-title").textContent=view==="jog"?"转折剖切示意":scene.title+" · "+views[view];
+  byId("plot").setAttribute("aria-labelledby","scene-"+state.scene);
+  byId("scenes").querySelectorAll("button").forEach(b=>{
+    const active=b.dataset.scene===state.scene;
+    b.setAttribute("aria-selected",String(active));
+    b.tabIndex=active?0:-1;
+  });
+  setButtons("views","view",view);
+  setButtons("types","type",state.type);
+  setButtons("methods","method",state.method);
+  byId("jog").hidden=state.type!=="section";
+  byId("jog").setAttribute("aria-pressed",String(state.jog));
+  drawingLayers.forEach(key=>{byId(key).checked=state[key];});
+  draw();
+  renderExplanation();
+  renderComparison();
+}
+function resetCamera(){
+  state.zoom=1;
+  state.cx=500;
+  state.cy=317.5;
+}
+function setScene(key) {
+  state.scene=key;
+  if(state.view==="jog") state.view="plan";
+  state.jog=false;
+  state.picked=false;
+  resetCamera();
+  render();
+}
+function setView(view) {
+  state.view=view;
+  state.jog=view==="jog";
+  if(view==="section"||view==="cross") state.type=view;
+  byId("bubble").hidden=true;
+  resetCamera();
+  render();
+}
+function selectType(type,picked=false){
+  state.type=type;
+  state.picked=picked;
+  state.jog=false;
+  if(!picked || !["compare","jog"].includes(state.view)) {
+    if(state.view!=="plan") resetCamera();
+    state.view="plan";
+  }
+  state.jog=state.view==="jog";
+  byId("knowledge").open=true;
+  byId("bubble").hidden=true;
+  render();
+}
+function showName(type,clientX,clientY){
+  const bubble=byId("bubble"),bounds=byId("plot").getBoundingClientRect();
+  bubble.textContent=cutTypes[type].title;
+  bubble.hidden=false;
+  const x=Math.max(5,Math.min(bounds.width-bubble.offsetWidth-6,clientX-bounds.left+11));
+  const y=Math.max(5,Math.min(bounds.height-bubble.offsetHeight-6,clientY-bounds.top-bubble.offsetHeight-9));
+  bubble.style.left=x+"px";
+  bubble.style.top=y+"px";
+}
+function updateViewBox(){
+  const w=1000/state.zoom,h=635/state.zoom;
+  state.cx=Math.max(w/2,Math.min(1000-w/2,state.cx));
+  state.cy=Math.max(h/2,Math.min(635-h/2,state.cy));
+  svg.setAttribute("viewBox",`${state.cx-w/2} ${state.cy-h/2} ${w} ${h}`);
+  svg.classList.toggle("zoomed",state.zoom>1);
+  byId("zoom-value").textContent=Math.round(state.zoom*100)+"%";
+  byId("minus").disabled=state.zoom<=1;
+  byId("plus").disabled=state.zoom>=3;
+}
+function zoomBy(multiplier,point=null){
+  const next=Math.min(3,Math.max(1,state.zoom*multiplier));
+  if(next===state.zoom) return;
+  if(point){
+    const ratio=state.zoom/next;
+    state.cx=point.x-(point.x-state.cx)*ratio;
+    state.cy=point.y-(point.y-state.cy)*ratio;
+  }
+  state.zoom=next;
+  updateViewBox();
+}
+const sceneList=byId("scenes");
+sceneList.innerHTML=Object.entries(scenes).map(([key,v])=>`<button id="scene-${key}" data-scene="${key}" type="button" role="tab" aria-controls="plot">${v.tab}</button>`).join("");
+sceneList.addEventListener("click",e=>{
+  const button=e.target.closest("[data-scene]");
+  if(button) setScene(button.dataset.scene);
+});
+sceneList.addEventListener("keydown",e=>{
+  const buttons=[...sceneList.querySelectorAll("button")],i=buttons.indexOf(e.target);
+  const f={ArrowLeft:(i+buttons.length-1)%buttons.length,ArrowRight:(i+1)%buttons.length,Home:0,End:buttons.length-1};
+  if(i<0||!(e.key in f)) return;
+  e.preventDefault();
+  const btn=buttons[f[e.key]];
+  setScene(btn.dataset.scene);
+  btn.focus();
+});
+byId("views").innerHTML=Object.entries(views).map(([key,v])=>`<button type="button" data-view="${key}">${v}</button>`).join("");
+for(const id of ["views","explain"]) byId(id).addEventListener("click",e=>{
+  const button=e.target.closest("[data-view]");
+  if(!button) return;
+  setView(button.dataset.view);
+  if(id==="explain") byId(id).querySelector("[data-view]")?.focus({preventScroll:true});
+});
+byId("types").addEventListener("click",e=>{
+  const button=e.target.closest("[data-type]");
+  if(button) selectType(button.dataset.type);
+});
+byId("methods").addEventListener("click",e=>{
+  const button=e.target.closest("[data-method]");
+  if(!button) return;
+  state.method=button.dataset.method;
+  if(state.view==="section"||state.view==="cross") setView("plan");
+  else render();
+});
+byId("jog").addEventListener("click",()=>setView(state.jog?"plan":"jog"));
+drawingLayers.forEach(key=>byId(key).addEventListener("change",()=>{
+  state[key]=byId(key).checked;
+  byId("bubble").hidden=true;
+  draw();
+}));
+byId("plus").addEventListener("click",()=>zoomBy(1.25));
+byId("minus").addEventListener("click",()=>zoomBy(1/1.25));
+byId("reset").addEventListener("click",()=>{resetCamera();updateViewBox();});
+byId("full").disabled=!document.fullscreenEnabled;
+byId("full").addEventListener("click",async()=>{
+  if(document.fullscreenElement) await document.exitFullscreen();
+  else if(document.fullscreenEnabled) await byId("app").requestFullscreen();
+});
+document.addEventListener("fullscreenchange",()=>byId("full").setAttribute("aria-label",document.fullscreenElement?"退出全屏":"全屏教学"));
+svg.addEventListener("wheel",e=>{
+  if(!e.ctrlKey&&!e.metaKey) return;
+  e.preventDefault();
+  const matrix=svg.getScreenCTM();
+  if(!matrix) return;
+  const p=svg.createSVGPoint();
+  p.x=e.clientX; p.y=e.clientY;
+  zoomBy(e.deltaY<0?1.12:1/1.12,p.matrixTransform(matrix.inverse()));
+},{passive:false});
+let gesture=null, bubbleTimer=0;
+svg.addEventListener("pointerdown",e=>{
+  if(!e.isPrimary||e.button!==0) return;
+  const matrix=svg.getScreenCTM();
+  if(!matrix) return;
+  window.clearTimeout(bubbleTimer);
+  byId("bubble").hidden=true;
+  const type=e.target.closest("[data-marker]")?.dataset.marker;
+  gesture={type,pointer:e.pointerId,x:e.clientX,y:e.clientY,cx:state.cx,cy:state.cy,scale:matrix.a,drag:false,held:false,timer:0};
+  if(type) gesture.timer=window.setTimeout(()=>{
+    if(!gesture||gesture.drag) return;
+    gesture.held=true;
+    selectType(type,true);
+    showName(type,e.clientX,e.clientY);
+  },450);
+  svg.setPointerCapture(e.pointerId);
+});
+svg.addEventListener("pointermove",e=>{
+  if(!gesture||gesture.pointer!==e.pointerId) return;
+  const dx=e.clientX-gesture.x,dy=e.clientY-gesture.y;
+  if(Math.hypot(dx,dy)>7){
+    window.clearTimeout(gesture.timer);
+    gesture.drag=true;
+  }
+  if(!gesture.drag||gesture.held||state.zoom<=1) return;
+  svg.classList.add("dragging");
+  state.cx=gesture.cx-dx/gesture.scale;
+  state.cy=gesture.cy-dy/gesture.scale;
+  updateViewBox();
+});
+function finishPointer(e,cancel){
+  if(!gesture||gesture.pointer!==e.pointerId) return;
+  const g=gesture;
+  gesture=null;
+  window.clearTimeout(g.timer);
+  if(!cancel&&g.type&&!g.held&&!g.drag) selectType(g.type,true);
+  if(g.held) bubbleTimer=window.setTimeout(()=>{byId("bubble").hidden=true;},1500);
+  svg.classList.remove("dragging");
+}
+svg.addEventListener("pointerup",e=>finishPointer(e,false));
+svg.addEventListener("pointercancel",e=>finishPointer(e,true));
+svg.addEventListener("lostpointercapture",e=>finishPointer(e,true));
+svg.addEventListener("contextmenu",e=>{if(e.target.closest("[data-marker]")||gesture?.held) e.preventDefault();});
+svg.addEventListener("keydown",e=>{
+  const type=e.target.closest("[data-marker]")?.dataset.marker;
+  if(!type||![" ","Enter"].includes(e.key)) return;
+  e.preventDefault();
+  selectType(type,true);
+  svg.querySelector(`[data-marker="${type}"]`)?.focus();
+});
+render();
+
+</script>
+</body>
+</html>

@@ -1,0 +1,866 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#f1f3ee">
+<meta name="google" content="notranslate">
+<title>尺寸标注｜房屋建筑制图统一标准</title>
+<style>
+:root {
+  color-scheme: light;
+  --ink: #172c25;
+  --body: #344640;
+  --muted: #566761;
+  --green: #185740;
+  --soft: #e9f2eb;
+  --line: #dce4dc;
+  --line-paper: #e1e8e1;
+  --white: #fff;
+  --bg: #f1f3ee;
+  --diagram: #18352b;
+  --dim: #26694f;
+  --guide: #6b8176;
+  font-family: "Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", sans-serif;
+}
+*, *::before, *::after { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font-size: 14px; }
+button, select, input { font: inherit; }
+button { color: inherit; cursor: pointer; }
+button, select, summary { -webkit-tap-highlight-color: transparent; }
+button:focus-visible, select:focus-visible, summary:focus-visible, input:focus-visible, [tabindex]:focus-visible {
+  outline: 2px solid #287357; outline-offset: 3px;
+}
+[hidden] { display: none !important; }
+.layout { width: min(1560px, 100%); margin-inline: auto; padding: 29px clamp(14px, 3.05vw, 48px) 26px; }
+.masthead { display: flex; justify-content: space-between; align-items: end; gap: 16px; margin-bottom: 22px; }
+.source { display: flex; align-items: center; flex-wrap: wrap; column-gap: 10px; row-gap: 3px; color: var(--muted); font-size: 12px; letter-spacing: .02em; }
+.source strong { color: var(--green); font: 650 12px/1.5 system-ui, sans-serif; letter-spacing: .045em; }
+.source strong::before { content: ""; display: inline-block; width: 1px; height: 11px; background: #bfcfc3; margin-right: 10px; vertical-align: -1px; }
+h1 { margin: 2px 0 0; font-size: clamp(29px, 4vw, 44px); font-weight: 730; letter-spacing: -.045em; line-height: 1.25; }
+.workspace { display: grid; grid-template-columns: minmax(0, 1fr) 306px; align-items: start; gap: 16px; }
+.board, details { background: var(--white); border: 1px solid var(--line); border-radius: 15px; }
+.board { min-width: 0; overflow: hidden; }
+.board-header { display: flex; gap: 14px; min-height: 80px; padding: 15px 21px; align-items: center; justify-content: space-between; }
+.kicker { color: var(--green); font: 650 11px/1.4 system-ui, sans-serif; letter-spacing: .075em; }
+h2 { font-size: clamp(17px, 2vw, 22px); margin: 3px 0 0; letter-spacing: -.025em; line-height: 1.4; }
+.toolbar { display: flex; align-items: center; gap: 5px; flex: none; }
+.button { background: #fff; border: 1px solid var(--line); border-radius: 8px; padding: 0 11px; min-height: 35px; font-size: 12px; white-space: nowrap; }
+.button:hover, .button[aria-pressed="true"] { background: var(--soft); color: var(--green); border-color: #c5d9cb; }
+.button:disabled { cursor: default; opacity: .45; }
+.square-button { display: inline-grid; place-items: center; width: 35px; padding: 0; }
+.icon { display: inline-block; width: 16px; height: 16px; vertical-align: -3px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.board-body {
+  --paper: #fafcf8;
+  background-color: var(--paper);
+  background-image: radial-gradient(#d7e3d9 0.75px, transparent 0.75px);
+  background-size: 15px 15px;
+  border-block: 1px solid var(--line);
+  padding: 13px;
+}
+.gallery { min-height: 474px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 9px; }
+.gallery[data-count="4"] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+@media (min-width: 1120px) {
+  .gallery[data-count="8"] { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+.gallery[data-count="1"] { grid-template-columns: minmax(0, 1fr); }
+.cell { position: relative; display: flex; flex-direction: column; min-width: 0; min-height: 229px; border: 1px solid #dce6dd; border-radius: 9px; background: #ffffffd9; overflow: hidden; }
+.cell:hover, .cell:focus-within { border-color: #a2c3af; }
+.cell-head { display: flex; align-items: center; justify-content: space-between; gap: 4px; padding: 7px 10px 0; min-height: 31px; }
+.cell-head span { color: var(--muted); font: 550 11px/1.3 system-ui, sans-serif; font-variant-numeric: tabular-nums; }
+.cell-head button { padding: 2px 4px; border: 0; border-radius: 4px; background: transparent; color: #537061; }
+.cell-head button:hover { color: var(--green); background: var(--soft); }
+.drawing { flex: 1; min-height: 0; display: grid; place-items: center; padding: 0 3px; touch-action: manipulation; }
+.draft { display: block; width: 100%; height: auto; max-height: 205px; overflow: visible; user-select: none; -webkit-user-select: none; }
+.gallery[data-count="1"] .cell { min-height: 473px; }
+.gallery[data-count="1"] .draft { max-height: 398px; }
+.gallery[data-count="1"] .drawing { padding: 0; }
+.shape { fill: none; stroke: var(--diagram); stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+.fill { fill: #eef5ee; stroke: none; }
+.dim { fill: none; stroke: var(--dim); stroke-width: 1.35; stroke-linecap: round; stroke-linejoin: round; }
+.guide { fill: none; stroke: var(--guide); stroke-width: 1; stroke-linecap: round; }
+.centerline { stroke-dasharray: 19 4 2 4; }
+.dashed { stroke-dasharray: 5 4; }
+.tick { stroke-width: 2.1; }
+.dot { fill: currentColor; stroke: none; }
+.arrow { fill: var(--dim); stroke: none; }
+.num {
+  fill: var(--dim); font: 620 19px/1 system-ui, "Microsoft YaHei", sans-serif; text-anchor: middle;
+  paint-order: stroke; stroke: #fff; stroke-width: 3px; stroke-linejoin: round;
+}
+.num.small { font-size: 14px; }
+.num.axis { font-size: 12px; font-weight: 550; }
+.diameter-digits { text-anchor: start; font-variant-numeric: tabular-nums; }
+.diameter-mark { fill: none; stroke: var(--dim); stroke-width: 1.7; stroke-linecap: round; }
+.diagram-caption { fill: var(--muted); font: 550 14px/1 "Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", sans-serif; text-anchor: middle; }
+.annotation-title { fill: var(--ink); font: 680 16px/1 "Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", sans-serif; text-anchor: middle; }
+.reading-panel { fill: #f5f7f6; stroke: #e2e8e4; }
+.reading-text { fill: #53625b; font: 550 15px/1 "Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", sans-serif; text-anchor: middle; }
+.reading-value { fill: #46554e; font: 650 19px/1 system-ui, sans-serif; text-anchor: middle; }
+.reading-edge { fill: none; stroke: #7b8881; stroke-width: 1.25; stroke-linejoin: round; }
+.equivalence { fill: var(--muted); font: 550 23px/1 system-ui, sans-serif; text-anchor: middle; }
+.hit { cursor: pointer; color: var(--dim); }
+.draft .hit:focus { outline: none; }
+.draft .hit:focus-visible:not(.is-active) .shape, .draft .hit:focus-visible:not(.is-active) .dim { stroke: #b05b2a; }
+.hit:hover .shape, .hit.is-active .shape { stroke: #267858; }
+.hit:hover .dim, .hit.is-active .dim { stroke: #b05b2a; }
+.hit:hover .num, .hit.is-active .num { fill: #a04b22; }
+.hit:hover .diameter-mark, .hit.is-active .diameter-mark { stroke: #a04b22; }
+.hit-helper { fill: none; stroke: transparent; stroke-width: 15; }
+.hide-dimensions [data-part="dimension"], .hide-guides [data-part="guide"] { display: none; }
+.cell-foot { display: flex; align-items: center; gap: 7px; padding: 0 10px 8px; min-height: 36px; }
+.nameplate { display: inline-flex; align-items: center; gap: 6px; color: var(--green); background: var(--soft); font-size: 11px; font-weight: 640; border-radius: 5px; padding: 3px 7px; }
+.nameplate::before { content: ""; width: 5px; height: 5px; border-radius: 50%; background: #378464; }
+.part-name { min-width: 0; color: #814c30; background: #f8efe8; border-radius: 5px; padding: 3px 7px; font-size: 11px; }
+.board-footer { display: flex; gap: 12px; align-items: center; justify-content: space-between; padding: 12px 21px; min-height: 56px; color: var(--muted); font-size: 12px; }
+.board-footer p { margin: 0; }
+.help { flex: none; }
+.tray { display: grid; gap: 9px; }
+details { overflow: hidden; }
+summary {
+  display: flex; align-items: center; gap: 8px; list-style: none; min-height: 45px;
+  padding: 11px 13px; font-weight: 700; cursor: pointer; user-select: none;
+}
+summary::-webkit-details-marker { display: none; }
+summary:focus-visible { outline-offset: -4px; }
+summary > .icon { color: var(--green); flex: none; }
+summary .chevron { margin-left: auto; color: #62776c; width: 13px; }
+details[open] > summary .chevron { transform: rotate(180deg); }
+.panel { padding: 0 12px 11px; }
+.topic-group + .topic-group { border-top: 1px solid #e8eee8; margin-top: 8px; padding-top: 7px; }
+.group-button {
+  min-height: 27px; width: 100%; display: flex; gap: 8px; align-items: center; text-align: left;
+  background: transparent; border: 0; border-radius: 6px; padding: 4px 5px; font-weight: 680; font-size: 12px;
+}
+.group-button span:first-child { color: var(--green); font: 650 10px/1.4 system-ui,sans-serif; }
+.group-button .icon { margin-left: auto; flex: none; width: 13px; height: 13px; color: var(--green); visibility: hidden; }
+.group-button:hover, .group-button[aria-current="true"] { background: #e8f1e9; color: var(--green); }
+.group-button:hover .icon, .group-button[aria-current="true"] .icon { visibility: visible; }
+.topics { display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px; margin-top: 4px; }
+.topic-button {
+  min-height: 29px; text-align: left; background: #f7f9f6; border: 1px solid #e8eee7;
+  border-radius: 6px; padding: 3px 7px; font-size: 11.5px; color: var(--body);
+}
+.topic-button:hover { background: var(--soft); border-color: #cadfce; color: var(--green); }
+.topic-button[aria-current="true"] { background: var(--green); border-color: var(--green); color: #fff; }
+.layer-label, .tool-label { margin: 0 0 6px; color: var(--muted); font-size: 11px; }
+.segments { display: grid; grid-template-columns: repeat(3,1fr); gap: 3px; background: #f0f4ee; border-radius: 8px; padding: 3px; }
+.segments button {
+  background: transparent; border: 1px solid transparent; border-radius: 6px; padding: 4px;
+  min-height: 29px; font-size: 11px; white-space: nowrap;
+}
+.segments button[aria-pressed="true"] { background: #fff; border-color: var(--line); color: var(--green); font-weight: 700; }
+.segments button:hover:not([aria-pressed="true"]) { background: #e5eee4; }
+#area { width: 100%; margin-top: 6px; padding: 5px 8px; background: #fff; color: var(--ink); border: 1px solid var(--line); border-radius: 6px; font-size: 12px; }
+.checks, .tool-row { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin-top: 9px; }
+.checks label { display: inline-flex; align-items: center; gap: 3px; font-size: 11px; cursor: pointer; }
+input[type="checkbox"] { accent-color: var(--green); }
+.tool-row .button { flex: 1; }
+body.ink-mode { --dim: #17211d; --diagram: #151d19; --guide: #68736d; }
+body.ink-mode .board-body { background-image: none; }
+@media (min-width: 1300px) {
+  .layout { padding-top: 32px; }
+  .workspace { grid-template-columns: minmax(0,1fr) 319px; gap: 20px; }
+  .gallery { min-height: 514px; }
+  .cell { min-height: 249px; }
+  .gallery[data-count="1"] .cell { min-height: 513px; }
+}
+@media (max-width: 1000px) {
+  .workspace { grid-template-columns: minmax(0,1fr) 269px; gap: 12px; }
+  .gallery { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .cell { min-height: 177px; }
+  .board-footer { flex-wrap: wrap; gap: 5px; }
+}
+@media (max-width: 740px) {
+  .layout { padding-top: 19px; }
+  .workspace { grid-template-columns: minmax(0,1fr); }
+  .board-header, .board-footer { padding-inline: 12px; }
+  .board-body { padding: 7px; }
+  .gallery { min-height: 0; gap: 6px; }
+  .cell { min-height: 124px; }
+  .cell-head { min-height: 24px; padding: 3px 5px 0; }
+  .cell-foot { min-height: 27px; padding: 0 5px 4px; gap: 4px; }
+  .nameplate, .part-name { font-size: 10px; padding: 2px 4px; }
+  .gallery[data-count="1"] .cell { min-height: 250px; }
+  .gallery[data-count="1"] .draft { max-height: 290px; }
+  .tray { gap: 7px; }
+}
+@media (max-width: 385px) {
+  .board-header { flex-wrap: wrap; gap: 6px; }
+  .cell-foot { flex-wrap: wrap; }
+}
+</style>
+</head>
+<body>
+<div class="layout">
+  <header class="masthead">
+    <div>
+      <div class="source">房屋建筑制图统一标准 <strong>GB/T 50001–2017</strong></div>
+      <h1>尺寸标注</h1>
+    </div>
+    <button class="button square-button" id="fullscreen" aria-label="全屏" title="全屏"></button>
+  </header>
+  <main class="workspace">
+    <section class="board" aria-labelledby="board-title">
+      <header class="board-header">
+        <div><div class="kicker" id="clause"></div><h2 id="board-title" aria-live="polite"></h2></div>
+        <div class="toolbar">
+          <button class="button" id="overview" aria-label="返回本节总览">本节总览</button>
+          <button class="button square-button" id="previous" aria-label="上一图" title="上一图"></button>
+          <button class="button square-button" id="next" aria-label="下一图" title="下一图"></button>
+        </div>
+      </header>
+      <div class="board-body">
+        <div class="gallery" id="gallery"></div>
+      </div>
+      <footer class="board-footer">
+        <p id="rule"></p>
+        <p class="help">点击或长按图示查看名称</p>
+      </footer>
+    </section>
+    <aside class="tray" aria-label="教学工具托盘">
+      <details open>
+        <summary data-icon="book">知识点</summary>
+        <div class="panel" id="knowledge"></div>
+      </details>
+      <details open>
+        <summary data-icon="layers">图层</summary>
+        <div class="panel">
+          <p class="layer-label" id="layer-label">标注名称</p>
+          <div class="segments" id="modes" role="group" aria-labelledby="layer-label">
+            <button data-mode="all">全部显示</button>
+            <button data-mode="area">指定图区</button>
+            <button data-mode="off">全部隐藏</button>
+          </div>
+          <select id="area" aria-label="选择显示标注名称的图区" hidden></select>
+          <div class="checks">
+            <label><input type="checkbox" id="dimensions" checked>尺寸标注</label>
+            <label><input type="checkbox" id="guides" checked>辅助线</label>
+          </div>
+        </div>
+      </details>
+      <details>
+        <summary data-icon="display">显示工具</summary>
+        <div class="panel">
+          <p class="tool-label" id="style-label">图线配色</p>
+          <div class="segments" id="styles" role="group" aria-labelledby="style-label" style="grid-template-columns: repeat(2,1fr)">
+            <button data-style="color" aria-pressed="true">彩色图线</button>
+            <button data-style="ink" aria-pressed="false">黑白图线</button>
+          </div>
+          <div class="tool-row"><button class="button" id="reset">恢复默认显示</button></div>
+        </div>
+      </details>
+    </aside>
+  </main>
+</div>
+<script>
+"use strict";
+const iconPaths = {
+  book: '<path d="M3 4.5h5a4 4 0 0 1 4 3v13a4 4 0 0 0-4-3H3zM21 4.5h-5a4 4 0 0 0-4 3m0 13a4 4 0 0 1 4-3h5v-13"/>',
+  layers: '<path d="m12 3 9 5-9 5-9-5zM3 12l9 5 9-5M3 16l9 5 9-5"/>',
+  display: '<rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8m-4-4v4"/>',
+  chevron: '<path d="m6 9 6 6 6-6"/>',
+  previous: '<path d="m14.5 6-6 6 6 6"/>',
+  next: '<path d="m9.5 6 6 6-6 6"/>',
+  full: '<path d="M8 3H4a1 1 0 0 0-1 1v4m13-5h4a1 1 0 0 1 1 1v4M3 16v4a1 1 0 0 0 1 1h4m13-5v4a1 1 0 0 1-1 1h-4"/>',
+  shrink: '<path d="M3 8h4a1 1 0 0 0 1-1V3m13 5h-4a1 1 0 0 1-1-1V3M8 21v-4a1 1 0 0 0-1-1H3m13 5v-4a1 1 0 0 1 1-1h4"/>',
+  open: '<path d="M13 5h6v6m0-6-8 8m5 1v4a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1h4"/>'
+};
+const icon = name => `<svg class="icon ${name}" viewBox="0 0 24 24" aria-hidden="true">${iconPaths[name]}</svg>`;
+const line = (x1, y1, x2, y2, kind = "dim") =>
+  `<line class="${kind}" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"/>`;
+const path = (d, kind = "shape") => `<path class="${kind}" d="${d}"/>`;
+const circle = (x, y, r, kind = "shape") => `<circle class="${kind}" cx="${x}" cy="${y}" r="${r}"/>`;
+const number = (x, y, value, angle = 0, kind = "") =>
+  `<text class="num ${kind}" x="${x}" y="${y}"${angle ? ` transform="rotate(${angle} ${x} ${y})"` : ""}>${value}</text>`;
+const dot = (x, y, r = 2.4) => circle(x, y, r, "dot");
+const part = (name, kind, markup, hit = "") =>
+  `<g class="hit" data-part="${kind}" data-name="${name}" role="button" tabindex="0" aria-label="${name}">${hit}${markup}</g>`;
+const targetLine = (x1,y1,x2,y2) => line(x1,y1,x2,y2,"hit-helper");
+const centerLines = (x,y,rx,ry=rx) => part("圆心与中心线","guide",
+  line(x-rx,y,x+rx,y,"guide centerline")+line(x,y-ry,x,y+ry,"guide centerline")+dot(x,y),
+  targetLine(x-rx,y,x+rx,y)+targetLine(x,y-ry,x,y+ry));
+const at = (x, y, r, degrees) => {
+  const radians = degrees * Math.PI / 180;
+  return [x + r * Math.cos(radians), y + r * Math.sin(radians)];
+};
+const arc = (x, y, r, a, b, kind = "shape") => {
+  const from = at(x,y,r,a);
+  const to = at(x,y,r,b);
+  return path(`M${from.join(" ")} A${r} ${r} 0 ${Math.abs(b-a)>180?1:0} ${b>a?1:0} ${to.join(" ")}`,kind);
+};
+function arrow(tip, tail, length = 11, width = 3.0) {
+  const dx = tip[0]-tail[0];
+  const dy = tip[1]-tail[1];
+  const norm = Math.hypot(dx, dy);
+  const x = dx/norm, y = dy/norm;
+  const a = [tip[0]-length*x+width*y, tip[1]-length*y-width*x];
+  const b = [tip[0]-length*x-width*y, tip[1]-length*y+width*x];
+  return path(`M${tip.join(" ")} L${a.join(" ")} L${b.join(" ")} Z`,"arrow");
+}
+const join = (a,b,kind="dim") => line(...a,...b,kind);
+const directed = (a,b) => join(a,b)+arrow(b,a);
+const tick = (x,y) => line(x-4,y+4,x+4,y-4,"dim tick");
+const hSize = (a,b,y,value,small=false) =>
+  line(a,y,b,y)+tick(a,y)+tick(b,y)+number((a+b)/2,y-7,value,0,small?"small":"");
+const vSize = (a,b,x,value,small=false) =>
+  line(x,a,x,b)+tick(x,a)+tick(x,b)+number(x-7,(a+b)/2,value,-90,small?"small":"");
+const leader = (tip, elbow, end, value) =>
+  directed(elbow,tip)+join(elbow,end)+number((elbow[0]+end[0])/2,end[1]-6,value);
+const translated = (x,y,content) => `<g transform="translate(${x} ${y})">${content}</g>`;
+const caption = (x,y,value,kind="diagram-caption") => `<text class="${kind}" x="${x}" y="${y}">${value}</text>`;
+const equals = (x,y) => `<text class="equivalence" x="${x}" y="${y}">=</text>`;
+
+function diameterLabel(x,y,digits,angle=0,sphere=false) {
+  const prefixWidth = sphere ? 13 : 0;
+  const start = -(prefixWidth+17+digits.length*12)/2;
+  const symbolX = start+prefixWidth+7;
+  const mark = circle(symbolX,-7,5.8,"diameter-mark")+
+    line(symbolX-4.6,.3,symbolX+4.6,-14.3,"diameter-mark");
+  const prefix = sphere ? number(start,0,"S",0,"diameter-digits") : "";
+  return `<g transform="translate(${x} ${y}) rotate(${angle})" role="img" aria-label="${sphere ? "S" : ""}⌀${digits}">${prefix}${mark}${number(symbolX+10,0,digits,0,"diameter-digits")}</g>`;
+}
+
+function radius() {
+  const tip = at(197,125,71,224);
+  return part("圆弧轮廓","shape",path("M126 189 V125 A71 71 0 0 1 268 125 V189"))+
+    centerLines(197,125,87)+
+    part("半径 R","dimension",directed([197,125],tip)+number(176,92,"R600",44),
+      targetLine(197,125,...tip));
+}
+function smallRadius() {
+  const corner = (x,y,r) => path(`M${x-r} 183 V${y} A${r} ${r} 0 0 1 ${x} ${y-r} H${x+53}`);
+  const tip1 = at(111,109,44,225), tip2 = at(271,110,16,225);
+  return part("圆角轮廓","shape",corner(111,109,44)+corner(271,110,16))+
+    centerLines(111,109,52,50)+
+    part("小圆弧半径","dimension",
+      directed([111,109],tip1)+join([111,109],[148,139])+line(148,139,193,139)+number(170,133,"R16")+
+      leader(tip2,[232,70],[189,70],"R5"),
+      targetLine(...tip1,148,139)+targetLine(...tip2,232,70));
+}
+function largeRadius() {
+  const cy=211, radius=141, angle=-65;
+  const example = (cx, jogged) => {
+    const tip = at(cx,cy,radius,angle);
+    const outerStart = at(cx,cy,radius-62,angle);
+    const origin = [cx,173];
+    const innerEnd = at(...origin,63,angle);
+    const label = at(cx,cy,radius-33,angle);
+    const radialLine = directed(outerStart,tip);
+    const jog = jogged ? join(origin,innerEnd)+join(innerEnd,outerStart) : "";
+    const radialHit = targetLine(...outerStart,...tip);
+    const jogHit = jogged ? targetLine(...origin,...innerEnd)+targetLine(...innerEnd,...outerStart) : "";
+    return part("大圆弧轮廓","shape",arc(cx,cy,radius,-122,-58),arc(cx,cy,radius,-122,-58,"hit-helper"))+
+      (jogged ? part("中心线","guide",line(cx,62,cx,173,"guide centerline"),targetLine(cx,62,cx,173)) : "")+
+      part(jogged ? "折线半径 R" : "短线半径 R","dimension",
+        radialLine+jog+number(label[0]-8,label[1]-3,"R150",angle),radialHit+jogHit)+
+      caption(cx,205,jogged ? "折线标注" : "短线标注");
+  };
+  return example(96,true)+example(292,false);
+}
+function diameter() {
+  const cx=195, cy=121, r=75;
+  const a=at(cx,cy,r,139), b=at(cx,cy,r,-41);
+  return part("圆轮廓","shape",circle(cx,cy,r),circle(cx,cy,r,"hit-helper"))+
+    centerLines(cx,cy,r+12)+
+    part("圆内直径 ⌀600","dimension",join(a,b)+arrow(a,b)+arrow(b,a)+diameterLabel(180,123,"600",-41),
+      targetLine(...a,...b));
+}
+function smallDiameter() {
+  const cx=175, cy=136, r=29;
+  const a=at(cx,cy,r,140), b=at(cx,cy,r,-40);
+  const start=at(cx,cy,59,140), elbow=at(cx,cy,88,-40), end=[301,elbow[1]];
+  return part("小圆轮廓","shape",circle(cx,cy,r),circle(cx,cy,r,"hit-helper"))+
+    centerLines(cx,cy,43)+
+    part("圆外直径 ⌀16","dimension",join(start,elbow)+arrow(a,start)+arrow(b,elbow)+join(elbow,end)+
+      diameterLabel((elbow[0]+end[0])/2,end[1]-7,"16"),targetLine(...start,...elbow));
+}
+function sphere() {
+  const equator = cx =>
+    path(`M${cx-62} 127 a62 19 0 0 1 124 0`,"guide dashed")+
+    path(`M${cx-62} 127 a62 19 0 0 0 124 0`,"guide");
+  const a=at(278,127,62,139), b=at(278,127,62,-41), tip=at(109,127,62,-45);
+  return part("球体轮廓","shape",circle(109,127,62,"fill")+circle(278,127,62,"fill")+circle(109,127,62)+circle(278,127,62),
+    circle(109,127,62,"hit-helper")+circle(278,127,62,"hit-helper"))+
+    part("球体赤道辅助线","guide",equator(109)+equator(278))+
+    part("球半径 SR","dimension",dot(109,127)+directed([109,127],tip)+number(118,101,"SR300",-45),
+      targetLine(109,127,...tip))+
+    part("球直径 S⌀600","dimension",join(a,b)+arrow(a,b)+arrow(b,a)+diameterLabel(265,121,"600",-41,true),
+      targetLine(...a,...b));
+}
+function angular(value) {
+  const x=86,y=172,a=-70,b=-10,r=115,m=(a+b)/2;
+  const a0=at(x,y,164,a), b0=at(x,y,186,b), start=at(x,y,r,a), end=at(x,y,r,b), label=at(x,y,138,m);
+  return part("角的两边与顶点","shape",join([x,y],a0,"shape")+join([x,y],b0,"shape")+dot(x,y),
+    targetLine(x,y,...a0)+targetLine(x,y,...b0))+
+    part(value.includes("rad")?"弧度值":"角度尺寸线","dimension",
+      arc(x,y,r,a,b,"dim")+arrow(start,at(x,y,r,a+6))+arrow(end,at(x,y,r,b-6))+
+      number(...label,value,m+90),arc(x,y,r,a,b,"hit-helper"));
+}
+function degreeExamples() {
+  const x=33, y=159, a=-70, b=5+20/60, r=96;
+  const label = at(x,y,r+15,(a+b)/2);
+  const rays = (cx,cy,start,end,length) => {
+    const left=at(cx,cy,length,start), right=at(cx,cy,length,end);
+    return part("角的两边与顶点","shape",
+      join([cx,cy],left,"shape")+join([cx,cy],right,"shape"),
+      targetLine(cx,cy,...left)+targetLine(cx,cy,...right));
+  };
+  const left = rays(x,y,a,b,139)+
+    part("角度尺寸线：箭头","dimension",arc(x,y,r,a,b,"dim")+
+      arrow(at(x,y,r,a),at(x,y,r,a+5))+arrow(at(x,y,r,b),at(x,y,r,b-5))+
+      number(...label,"75°20′",(a+b)/2+90),arc(x,y,r,a,b,"hit-helper"));
+  const dx=218, dy=147, da=-5, db=0, dr=103;
+  const p=at(dx,dy,dr,da), q=at(dx,dy,dr,db), mid=at(dx,dy,dr,(da+db)/2);
+  const right = rays(dx,dy,da,db,139)+
+    part("角度尺寸线：圆点","dimension",arc(dx,dy,dr,da,db,"dim")+dot(...p,2.35)+dot(...q,2.35)+
+      path(`M${mid.join(" ")} L340 111 H371`,"dim")+number(356,105,"5°"),
+      arc(dx,dy,dr,da,db,"hit-helper")+targetLine(...mid,340,111));
+  return left+right+caption(99,207,"箭头")+caption(289,207,"圆点");
+}
+function arcProfile(x,y,r,a,b) {
+  const p=at(x,y,r,a), q=at(x,y,r,b);
+  return part("构件圆弧轮廓","shape",arc(x,y,r,a,b)+
+    path(`M${p.join(" ")} L${x-r*.245} ${y-r*.45} H${x+r*.245} L${q.join(" ")}`),
+    arc(x,y,r,a,b,"hit-helper"));
+}
+function arcLength() {
+  const y=211,r=125,a=-120,b=-60,rd=151;
+  const example = (x, above) => {
+    const p=at(x,y,r,a), q=at(x,y,r,b), from=at(x,y,rd,a), to=at(x,y,rd,b);
+    const label = above
+      ? number(x,48,"251.3")+path(`M${x-14} 30 Q${x} 18 ${x+14} 30`,"dim")
+      : number(x+12,48,"251.3")+path(`M${x-39} 45 Q${x-30} 35 ${x-21} 45`,"dim");
+    return arcProfile(x,y,r,a,b)+
+      part("圆弧中心线","guide",line(x,76,x,168,"guide centerline"),targetLine(x,76,x,168))+
+      part("径向尺寸界线","dimension",join(p,at(x,y,rd+8,a))+join(q,at(x,y,rd+8,b)))+
+      part(above ? "弧长符号在数字上方" : "弧长符号在数字前方","dimension",
+        arc(x,y,rd,a,b,"dim")+arrow(from,at(x,y,rd,a+4))+arrow(to,at(x,y,rd,b-4))+label,
+        arc(x,y,rd,a,b,"hit-helper"))+
+      caption(x,199,above ? "符号在上方" : "符号在前方");
+  };
+  return example(98,true)+example(292,false);
+}
+function chordLength() {
+  const x=195,y=220,r=132,a=-120,b=-60;
+  const p=at(x,y,r,a), q=at(x,y,r,b);
+  return arcProfile(x,y,r,a,b)+
+    part("圆弧中心线","guide",line(x,60,x,177,"guide centerline"),targetLine(x,60,x,177))+
+    part("弦（辅助线）","guide",join(p,q,"guide dashed"),targetLine(...p,...q))+
+    part("垂直尺寸界线","dimension",line(p[0],p[1]-3,p[0],48)+line(q[0],q[1]-3,q[0],48))+
+    part("弦长尺寸线","dimension",hSize(p[0],q[0],61,"240"),targetLine(p[0],61,q[0],61));
+}
+function sheet() {
+  const outline = "M35 148 V115 L159 57 V125 L113 148 Z";
+  const section = "M223 106 H328 V125 H223";
+  const hatch = Array.from({length:7},(_,i)=>line(225+13*i,125,244+13*i,106,"guide")).join("");
+  return part("薄板板面","shape",path(outline,"fill")+path(outline),path(outline,"hit-helper"))+
+    part("板面厚度 t10","dimension",path("M93 118 L61 80 H24","dim")+number(40,74,"t10"),
+      targetLine(93,118,61,80)+targetLine(61,80,24,80))+
+    part("薄板平面尺寸","dimension",line(35,151,35,179)+line(159,129,159,179)+
+      hSize(35,159,173,"300",true),targetLine(35,173,159,173))+
+    part("薄板局部剖面","shape",path(section)+path("M223 106 l-3 6 6 5 -3 8"),
+      path(section,"hit-helper"))+
+    part("薄板剖面线","guide",hatch)+
+    part("剖面厚度 10","dimension",line(331,106,363,106)+line(331,125,363,125)+
+      line(356,99,356,132)+tick(356,106)+tick(356,125)+number(348,115.5,"10",-90,"small"),
+      targetLine(356,99,356,132))+
+    equals(194,124)+caption(98,204,"板面")+caption(285,204,"局部剖面");
+}
+function square() {
+  const example = (x,value,label) => {
+    const end=x+106;
+    const outline=`M${x} 82 H${end} V188 H${x} Z`;
+    return part("正方形构件轮廓","shape",path(outline,"fill")+path(outline),path(outline,"hit-helper"))+
+      part(label,"dimension",line(x,77,x,48)+line(end,77,end,48)+
+        hSize(x,end,55,value),targetLine(x,55,end,55))+
+      caption((x+end)/2,213,label);
+  };
+  return example(45,"□400","正方形符号法")+example(239,"400×400","边长×边长法");
+}
+function slopeMark(tip, tail, open) {
+  const direction = Math.atan2(tail[1]-tip[1],tail[0]-tip[0]);
+  const back = [tip[0]+11*Math.cos(direction),tip[1]+11*Math.sin(direction)];
+  const wing = [back[0]+4*Math.sin(direction),back[1]-4*Math.cos(direction)];
+  return join(tail,tip)+(open ? join(tip,wing) : arrow(tip,tail,10,2.6));
+}
+function slopeViews(percent) {
+  const value = percent ? "2%" : "1∶2";
+  const example = (offset,open) => {
+    const surface = percent ? "M8 100 L148 97.2" : "M8 118 H27 L115 74 H148";
+    const hatch = Array.from({length:9},(_,i)=>{
+      const x=14+i*14;
+      const y=percent ? 100-(x-8)*.02 : x<27 ? 118 : x<115 ? 118-(x-27)/2 : 74;
+      return line(x,y,x+10,y+10,"guide");
+    }).join("");
+    const [tip,tail] = percent ? [[47,94],[111,92.72]] : [[40,102],[104,70]];
+    const grade = slopeMark(tip,tail,open)+
+      (percent ? number(79,85,value,-1.15,"small") : number(68,78,value,-26.565,"small"));
+    return translated(offset,0,
+      part("坡面剖面轮廓","shape",path(surface),path(surface,"hit-helper"))+
+      part("地面剖面线","guide",hatch)+
+      part(open ? "开口坡度符号" : "实心坡度箭头","dimension",grade,
+        targetLine(...tip,...tail))+
+      part("坡面平面轮廓","shape",path("M8 146 H148 V192 H8 Z")+
+        (percent ? "" : path("M27 146 V192 M115 146 V192")))+
+      part(`平面图坡度 ${value}`,"dimension",slopeMark([42,176],[103,176],open)+
+        number(72.5,168,value,0,"small"),targetLine(42,176,103,176))+
+      caption(79,211,open ? "开口符号" : "实心箭头"));
+  };
+  return caption(27,98,"剖面图")+caption(27,173,"平面图")+example(51,true)+example(223,false);
+}
+function slopeTriangle() {
+  const roof = "M20 132 L98 100.8 L176 132 V141 H167 V174 H29 V141 H20 Z";
+  const symbol = "M35 98 H85 L35 118 Z";
+  return caption(98,49,"正式标注","annotation-title")+
+    part("屋面轮廓","shape",path(roof,"fill")+path(roof),path(roof,"hit-helper"))+
+    part("直角三角形坡度标注，竖边 1，横边 2.5","dimension",
+      path(symbol,"dim")+number(60,90,"2.5",0,"small")+number(24,112,"1",0,"small"),
+      path(symbol,"hit-helper"))+
+    `<rect class="reading-panel" x="205" y="28" width="174" height="156" rx="9"/>`+
+    caption(292,56,"读数说明","reading-text")+
+    caption(292,94,"高差 ÷ 水平距离","reading-text")+
+    caption(292,124,"1 ÷ 2.5 = 40%","reading-value")+
+    caption(292,154,"坡比读作 1∶2.5","reading-text");
+}
+function slopeReading() {
+  const unit=24, center=253;
+  const example = (base, ratio, percent, run) => {
+    const left=center-run*unit/2, right=center+run*unit/2;
+    const outline=`M${left} ${base} H${right} V${base-unit} Z`;
+    return `<rect class="reading-panel" x="13" y="${base-41}" width="364" height="75" rx="9"/>`+
+      caption(92,base-9,`${ratio} = ${percent}`,"reading-value")+
+      caption(92,base+15,`1 ÷ ${run} = ${percent}`,"reading-text")+
+      path(outline,"reading-edge")+path(`M${right-6} ${base} v-6 h6`,"reading-edge")+
+      caption(center,base+21,`水平距离 ${run}`,"reading-text")+
+      caption(right+30,base-7,"高差 1","reading-text");
+  };
+  return caption(195,28,"读数说明 · 坡度＝高差÷水平距离","reading-text")+
+    example(87,"1∶2","50%",2)+example(171,"1∶5","20%",5);
+}
+function coordinates() {
+  const points=[[65,175],[125,132],[185,103],[245,84],[305,76]];
+  const curve="M65 175 C85 158 105 144 125 132 C145 121 165 111 185 103 C205 94 225 88 245 84 C265 80 285 76 305 76";
+  const baseline=175, sizeY=201;
+  const heights=["","172","288","364","396"];
+  return part("非圆曲线轮廓","shape",path(curve),path(curve,"hit-helper"))+
+    part("坐标基准线","guide",line(52,baseline,320,baseline,"guide dashed"),targetLine(52,baseline,320,baseline))+
+    part("各控制点的纵坐标","dimension",points.slice(1).map(([x,y],i)=>
+      dot(x,y)+vSize(y,baseline,x,heights[i+1],true)+line(x,baseline+3,x,sizeY+6)).join(""))+
+    part("横向测站间距","dimension",line(65,baseline+3,65,sizeY+6)+
+      points.slice(1).map(([x],i)=>hSize(points[i][0],x,sizeY,"240",true)).join(""));
+}
+function gridCurve() {
+  const x=64,y=33,g=20,nx=12,ny=8,w=g*nx,h=g*ny;
+  const curve="M64 112 C64 69 107 33 155 33 C213 32 260 69 304 54 C297 76 281 91 252 98 C267 130 265 159 254 190 C240 138 192 94 148 93 C116 91 105 107 105 131 C105 141 108 149 119 155 C128 143 150 147 158 158 C171 175 156 193 137 193 C105 193 64 159 64 112 Z";
+  return part("定位网格","guide",Array.from({length:nx+1},(_,i)=>
+      line(x+i*g,y,x+i*g,y+h,"guide")).join("")+
+    Array.from({length:ny+1},(_,i)=>line(x,y+i*g,x+w,y+i*g,"guide")).join(""))+
+    part("复杂曲线轮廓","shape",path(curve),path(curve,"hit-helper"))+
+    part("网格尺寸","dimension",line(x,y+h+3,x,225)+line(x+w,y+h+3,x+w,225)+
+      line(x+w+4,y,344,y)+line(x+w+4,y+h,344,y+h)+hSize(x,x+w,219,"100×12=1200",true)+
+      vSize(y,y+h,336,"100×8=800",true));
+}
+
+const sections = [
+  {
+    id: "11.4", name: "半径、直径、球", title: "半径、直径、球的尺寸标注",
+    note: "圆弧半径用 R，圆直径用 ⌀。⌀ 紧贴数字前方，按数字字高绘制。球的尺寸在相应符号前加 S。",
+    topics: [
+      {id:"radius", clause:"11.4.1", name:"半径", draw:radius,
+       note:"尺寸线从圆心出发，箭头指向圆弧，半径数字前加 R。"},
+      {id:"small-radius", clause:"11.4.2", name:"小圆弧半径", draw:smallRadius,
+       note:"小圆弧可在轮廓外引注。箭头落在圆弧上，数字前加 R。"},
+      {id:"large-radius", clause:"11.4.3", name:"大圆弧半径", draw:largeRadius,
+       note:"大圆弧可用折线或短线标注半径。靠近圆弧的线段沿径向绘制，箭头落在圆弧上。"},
+      {id:"diameter", clause:"11.4.4", name:"圆内直径", draw:diameter,
+       note:"尺寸线通过圆心，两端箭头指向圆周，直径数字前加 ⌀。"},
+      {id:"small-diameter", clause:"11.4.5", name:"小圆直径", draw:smallDiameter,
+       note:"小圆的直径可标在圆外，直径数字前加 ⌀。"},
+      {id:"sphere", clause:"11.4.6", name:"球半径与球直径", draw:sphere,
+       note:"球半径用 SR，球直径用 S⌀。尺寸线沿用圆弧半径和圆直径的画法。"}
+    ]
+  },
+  {
+    id:"11.5", name:"角度、弧度、弧长", title:"角度、弧度、弧长的标注",
+    note:"角度读角的张开程度，弧长沿弧线量取，弦长连接圆弧两端。",
+    topics:[
+      {id:"angle", clause:"11.5.1", name:"角度", draw:degreeExamples,
+       note:"尺寸线以角的顶点为圆心，两条角边作尺寸界线。位置不足时，箭头可用圆点代替。"},
+      {id:"radian", clause:"11.5.1 · 单位补充", name:"弧度", draw:()=>angular("π/3 rad"),
+       note:"π/3 rad = 60°。弧度值等于弧长与半径的比值。"},
+      {id:"arc", clause:"11.5.2", name:"弧长", draw:arcLength,
+       note:"尺寸线与原圆弧同心，界线沿径向布置，弧长数字上方或前方加 ⌒。"},
+      {id:"chord", clause:"11.5.3", name:"弦长", draw:chordLength,
+       note:"尺寸线平行于弦，界线垂直于弦，两端用中粗斜短线。"}
+    ]
+  },
+  {
+    id:"11.6", name:"薄板、正方形、坡度、曲线", title:"薄板厚度、正方形、坡度、非圆曲线标注",
+    note:"非圆曲线可用坐标定位控制点，复杂图形可用网格辅助定位。",
+    topics:[
+      {id:"sheet", clause:"11.6.1", name:"薄板厚度", draw:sheet,
+       note:"同一块薄板，板面标 t10，局部剖面直接标出厚度 10。"},
+      {id:"square", clause:"11.6.2", name:"正方形", draw:square,
+       note:"两图均为正式标注。尺寸线沿一条边布置，可写 □400 或 400×400，均表示两边各长 400 mm。"},
+      {id:"slope-percent", clause:"11.6.3", figure:"图 11.6.3a、b", name:"坡度 · 百分比", draw:()=>slopeViews(true),
+       note:"同一百分比坡度可用开口符号或实心箭头，箭头均指向下坡。"},
+      {id:"slope-arrow", clause:"11.6.3", figure:"参考图 11.6.3c、d", name:"坡度 · 比值", draw:()=>slopeViews(false),
+       note:"剖面和平面均用箭头指向下坡，并标出坡比 1∶2。沿下坡方向，水平走 2 个单位，高度下降 1 个单位。"},
+      {id:"slope-triangle", clause:"11.6.3", figure:"直角三角形法", name:"坡度 · 三角形", draw:slopeTriangle,
+       note:"左图为正式标注。竖边的 1 表示高差，横边的 2.5 表示水平距离。右侧灰框供读数和换算。"},
+      {id:"slope-reading", clause:"教学示意 · 仅供读数", name:"坡度 · 读数示意", draw:slopeReading,
+       note:"两行均为读数说明。沿下坡方向，1∶2 表示水平走 2 个单位、下降 1 个单位，等于 50%。20% 表示水平走 5 个单位、下降 1 个单位，等于 1∶5。"},
+      {id:"coordinates", clause:"11.6.4", name:"非圆曲线 · 坐标法", draw:coordinates,
+       note:"用横向测站间距和各控制点相对基准线的高度确定非圆曲线。"},
+      {id:"grid", clause:"11.6.5", name:"复杂曲线 · 网格法", draw:gridCurve,
+       note:"用定距网格定位复杂曲线。图中每格为 100×100，横向 12 格、纵向 8 格。"}
+    ]
+  }
+];
+
+const byId = id => document.getElementById(id);
+const gallery = byId("gallery");
+const knowledge = byId("knowledge");
+const modes = byId("modes");
+const area = byId("area");
+const styles = byId("styles");
+const overview = byId("overview");
+const previous = byId("previous");
+const next = byId("next");
+const fullscreen = byId("fullscreen");
+const dimensions = byId("dimensions");
+const guides = byId("guides");
+const state = { section: 0, topic: null, mode: "all", area: null, selected: null };
+const flat = sections.flatMap((section,index) => section.topics.map(topic=>({section:index,topic})));
+
+function renderKnowledge() {
+  knowledge.innerHTML = sections.map((section,index)=>`
+    <div class="topic-group">
+      <button class="group-button" data-section="${index}">
+        <span>${section.id}</span><span>${section.name}</span>${icon("next")}
+      </button>
+      <div class="topics">${section.topics.map(topic=>`
+        <button class="topic-button" data-topic="${topic.id}" data-parent="${index}">${topic.name}</button>`).join("")}
+      </div>
+    </div>`).join("");
+}
+
+function setCurrent(element, isCurrent) {
+  if (isCurrent) element.setAttribute("aria-current","true");
+  else element.removeAttribute("aria-current");
+}
+
+function updateLabels() {
+  for (const button of modes.querySelectorAll("button")) {
+    button.setAttribute("aria-pressed", String(button.dataset.mode === state.mode));
+  }
+  area.hidden = state.mode !== "area" || state.topic !== null;
+  for (const cell of gallery.querySelectorAll(".cell")) {
+    const id = cell.dataset.id;
+    const active = state.selected?.id === id;
+    const showName = active || state.mode === "all" || (state.mode === "area" && id === state.area);
+    cell.querySelector(".nameplate").hidden = !showName;
+    const output = cell.querySelector(".part-name");
+    const label = active ? state.selected.element?.dataset.name : "";
+    output.textContent = label || "";
+    output.hidden = !label;
+    for (const element of cell.querySelectorAll(".hit")) {
+      element.classList.toggle("is-active", active && state.selected.element === element);
+    }
+  }
+}
+
+function renderBoard() {
+  const section = sections[state.section];
+  const selectedTopic = section.topics.find(topic=>topic.id === state.topic);
+  const topics = selectedTopic ? [selectedTopic] : section.topics;
+  const position = flat.findIndex(item=>item.topic.id === state.topic);
+  const first = flat.findIndex(item=>item.section === state.section);
+  byId("clause").textContent = selectedTopic?.clause || section.id;
+  byId("board-title").textContent = selectedTopic?.name || section.title;
+  byId("rule").textContent = selectedTopic?.note || section.note;
+  overview.disabled = !selectedTopic;
+  previous.disabled = position === 0 || (position === -1 && first === 0);
+  next.disabled = position === flat.length-1;
+  gallery.dataset.count = topics.length;
+  gallery.innerHTML = topics.map(topic=>`
+    <article class="cell" data-id="${topic.id}" aria-label="${topic.name}">
+      <div class="cell-head">
+        <span>${topic.figure || (selectedTopic ? "" : topic.clause)}</span>
+        ${selectedTopic ? "" : `<button type="button" data-open="${topic.id}" aria-label="放大${topic.name}" title="放大图示">${icon("open")}</button>`}
+      </div>
+      <div class="drawing">
+        <svg class="draft" viewBox="0 0 390 231" role="group" aria-label="${topic.name}图示">
+          ${topic.draw()}
+        </svg>
+      </div>
+      <div class="cell-foot">
+        <span class="nameplate">${topic.name}</span>
+        <span class="part-name" role="status" hidden></span>
+      </div>
+    </article>`).join("");
+  if (!section.topics.some(topic=>topic.id === state.area)) state.area = section.topics[0].id;
+  area.replaceChildren(...section.topics.map(topic=>new Option(topic.name,topic.id)));
+  area.value = state.area;
+  for (const button of knowledge.querySelectorAll(".group-button")) {
+    setCurrent(button, Number(button.dataset.section) === state.section);
+  }
+  for (const button of knowledge.querySelectorAll(".topic-button")) {
+    setCurrent(button, button.dataset.topic === state.topic);
+  }
+  updateLabels();
+}
+
+let pressTimer;
+let pointerStart;
+let longPressDrawing;
+function clearPress() {
+  clearTimeout(pressTimer);
+  pointerStart = null;
+}
+function navigate(section, topic = null) {
+  clearPress();
+  longPressDrawing = null;
+  state.section = section;
+  state.topic = topic;
+  state.selected = null;
+  if (topic) state.area = topic;
+  renderBoard();
+}
+function move(direction) {
+  const current = flat.findIndex(item=>item.topic.id === state.topic);
+  const first = flat.findIndex(item=>item.section === state.section);
+  const item = flat[current < 0 ? first + (direction < 0 ? -1 : 0) : current + direction];
+  if (item) navigate(item.section,item.topic.id);
+}
+function identify(drawing, target, toggle) {
+  const cell = drawing.closest(".cell");
+  const id = cell.dataset.id;
+  const element = target?.closest(".hit") || null;
+  if (toggle && state.selected?.id === id && state.selected.element === element) {
+    state.selected = null;
+  } else {
+    state.selected = {id,element};
+  }
+  updateLabels();
+}
+
+document.querySelectorAll("summary[data-icon]").forEach(summary=>{
+  summary.insertAdjacentHTML("afterbegin",icon(summary.dataset.icon));
+  summary.insertAdjacentHTML("beforeend",icon("chevron"));
+});
+previous.innerHTML = icon("previous");
+next.innerHTML = icon("next");
+fullscreen.innerHTML = icon("full");
+renderKnowledge();
+renderBoard();
+
+knowledge.addEventListener("click",event=>{
+  const button = event.target.closest("button");
+  if (!button) return;
+  if (button.dataset.topic) navigate(Number(button.dataset.parent),button.dataset.topic);
+  else navigate(Number(button.dataset.section));
+  if (matchMedia("(max-width: 740px)").matches) byId("board-title").scrollIntoView({block:"start"});
+});
+overview.addEventListener("click",()=>navigate(state.section));
+previous.addEventListener("click",()=>move(-1));
+next.addEventListener("click",()=>move(1));
+modes.addEventListener("click",event=>{
+  const mode = event.target.closest("button")?.dataset.mode;
+  if (!mode) return;
+  state.mode = mode;
+  state.selected = null;
+  updateLabels();
+});
+area.addEventListener("change",()=>{
+  state.area = area.value;
+  state.selected = null;
+  updateLabels();
+});
+function updateLineLayers() {
+  gallery.classList.toggle("hide-dimensions",!dimensions.checked);
+  gallery.classList.toggle("hide-guides",!guides.checked);
+  state.selected = null;
+  updateLabels();
+}
+dimensions.addEventListener("change",updateLineLayers);
+guides.addEventListener("change",updateLineLayers);
+function setStyle(style) {
+  document.body.classList.toggle("ink-mode",style === "ink");
+  for (const button of styles.querySelectorAll("button")) {
+    button.setAttribute("aria-pressed",String(button.dataset.style === style));
+  }
+}
+styles.addEventListener("click",event=>{
+  const style = event.target.closest("button")?.dataset.style;
+  if (style) setStyle(style);
+});
+byId("reset").addEventListener("click",()=>{
+  state.mode = "all";
+  dimensions.checked = true;
+  guides.checked = true;
+  updateLineLayers();
+  setStyle("color");
+});
+gallery.addEventListener("click",event=>{
+  const expand = event.target.closest("button[data-open]");
+  if (expand) {
+    navigate(state.section,expand.dataset.open);
+    overview.focus();
+    return;
+  }
+  const drawing = event.target.closest(".drawing");
+  if (drawing && drawing !== longPressDrawing) identify(drawing,event.target,true);
+  longPressDrawing = null;
+});
+gallery.addEventListener("pointerdown",event=>{
+  const drawing = event.target.closest(".drawing");
+  if (!drawing || event.button !== 0 || !event.isPrimary) return;
+  clearPress();
+  longPressDrawing = null;
+  pointerStart = [event.clientX,event.clientY];
+  pressTimer = setTimeout(()=>{
+    longPressDrawing = drawing;
+    identify(drawing,event.target,false);
+  },480);
+});
+gallery.addEventListener("contextmenu",event=>{
+  if (event.target.closest(".drawing")) event.preventDefault();
+});
+document.addEventListener("pointermove",event=>{
+  if (pointerStart && Math.hypot(event.clientX-pointerStart[0],event.clientY-pointerStart[1]) > 9) clearPress();
+});
+document.addEventListener("pointerup",clearPress);
+document.addEventListener("pointercancel",clearPress);
+gallery.addEventListener("keydown",event=>{
+  if ((event.key === "Enter" || event.key === " ") && event.target.matches(".hit")) {
+    event.preventDefault();
+    identify(event.target.closest(".drawing"),event.target,true);
+  }
+});
+document.addEventListener("keydown",event=>{
+  if (event.key === "Escape" && state.selected) {
+    state.selected = null;
+    updateLabels();
+  }
+});
+fullscreen.hidden = !document.fullscreenEnabled;
+fullscreen.addEventListener("click",async()=>{
+  try {
+    if (document.fullscreenElement) await document.exitFullscreen();
+    else await document.documentElement.requestFullscreen();
+  } catch {
+    fullscreen.hidden = true;
+  }
+});
+document.addEventListener("fullscreenchange",()=>{
+  const active = Boolean(document.fullscreenElement);
+  const label = active ? "退出全屏" : "全屏";
+  fullscreen.innerHTML = icon(active ? "shrink" : "full");
+  fullscreen.setAttribute("aria-label",label);
+  fullscreen.title = label;
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,532 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>尺寸标注识读练习</title>
+<style>
+:root {
+  color-scheme: light;
+  font-family: "Microsoft YaHei","PingFang SC","Noto Sans CJK SC",sans-serif;
+  --paper: #fff;
+  --base: #edf0eb;
+  --ink: #1d3027;
+  --muted: #52625a;
+  --border: #dce4dc;
+  --green: #265b44;
+  --soft: #eaf3eb;
+  --rust: #8f3d2a;
+  --shadow: 0 8px 25px #20362908;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { margin: 0; background: var(--base); color: var(--ink); }
+h1,h2,h3,p,figure { margin: 0; }
+button, input { font: inherit; }
+button, summary, label { -webkit-tap-highlight-color: transparent; }
+button { cursor: pointer; color: inherit; }
+button:focus-visible, summary:focus-visible, input:focus-visible { outline: 2px solid #237450; outline-offset: 3px; }
+svg { display: block; }
+.topbar { background: #1d382c; color: #fff; }
+.topinner { max-width: 1496px; margin: auto; display: flex; justify-content: space-between; align-items: center; gap: 18px; min-height: 84px; padding: 13px 31px; }
+.brand { display: flex; align-items: center; gap: 14px; min-width: 0; }
+.brand-mark { width: 44px; height: 44px; border-radius: 11px; border: 1px solid #ffffff40; color: #d5e8d8; display: grid; place-items: center; flex: none; }
+.brand-mark svg { width: 25px; }
+h1 { font-size: clamp(21px,2.35vw,29px); line-height: 1.27; letter-spacing: .035em; font-weight: 720; }
+.standard { color: #c8dccf; font-size: 11.5px; margin-top: 4px; letter-spacing: .06em; }
+.progress { font-size: 12px; white-space: nowrap; padding: 7px 12px; border: 1px solid #ffffff3e; border-radius: 7px; color: #e1ece4; font-variant-numeric: tabular-nums; }
+.workspace { max-width: 1496px; margin: auto; padding: 24px 30px 30px; display: grid; grid-template-columns: minmax(0,1fr) clamp(294px,26vw,348px); gap: 18px; align-items: start; }
+.stage,.panel { background: var(--paper); border: 1px solid var(--border); border-radius: 15px; box-shadow: var(--shadow); min-width: 0; }
+.stage { padding: 21px; }
+.stage-head { min-height: 60px; display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 17px; }
+.stage-group { color: var(--muted); font-size: 12px; font-weight: 550; letter-spacing: .045em; margin-bottom: 3px; }
+.stage h2 { font-size: clamp(20px,2.55vw,32px); letter-spacing: .015em; line-height: 1.27; }
+.stage-ref { border: 1px solid #dae6da; color: #425e50; background: #f3f8f3; border-radius: 6px; font-size: 12px; padding: 5px 9px; white-space: nowrap; }
+.drawing-board { min-height: clamp(390px,53vh,542px); display: grid; place-items: center; width: 100%; padding: 25px; background: #fff; border: 1px solid var(--border); border-radius: 10px; }
+.drawing-pair { width: 100%; min-width: 0; }
+.drawing { width: 100%; height: auto; display: block; overflow: visible; }
+.drawing .outline,.drawing .fine,.drawing .centerline,.drawing .tick,.drawing .hatch-stroke {
+  fill: none;
+  stroke: #202420;
+  stroke-linecap: butt;
+  stroke-linejoin: miter;
+}
+.drawing .outline { stroke-width: 2.65; }
+.drawing .fine,.drawing .centerline,.drawing .hatch-stroke { stroke-width: 1; }
+.drawing .centerline { stroke-dasharray: 19 3 2 3; }
+.drawing .tick { stroke-width: 1.75; }
+.drawing .dimension-number {
+  fill: #181d19; font: 16px "Segoe UI","Microsoft YaHei",sans-serif;
+  font-variant-numeric: tabular-nums; text-anchor: middle;
+}
+.drawing .marker { display: none; pointer-events: none; mix-blend-mode: multiply; }
+.marker rect { fill: #e3f0dd; stroke: #7fa678; stroke-width: 1; vector-effect: non-scaling-stroke; }
+.marker.wrong-mark rect { fill: #f4e0d8; stroke: #b87968; }
+.show-markers .marker.graded { display: block; }
+.hide-outline .layer-outline,.hide-hatch .layer-hatch,.hide-centers .layer-centers,.hide-dimensions .layer-dimensions { visibility: hidden; }
+.drawing-pair { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 14px; }
+.option-figure { display: grid; grid-template-rows: 1fr auto; place-items: center; min-width: 0; padding: 15px 9px 9px; background: #fff; border: 1px solid #e2e8e0; border-radius: 8px; }
+.option-figure .drawing { width: min(100%, 420px); }
+.option-figure figcaption { width: 100%; padding-top: 9px; text-align: center; border-top: 1px solid #edf1ec; font-family: "Segoe UI",sans-serif; font-size: 14px; font-weight: 700; color: var(--muted); }
+.option-figure.good { border-color: #91b59c; }
+.option-figure.bad { border-color: #cc9b8e; }
+.option-figure.good figcaption { color: var(--green); }
+.option-figure.bad figcaption { color: var(--rust); }
+.atlas { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); align-items: stretch; gap: 12px; }
+.atlas-item { min-width: 0; border: 1px solid var(--border); border-radius: 9px; padding: 11px; display: grid; grid-template-rows: auto 1fr; gap: 9px; }
+.atlas-item h3 { font-size: 13px; font-weight: 680; }
+.atlas-item h3 span { color: var(--green); margin-right: 7px; }
+.atlas-item .drawing-pair { gap: 6px; align-self: center; }
+.atlas-item .option-figure { padding: 6px 3px 3px; }
+.atlas-item .option-figure figcaption { font-size: 11px; padding-top: 3px; }
+.tray { display: grid; gap: 9px; min-width: 0; }
+.panel { overflow: clip; border-radius: 11px; }
+summary { display: flex; align-items: center; gap: 9px; min-height: 44px; padding: 10px 13px; cursor: pointer; list-style: none; font-weight: 720; font-size: 14px; }
+summary:focus-visible { outline-offset: -3px; }
+summary::-webkit-details-marker { display: none; }
+summary .icon { width: 16px; height: 16px; color: var(--green); flex: none; }
+summary .chevron { width: 15px; height: 15px; margin-left: auto; color: #627367; }
+details[open] > summary .chevron { transform: rotate(180deg); }
+.panel-body { padding: 0 12px 12px; }
+.rule { color: var(--muted); font-size: 13px; line-height: 1.65; padding: 2px 13px 12px; }
+.rule p + p:not(.refs) { margin-top: 6px; }
+.refs { font-size: 11px; color: #627367; margin-top: 6px; }
+.nav { display: grid; gap: 3px; }
+.nav button { display: flex; width: 100%; align-items: center; min-height: 31px; padding: 4px 8px; gap: 8px; border: 1px solid transparent; border-radius: 6px; background: #fff; font-size: 13px; text-align: left; }
+.nav button:hover,.answer-choice:hover { background: #f3f7f3; }
+.nav button[aria-current="true"] { background: var(--soft); border-color: #d5e4d5; font-weight: 700; }
+.nav .atlas-button { border-color: var(--border); margin-bottom: 4px; }
+.nav .figure-name { width: 25px; text-align: center; font-size: 11px; flex: none; color: var(--green); }
+.nav .figure-name svg { width: 14px; height: 14px; margin: auto; }
+.nav .answered-tick { margin-left: auto; font-size: 11px; color: var(--green); }
+.question-text { padding: 0 2px; font-size: 13px; font-weight: 650; line-height: 1.65; margin-bottom: 9px; }
+.answers { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+.answer-choice { display: flex; align-items: center; min-height: 36px; text-align: left; gap: 8px; border: 1px solid var(--border); background: #fff; border-radius: 6px; padding: 5px 7px; font-size: 12.5px; line-height: 1.5; }
+.answer-choice .letter { min-width: 24px; display: grid; place-items: center; border-radius: 4px; padding: 2px 4px; background: #f0f4f0; color: var(--green); font-family: "Segoe UI",sans-serif; font-weight: 750; }
+.answers .answer-choice { justify-content: center; }
+.answer-choice.correct { color: var(--green); background: var(--soft); border-color: #86ad91; }
+.answer-choice.incorrect { color: var(--rust); background: #fbf0eb; border-color: #cf9a8b; }
+.answer-choice:disabled { cursor: default; }
+.feedback { margin-top: 8px; padding: 8px 9px; border-radius: 6px; background: #f4f8f3; color: #365943; font-size: 12px; line-height: 1.65; }
+.feedback.is-incorrect { color: var(--rust); background: #fbf2ed; }
+.feedback strong { display: block; }
+.retry { background: #fff; border: 1px solid var(--border); font-size: 12px; margin-top: 7px; padding: 4px 8px; border-radius: 5px; }
+.retry:hover { background: #f3f7f3; }
+.layer-list { display: grid; gap: 7px; padding: 0 3px 1px; font-size: 13px; }
+.layer-list label { display: flex; min-height: 24px; align-items: center; gap: 7px; cursor: pointer; }
+.layer-list input { margin: 0; width: 16px; height: 16px; accent-color: var(--green); }
+@media(max-width: 1020px) {
+  .workspace { padding-inline: 17px; gap: 13px; grid-template-columns: minmax(0,1fr) 293px; }
+  .topinner { padding-inline: 20px; }
+  .stage { padding: 16px; }
+  .drawing-board { padding: 14px; }
+}
+@media(max-width: 740px) {
+  .topinner { min-height: 67px; padding: 8px 13px; }
+  .brand { gap: 8px; }
+  .brand-mark { width: 34px; height: 34px; border-radius: 7px; }
+  .brand-mark svg { width: 20px; }
+  .progress { padding: 5px 7px; }
+  .workspace { grid-template-columns: 1fr; padding: 12px 10px 20px; }
+  .stage { padding: 11px; }
+  .stage-head { min-height: auto; margin-bottom: 10px; }
+  .drawing-board { min-height: 0; padding: 12px; }
+}
+@media(max-width: 520px) {
+  .drawing-board .drawing-pair { grid-template-columns: 1fr; }
+  .drawing-board .option-figure .drawing { max-width: 380px; }
+}
+@media(max-width: 420px) {
+  .atlas { grid-template-columns: 1fr; }
+  .drawing-pair { gap: 7px; }
+  .option-figure { padding: 8px 4px 4px; }
+  .stage-ref { padding-inline: 6px; font-size: 10.5px; }
+}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="topinner">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 26 26" fill="none" stroke="currentColor" stroke-width="1.25">
+          <path d="M5 15h7v-5h9M5 19V6m16 13V6M4 5h18M3 7l4-4m12 4 4-4M3 21h20"/>
+        </svg>
+      </span>
+      <div><h1>尺寸标注识读练习</h1><p class="standard">GB/T 50001—2017 · 房屋建筑制图统一标准</p></div>
+    </div>
+    <p class="progress" id="progress" aria-live="polite">已答 0 / 4</p>
+  </div>
+</header>
+<main class="workspace">
+  <article class="stage" aria-labelledby="stage-title">
+    <header class="stage-head">
+      <div><p class="stage-group" id="stage-group"></p><h2 id="stage-title"></h2></div>
+      <span class="stage-ref" id="stage-ref"></span>
+    </header>
+    <div class="show-markers" id="stage-content"></div>
+  </article>
+
+  <aside class="tray" aria-label="教学托盘">
+    <details class="panel">
+      <summary data-icon="book">知识点释义</summary>
+      <div class="panel-body rule" id="rule"></div>
+    </details>
+    <details class="panel" open>
+      <summary data-icon="list">知识点</summary>
+      <div class="panel-body">
+        <nav class="nav" id="topics" aria-label="切换图集和题目"></nav>
+      </div>
+    </details>
+    <details class="panel" id="quiz-panel" open>
+      <summary data-icon="check">作答</summary>
+      <div class="panel-body">
+        <p class="question-text" id="question"></p>
+        <div class="answers" id="answers" role="group" aria-labelledby="question"></div>
+        <div class="feedback" id="feedback" role="status" hidden></div>
+        <button type="button" class="retry" id="retry" hidden>重答本题</button>
+      </div>
+    </details>
+    <details class="panel" open>
+      <summary data-icon="layers">图层</summary>
+      <div class="panel-body layer-list">
+        <label><input type="checkbox" value="outline" checked>构件轮廓</label>
+        <label><input type="checkbox" value="hatch" checked>剖面线</label>
+        <label><input type="checkbox" value="centers" checked>中心线</label>
+        <label><input type="checkbox" value="dimensions" checked>尺寸标注</label>
+        <label><input type="checkbox" value="markers" checked>作答后讲解标记</label>
+      </div>
+    </details>
+  </aside>
+</main>
+<script>
+'use strict';
+
+const sections = ['尺寸排列与布置', '尺寸标注示范'];
+const topics = [
+  {
+    id: 'a', label: '图 a', group: 0, title: '标注位置', ref: '11.3.1',
+    question: '哪幅图的 370、120 尺寸布置正确？',
+    correct: 1,
+    rule: '尺寸宜标注在图样轮廓以外，不宜与图线、文字及符号相交。',
+    explanation: 'B 把左侧两段尺寸放在轮廓外。A 把同组尺寸放进剖面，与剖面线交叉。',
+    draw: placement
+  },
+  {
+    id: 'b', label: '图 b', group: 0, title: '数字避让', ref: '11.3.1 · 4.0.10',
+    question: '哪幅图正确处理了 490 附近的剖面线？',
+    correct: 0,
+    rule: '图线不得与数字重叠、混淆。无法避开时，在数字处局部断开相交图线，保证读数清晰。',
+    explanation: 'A 只断开 490 附近的斜剖面线，水平尺寸线保持连续。B 的剖面线穿过了数字。',
+    draw: legibility
+  },
+  {
+    id: 'c', label: '图 1', group: 1, title: '可作尺寸界线', ref: '11.1.2–11.1.3 · 图 11.3.2',
+    question: '哪幅图正确标出了两圆孔的中心距 23？',
+    correct: 0,
+    rule: '轮廓线、中心线可用作尺寸界线。尺寸线用独立的细实线绘制。',
+    explanation: 'A 用两孔的竖向中心线引出界线，在下方另画水平尺寸线。B 把水平中心线当作了尺寸线。',
+    draw: holeSpacing
+  },
+  {
+    id: 'd', label: '图 2', group: 1, title: '尺寸界线不得代替尺寸线', ref: '11.1.2–11.1.3',
+    question: '哪幅图正确标注了两段高差 4？',
+    correct: 1,
+    rule: '尺寸界线垂直于被注长度，尺寸线与被注长度平行。尺寸界线不得代替另一尺寸的尺寸线。',
+    explanation: 'B 在台阶右侧另画竖向尺寸线。A 把上方横向尺寸的两条尺寸界线直接用来标注高差 4。',
+    draw: stairHeights
+  }
+];
+
+const choiceLetters = ['A','B'];
+
+function vectorLine(x1, y1, x2, y2, kind = 'fine') {
+  return `<line class="${kind}" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"/>`;
+}
+
+function tick(x, y, vertical = false) {
+  const half = 4.1;
+  const slope = vertical ? 1 : -1;
+  return vectorLine(x - half, y - half * slope, x + half, y + half * slope, 'tick');
+}
+
+function number(value, x, y, vertical = false) {
+  const transform = vertical ? ` transform="rotate(-90 ${x} ${y})"` : '';
+  return `<text class="dimension-number" x="${x}" y="${y}"${transform}>${value}</text>`;
+}
+
+function horizontalDimensions(y, stops, values, drawLine = true) {
+  const span = drawLine ? vectorLine(stops[0], y, stops.at(-1), y) : '';
+  const ticks = stops.map(x => tick(x, y)).join('');
+  const digits = values.map((value, index) => number(value, (stops[index] + stops[index + 1]) / 2, y - 5)).join('');
+  return span + ticks + digits;
+}
+
+function verticalDimensions(x, stops, values, drawLine = true) {
+  const span = drawLine ? vectorLine(x, stops[0], x, stops.at(-1)) : '';
+  const ticks = stops.map(y => tick(x, y, true)).join('');
+  const digits = values.map((value, index) => number(value, x - 5, (stops[index] + stops[index + 1]) / 2, true)).join('');
+  return span + ticks + digits;
+}
+
+function vectorLayer(name, content) {
+  return `<g class="layer-${name}">${content}</g>`;
+}
+
+function hatch(shape, id, clearances = []) {
+  const ink = Array.from({ length: 72 }, (_, index) => {
+    const x = index * 10 + 2;
+    return `M${x - 320} 320L${x} 0`;
+  }).join('');
+  const sheet = 'M0 0H420V320H0Z';
+  const holes = clearances.map(([x, y, w, h]) => `M${x} ${y}h${w}v${h}h-${w}Z`).join('');
+  return `<defs>
+    <clipPath id="${id}-shape"><path d="${shape}"/></clipPath>
+    <clipPath id="${id}-clear"><path clip-rule="evenodd" d="${sheet}${holes}"/></clipPath>
+  </defs>${vectorLayer('hatch', `<g clip-path="url(#${id}-shape)"><path class="hatch-stroke" d="${ink}" clip-path="url(#${id}-clear)"/></g>`)}`;
+}
+
+function placement(correct, id) {
+  const top = 49;
+  const shoulder = 167.4;
+  const bottom = 205.8;
+  const axisY = 87.4;
+  const rightBase = 125.8;
+  const left = 104;
+  const notchLeft = 129;
+  const axisX = 167.4;
+  const notchRight = 205.8;
+  const right = 307;
+  const dimsX = correct ? 56 : 151;
+  const shape = `M${left} ${top}H${right}V${rightBase}H${notchRight}V${bottom}H${notchLeft}V${shoulder}H${left}Z`;
+  const contour = `<path class="outline" d="M${right} ${top}H${left}V${shoulder}H${notchLeft}V${bottom}H${notchRight}V${rightBase}H${right}"/>`
+    + vectorLine(right, top - 13, right, rightBase + 13);
+  const axes = vectorLine(148, axisY, 382, axisY, 'centerline')
+    + vectorLine(axisX, 75, axisX, 268, 'centerline')
+    + '<circle class="fine" cx="394" cy="87.4" r="12"/><circle class="fine" cx="167.4" cy="280" r="12"/>';
+  const leftExtensions = [[top, left], [shoulder, left], [bottom, notchLeft]].map(([y, edge]) =>
+    correct ? vectorLine(dimsX - 8, y, edge - 7, y) : vectorLine(edge + 7, y, dimsX + 8, y)
+  ).join('');
+  const otherDimensions = vectorLine(315, top, 354, top)
+    + vectorLine(315, rightBase, 354, rightBase)
+    + verticalDimensions(345, [top, axisY, rightBase], [120,120])
+    + vectorLine(notchLeft, bottom + 7, notchLeft, 247)
+    + vectorLine(notchRight, bottom + 7, notchRight, 247)
+    + horizontalDimensions(238, [notchLeft, axisX, notchRight], [120,120]);
+  const clearance = correct ? [] : [[130,91,17,34],[130,169,17,35]];
+  return {
+    content: hatch(shape, id, clearance)
+      + vectorLayer('outline', contour)
+      + vectorLayer('centers', axes)
+      + vectorLayer('dimensions', leftExtensions + verticalDimensions(dimsX, [top, shoulder, bottom], [370,120]) + otherDimensions),
+    marks: [[dimsX - 25, top - 9, 33, bottom - top + 18]]
+  };
+}
+
+function legibility(correct, id) {
+  const left = 137;
+  const right = 283;
+  const center = (left + right) / 2;
+  const dimY = 164;
+  const topEdge = `M${left} 45H199l7-6 6 13 7-7H${right}`;
+  const bottomEdge = 'M137 274h62l7-6 6 13 7-7h64';
+  const shape = topEdge + 'V274h-64l-7 7-6-13-7 6H137Z';
+  const gap = [center - 15.5, dimY - 18, 31, 14];
+  const contour = `<path class="fine" d="${topEdge}${bottomEdge}"/>`
+    + vectorLine(left - 19, 45, left, 45)
+    + vectorLine(right, 45, right + 19, 45)
+    + vectorLine(left - 19, 274, left, 274)
+    + vectorLine(right, 274, right + 19, 274)
+    + vectorLine(left, 45, left, 274, 'outline')
+    + vectorLine(right, 45, right, 274, 'outline');
+  return {
+    content: hatch(shape, id, correct ? [gap] : [])
+      + vectorLayer('outline', contour)
+      + vectorLayer('dimensions', horizontalDimensions(dimY, [left,right], [490])),
+    marks: [gap]
+  };
+}
+
+function holeSpacing(correct) {
+  const first = 135;
+  const second = 296;
+  const axisY = 199;
+  const contour = '<path class="outline" d="M95 93H167V151H251V120H328V239H95Z"/>'
+    + `<circle class="outline" cx="${first}" cy="${axisY}" r="24"/><circle class="outline" cx="${second}" cy="${axisY}" r="24"/>`;
+  const axes = vectorLine(93, axisY, 340, axisY, 'centerline')
+    + [first, second].map(x => vectorLine(x, 168, x, correct ? 294 : 232, 'centerline')).join('');
+  const notchWidth = vectorLine(167, 43, 167, 86)
+    + vectorLine(251, 43, 251, 113)
+    + horizontalDimensions(52, [167,251], [12]);
+  const row = correct ? 282 : axisY;
+  return {
+    content: vectorLayer('outline', contour)
+      + vectorLayer('centers', axes)
+      + vectorLayer('dimensions', notchWidth + horizontalDimensions(row, [first,second], [23], correct)),
+    marks: [[first - 9, row - 24, second - first + 18, 33]]
+  };
+}
+
+function stairHeights(correct) {
+  const xs = [82, 154.6, 233.8, 306.4];
+  const ys = [112, 138.4, 164.8, 230.8];
+  const rightDims = 350;
+  const [x0,x1,x2,x3] = xs;
+  const [y0,y1,y2,y3] = ys;
+  const contour = `<path class="outline" d="M${x0} ${y0}H${x1}V${y1}H${x2}V${y2}H${x3}V${y3}H${x0}Z"/>`;
+  const topEnds = [y0 - 8, y0 - 8, y1 - (correct ? 8 : 0), y2 - (correct ? 8 : 0)];
+  const top = xs.map((x, index) => vectorLine(x, 50, x, topEnds[index])).join('')
+    + horizontalDimensions(59, xs, [11,12,11]);
+  const outerBounds = vectorLine(x3 + 7, y2, rightDims + 8, y2)
+    + vectorLine(x3 + 7, y3, rightDims + 8, y3);
+  const heights = correct
+    ? vectorLine(x3 + 7, y0, rightDims + 8, y0)
+      + vectorLine(x3 + 7, y1, rightDims + 8, y1)
+      + verticalDimensions(rightDims, ys, [4,4,10])
+    : vectorLine(x1 + 7, y0, x2 + 8, y0)
+      + vectorLine(x2 + 7, y1, x3 + 8, y1)
+      + verticalDimensions(x2, [y0,y1], [4], false)
+      + verticalDimensions(x3, [y1,y2], [4], false)
+      + verticalDimensions(rightDims, [y2,y3], [10]);
+  return {
+    content: vectorLayer('outline', contour)
+      + vectorLayer('dimensions', top + outerBounds + heights),
+    marks: correct
+      ? [[rightDims - 23, y0 - 8, 32, y2 - y0 + 16]]
+      : [[x2 - 23, y0 - 7, 30, y1 - y0 + 14], [x3 - 23, y1 - 7, 30, y2 - y1 + 14]]
+  };
+}
+
+const iconPaths = {
+  book: '<path d="M3.5 3.5h5.2c1 0 1.3.3 1.3 1v11.2c0-.7-.5-1.2-1.4-1.2H3.5zM16.5 3.5h-5.2c-1 0-1.3.3-1.3 1v11.2c0-.7.5-1.2 1.4-1.2h5.1z"/>',
+  list: '<path d="M7 5h9M7 10h9m-9 5h9M4 5h.2M4 10h.2M4 15h.2"/>',
+  check: '<path d="M5 10.3l3.2 3.2L15 6.7M3 3h14v14H3z"/>',
+  layers: '<path d="M2.5 7.2 10 3l7.5 4.2L10 11.4zM3 10.5l7 4 7-4M3 13.7l7 4 7-4"/>',
+  grid: '<path d="M3.5 3.5h5v5h-5zm8 0h5v5h-5zm0 8h5v5h-5zm-8 0h5v5h-5z"/>',
+  chevron: '<path d="m5.5 8 4.5 4.5L14.5 8"/>'
+};
+const icon = (name, className = 'icon') =>
+  `<svg class="${className}" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${iconPaths[name]}</svg>`;
+
+for (const summary of document.querySelectorAll('summary[data-icon]')) {
+  summary.insertAdjacentHTML('afterbegin', icon(summary.dataset.icon));
+  summary.insertAdjacentHTML('beforeend', icon('chevron', 'chevron'));
+}
+
+const get = id => document.getElementById(id);
+const stage = get('stage-content');
+const topicNav = get('topics');
+const answers = get('answers');
+const feedback = get('feedback');
+const retry = get('retry');
+const attempts = new Map();
+let active = topics[0].id;
+
+function navigation() {
+  const entries = [
+    { id:'atlas', label:icon('grid'), title:'图集总览' },
+    ...topics
+  ];
+  topicNav.innerHTML = entries.map(({id,label,title}) => {
+    const done = attempts.has(id);
+    return `<button type="button" class="${id === 'atlas' ? 'atlas-button' : ''}" data-topic="${id}" aria-current="${id === active}" ${done ? `aria-label="${label} ${title}，已答"` : ''}><span class="figure-name">${label}</span><span>${title}</span>${done ? '<span class="answered-tick" aria-hidden="true">已答</span>' : ''}</button>`;
+  }).join('');
+}
+
+function topicDrawing(topic) {
+  const graded = attempts.has(topic.id);
+  const figures = choiceLetters.map((letter, index) => {
+    const correct = index === topic.correct;
+    const { content, marks } = topic.draw(correct, topic.id + '-' + letter);
+    const markShapes = marks.map(([x, y, w, h]) =>
+      `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="3"/>`
+    ).join('');
+    const marker = `<g class="marker ${graded ? 'graded' : ''} ${correct ? '' : 'wrong-mark'}" aria-hidden="true">${markShapes}</g>`;
+    const style = graded ? (correct ? 'good' : 'bad') : '';
+    const caption = graded ? (correct ? letter + ' · 正确' : letter + ' · 错误') : letter;
+    return `<figure class="option-figure ${style}">
+      <svg class="drawing" viewBox="0 0 420 320" role="img" aria-label="${topic.title}，图 ${letter}">${content}${marker}</svg>
+      <figcaption>${caption}</figcaption>
+    </figure>`;
+  }).join('');
+  return `<div class="drawing-pair">${figures}</div>`;
+}
+
+function renderStage(topic) {
+  get('stage-group').textContent = topic ? sections[topic.group] : '尺寸标注';
+  get('stage-title').textContent = topic ? topic.title : '图集总览';
+  get('stage-ref').textContent = topic ? topic.label : '';
+  get('stage-ref').hidden = !topic;
+  if (topic) {
+    stage.innerHTML = `<section class="drawing-board" aria-label="${topic.label} ${topic.title}">${topicDrawing(topic)}</section>`;
+    return;
+  }
+  stage.innerHTML = `<section class="atlas" aria-label="四组正误对照图">${topics.map(item =>
+    `<article class="atlas-item"><h3><span>${item.label}</span>${item.title}</h3>${topicDrawing(item)}</article>`
+  ).join('')}</section>`;
+}
+
+function renderTray(topic) {
+  get('quiz-panel').hidden = !topic;
+  const rules = topic ? [topic] : topics;
+  get('rule').innerHTML = rules.map(item =>
+    `<p>${topic ? '' : '<strong>' + item.title + '</strong>　'}${item.rule}</p>`
+  ).join('');
+  if (!topic) return;
+  get('rule').insertAdjacentHTML('beforeend', `<p class="refs">条文依据　${topic.ref}</p>`);
+  get('question').textContent = topic.question;
+  const choice = attempts.get(topic.id);
+  const graded = attempts.has(topic.id);
+  answers.innerHTML = choiceLetters.map((letter, index) => {
+    const shade = graded && index === topic.correct ? 'correct' : graded && index === choice ? 'incorrect' : '';
+    return `<button class="answer-choice ${shade}" type="button" data-choice="${index}" ${graded ? 'disabled' : ''}><span class="letter">${letter}</span></button>`;
+  }).join('');
+  feedback.hidden = !graded;
+  retry.hidden = !graded;
+  if (!graded) { feedback.textContent = ''; return; }
+  const correct = choice === topic.correct;
+  feedback.classList.toggle('is-incorrect', !correct);
+  const result = correct ? '回答正确' : `正确答案　${String.fromCharCode(65 + topic.correct)}`;
+  feedback.innerHTML = `<strong>${result}</strong><p>${topic.explanation}</p>`;
+}
+
+function render() {
+  const topic = topics.find(item => item.id === active);
+  renderStage(topic);
+  renderTray(topic);
+  navigation();
+  get('progress').textContent = `已答 ${attempts.size} / ${topics.length}`;
+}
+
+topicNav.addEventListener('click', event => {
+  const button = event.target.closest('button[data-topic]');
+  if (!button || button.dataset.topic === active) return;
+  active = button.dataset.topic;
+  if (active !== 'atlas') get('quiz-panel').open = true;
+  render();
+  topicNav.querySelector('[aria-current="true"]').focus({preventScroll:true});
+});
+answers.addEventListener('click', event => {
+  const button = event.target.closest('button[data-choice]');
+  if (!button || attempts.has(active)) return;
+  attempts.set(active, Number(button.dataset.choice));
+  render();
+  retry.focus({preventScroll:true});
+});
+retry.addEventListener('click', () => {
+  attempts.delete(active);
+  render();
+  answers.querySelector('button').focus({preventScroll:true});
+});
+document.querySelector('.layer-list').addEventListener('change', event => {
+  const { checked, value } = event.target;
+  if (value === 'markers') {
+    stage.classList.toggle('show-markers', checked);
+  } else {
+    stage.classList.toggle('hide-' + value, !checked);
+  }
+});
+render();
+</script>
+</body>
+</html>

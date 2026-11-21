@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>风景园林设计流程对应关系</title>
+<style>
+:root{
+  --bg:#f4f4f1; --paper:#fff; --text:#2a2a28; --muted:#6f706b; --line:#d9dad4;
+  --purple:#e9e2f0; --purple-b:#cbbcd8; --purple-t:#5d4d6d;
+  --orange:#f2ddcc; --orange-b:#deb18c; --orange-t:#744820;
+  --blue:#dbe5eb; --blue-b:#aec0cc; --blue-t:#405b70;
+  --green:#dfe8e0; --green-b:#b8cabd; --green-t:#405b47;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:var(--bg);font-family:"Microsoft YaHei","PingFang SC","Noto Sans CJK SC",Arial,sans-serif;color:var(--text)}
+body{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:10px}
+.figure{
+  width:min(1600px,98vw);
+  aspect-ratio:1.618 / 1;
+  background:var(--paper);
+  border:1px solid #e1e2dc;
+  box-shadow:0 6px 24px rgba(0,0,0,.05);
+  padding:14px;
+}
+.chart{
+  width:100%;height:100%;
+  display:grid;
+  grid-template-columns:320px repeat(7,1fr);
+  grid-template-rows:0.56fr 0.5fr 0.5fr repeat(3,1fr);
+  border-top:1px solid var(--line);
+  border-left:1px solid var(--line);
+}
+.cell,.head,.label{
+  border-right:1px solid var(--line);border-bottom:1px solid var(--line);
+  display:flex;align-items:center;justify-content:center;padding:6px 8px;background:#fff;
+}
+.head{background:#f7f7f4;font-size:22px;font-weight:700;color:#111}
+.head:first-child{justify-content:flex-start;padding-left:16px}
+.label{
+  justify-content:flex-start;padding-left:16px;background:#fafaf7;
+  font-size:24px;font-weight:700;line-height:1.25;
+}
+.label small{
+  display:block;font-size:17px;line-height:1.28;font-weight:400;margin-top:5px;color:var(--muted);
+}
+.bar{
+  margin:7px 5px;border-radius:10px;border:1.5px solid transparent;
+  display:flex;align-items:center;justify-content:center;text-align:center;
+  padding:7px 8px;font-size:22px;font-weight:700;line-height:1.12;
+}
+.bar small{
+  display:block;margin-top:5px;font-size:17px;font-weight:500;line-height:1.25;opacity:.9;
+}
+.out{background:var(--purple);border-color:var(--purple-b);color:var(--purple-t)}
+.cn{background:var(--orange);border-color:var(--orange-b);color:var(--orange-t)}
+.us{background:var(--blue);border-color:var(--blue-b);color:var(--blue-t)}
+.edu{background:var(--green);border-color:var(--green-b);color:var(--green-t)}
+.phase1{background:#f4e3d6;color:#111}
+.phase2{background:#f3e8cf;color:#111}
+.phase3{background:#e7edd9;color:#111}
+.phase4{background:#dfe9e5;color:#111}
+.phase5{background:#dde7ef;color:#111}
+.phase6{background:#e3e1ef;color:#111}
+.phase7{background:#eadfea;color:#111}
+
+.outcome-row{
+  background:#fff;
+  border-right:1px solid var(--line);
+  border-bottom:1px solid var(--line);
+  z-index:0;
+}
+.outcome-label-group{
+  grid-column:1;
+  grid-row:2 / span 2;
+  display:grid;
+  grid-template-columns:1.08fr 1fr;
+  grid-template-rows:1fr 1fr;
+  background:#fafaf7;
+  border-right:1px solid var(--line);
+  border-bottom:1px solid var(--line);
+  font-weight:700;
+  color:#111;
+}
+.outcome-main{
+  grid-column:1;
+  grid-row:1 / span 2;
+  display:flex;
+  align-items:center;
+  justify-content:flex-start;
+  padding-left:16px;
+  font-size:24px;
+}
+.outcome-sub{
+  grid-column:2;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:20px;
+  border-left:1px solid var(--line);
+}
+.outcome-sub.top{
+  grid-row:1;
+  border-bottom:1px solid var(--line);
+}
+.outcome-sub.bottom{grid-row:2}
+.outcome-bar{z-index:2}
+
+@media(max-width:1100px){
+  body{align-items:flex-start}
+  .figure{width:1580px;min-width:1580px;height:976px;aspect-ratio:auto}
+}
+@media print{
+  body{background:#fff;padding:0}
+  .figure{width:100%;aspect-ratio:1.618/1;box-shadow:none;border:0;padding:6mm}
+}
+</style>
+</head>
+<body>
+<div class="figure">
+  <div class="chart">
+    <div class="head">设计进程</div>
+    <div class="head phase1">前期调研</div>
+    <div class="head phase2">概念生成</div>
+    <div class="head phase3">总体设计</div>
+    <div class="head phase4">详细设计</div>
+    <div class="head phase5">扩初设计</div>
+    <div class="head phase6">施工图</div>
+    <div class="head phase7">施工管理</div>
+
+    <!-- 主要成果：整个灰色表头与“设计进程 / 中国行业划分法 / 美国行业划分法 / 教材划分法”严格同宽对齐 -->
+    <div class="outcome-label-group">
+      <div class="outcome-main">主要成果</div>
+      <div class="outcome-sub top">项目文本</div>
+      <div class="outcome-sub bottom">技术图纸</div>
+    </div>
+
+    <!-- 右侧成果区：上下仅一条横线分隔 -->
+    <div class="outcome-row" style="grid-column:2 / 9;grid-row:2;"></div>
+    <div class="outcome-row" style="grid-column:2 / 9;grid-row:3;"></div>
+
+    <!-- 项目文本：覆盖方案设计 + 初步设计 -->
+    <div class="bar out outcome-bar" style="grid-column:3 / span 4;grid-row:2;">项目文本</div>
+
+    <!-- 技术图纸：方案 → 初步 → 施工图逐步深化 -->
+    <div class="bar out outcome-bar" style="grid-column:3 / span 3;grid-row:3;">方案设计图纸</div>
+    <div class="bar out outcome-bar" style="grid-column:6;grid-row:3;">初步设计图纸</div>
+    <div class="bar out outcome-bar" style="grid-column:7;grid-row:3;">施工图纸</div>
+
+    <div class="label">
+      <div>中国行业划分法
+        <small>《建设工程勘察设计管理条例》第26条</small>
+      </div>
+    </div>
+    <div class="cell"></div>
+    <div class="bar cn" style="grid-column:3 / span 3;">
+      <div>方案设计<small>功能｜关系｜形态</small></div>
+    </div>
+    <div class="bar cn"><div>初步设计<small>尺寸｜标高｜材料</small></div></div>
+    <div class="bar cn"><div>施工图设计<small>坐标｜构造｜做法</small></div></div>
+    <div class="cell"></div>
+
+    <div class="label">
+      <div>美国行业划分法
+        <small>ASLA / Landscape Architecture Documentation Standards</small>
+      </div>
+    </div>
+    <div class="bar us"><div>Pre-Design<small>前期研究</small></div></div>
+    <div class="bar us"><div>Conceptual Design<small>概念设计</small></div></div>
+    <div class="bar us"><div>Schematic Design (SD)<small>总体设计</small></div></div>
+    <div class="bar us" style="grid-column:5 / span 2;">
+      <div>Design Development (DD)<small>详细设计</small></div>
+    </div>
+    <div class="bar us"><div>Construction Documents (CD)<small>施工文件</small></div></div>
+    <div class="bar us"><div>Construction Administration (CA)<small>施工管理</small></div></div>
+
+    <div class="label">教材划分法</div>
+    <div class="bar edu"><div>场地调研<small>资料整理 · 现状分析</small></div></div>
+    <div class="bar edu"><div>概念生成<small>灵感 · 素材 · 推演</small></div></div>
+    <div class="bar edu"><div>总体设计<small>概念方案 · 植物 · 竖向</small></div></div>
+    <div class="bar edu"><div>详细设计<small>专项设计 · 场地设计</small></div></div>
+    <div class="bar edu" style="grid-column:6 / span 2;">
+      <div>技术设计<small>扩初设计 → 施工设计</small></div>
+    </div>
+    <div class="bar edu"><div>施工管理<small>施工配合 · 现场落实</small></div></div>
+  </div>
+</div>
+</body>
+</html>

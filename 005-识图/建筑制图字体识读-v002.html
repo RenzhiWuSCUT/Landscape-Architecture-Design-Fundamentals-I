@@ -1,0 +1,418 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>建筑制图字体识读</title>
+<!--
+Studio Song is a converted subset of Noto Serif CJK SC.
+© 2017–2024 Adobe.
+-----------------------------------------------------------
+SIL OPEN FONT LICENSE Version 1.1 - 26 February 2007
+-----------------------------------------------------------
+
+PREAMBLE
+
+The goals of the Open Font License (OFL) are to stimulate worldwide
+development of collaborative font projects, to support the font
+creation efforts of academic and linguistic communities, and to provide
+a free and open framework in which fonts may be shared and improved in
+partnership with others.
+
+The OFL allows the licensed fonts to be used, studied, modified and
+redistributed freely as long as they are not sold by themselves. The
+fonts, including any derivative works, can be bundled, embedded,
+redistributed and/or sold with any software provided that any reserved
+names are not used by derivative works. The fonts and derivatives,
+however, cannot be released under any other type of license. The
+requirement for fonts to remain under this license does not apply to
+any document created using the fonts or their derivatives.
+
+DEFINITIONS
+
+"Font Software" refers to the set of files released by the Copyright
+Holder(s) under this license and clearly marked as such. This may
+include source files, build scripts and documentation.
+
+"Reserved Font Name" refers to any names specified as such after the
+copyright statement(s).
+
+"Original Version" refers to the collection of Font Software components
+as distributed by the Copyright Holder(s).
+
+"Modified Version" refers to any derivative made by adding to,
+deleting, or substituting -- in part or in whole -- any of the
+components of the Original Version, by changing formats or by porting
+the Font Software to a new environment.
+
+"Author" refers to any designer, engineer, programmer, technical writer
+or other person who contributed to the Font Software.
+
+PERMISSION & CONDITIONS
+
+Permission is hereby granted, free of charge, to any person obtaining a
+copy of the Font Software, to use, study, copy, merge, embed, modify,
+redistribute, and sell modified and unmodified copies of the Font
+Software, subject to the following conditions:
+
+1) Neither the Font Software nor any of its individual components, in
+Original or Modified Versions, may be sold by itself.
+
+2) Original or Modified Versions of the Font Software may be bundled,
+redistributed and/or sold with any software, provided that each copy
+contains the above copyright notice and this license. These can be
+included either as stand-alone text files, human-readable headers or
+in the appropriate machine-readable metadata fields within text or
+binary files as long as those fields can be easily viewed by the user.
+
+3) No Modified Version of the Font Software may use the Reserved Font
+Name(s) unless explicit written permission is granted by the
+corresponding Copyright Holder. This restriction only applies to the
+primary font name as presented to the users.
+
+4) The name(s) of the Copyright Holder(s) or the Author(s) of the Font
+Software shall not be used to promote, endorse or advertise any
+Modified Version, except to acknowledge the contribution(s) of the
+Copyright Holder(s) and the Author(s) or with their explicit written
+permission.
+
+5) The Font Software, modified or unmodified, in part or in whole, must
+be distributed entirely under this license, and must not be distributed
+under any other license. The requirement for fonts to remain under this
+license does not apply to any document created using the Font Software.
+
+TERMINATION
+
+This license becomes null and void if any of the above conditions are
+not met.
+
+DISCLAIMER
+
+THE FONT SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO ANY WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT
+OF COPYRIGHT, PATENT, TRADEMARK, OR OTHER RIGHT. IN NO EVENT SHALL THE
+COPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+INCLUDING ANY GENERAL, SPECIAL, INDIRECT, INCIDENTAL, OR CONSEQUENTIAL
+DAMAGES, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+FROM, OUT OF THE USE OR INABILITY TO USE THE FONT SOFTWARE OR FROM
+OTHER DEALINGS IN THE FONT SOFTWARE.
+-->
+<style>
+@font-face{font-family:StudioSong;src:url("data:font/ttf;base64,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dCBMaWNlbnNlIGZvciB0aGUgc3BlY2lmaWMgbGFuZ3VhZ2UsIHBlcm1pc3Npb25zIGFuZCBsaW1pdGF0aW9ucyBnb3Zlcm5pbmcgeW91ciB1c2Ugb2YgdGhpcyBGb250IFNvZnR3YXJlLmh0dHBzOi8vb3BlbmZvbnRsaWNlbnNlLm9yZy8AqQAgADIAMAAxADcALQAyADAAMgA0ACAAQQBkAG8AYgBlACAAKABoAHQAdABwADoALwAvAHcAdwB3AC4AYQBkAG8AYgBlAC4AYwBvAG0ALwApAC4AUwB0AHUAZABpAG8AIABTAG8AbgBnAFIAZQBnAHUAbABhAHIAUwB0AHUAZABpAG8AUwBvAG4AZwAtAFIAZQBnAHUAbABhAHIAUwB0AHUAZABpAG8AIABTAG8AbgBnACAAUgBlAGcAdQBsAGEAcgBUAGgAaQBzACAARgBvAG4AdAAgAFMAbwBmAHQAdwBhAHIAZQAgAGkAcwAgAGwAaQBjAGUAbgBzAGUAZAAgAHUAbgBkAGUAcgAgAHQAaABlACAAUwBJAEwAIABPAHAAZQBuACAARgBvAG4AdAAgAEwAaQBjAGUAbgBzAGUALAAgAFYAZQByAHMAaQBvAG4AIAAxAC4AMQAuACAAVABoAGkAcwAgAEYAbwBuAHQAIABTAG8AZgB0AHcAYQByAGUAIABpAHMAIABkAGkAcwB0AHIAaQBiAHUAdABlAGQAIABvAG4AIABhAG4AIAAiAEEAUwAgAEkAUwAiACAAQgBBAFMASQBTACwAIABXAEkAVABIAE8AVQBUACAAVwBBAFIAUgBBAE4AVABJAEUAUwAgAE8AUgAgAEMATwBOAEQASQBUAEkATwBOAFMAIABPAEYAIABBAE4AWQAgAEsASQBOAEQALAAgAGUAaQB0AGgAZQByACAAZQB4AHAAcgBlAHMAcwAgAG8AcgAgAGkAbQBwAGwAaQBlAGQALgAgAFMAZQBlACAAdABoAGUAIABTAEkATAAgAE8AcABlAG4AIABGAG8AbgB0ACAATABpAGMAZQBuAHMAZQAgAGYAbwByACAAdABoAGUAIABzAHAAZQBjAGkAZgBpAGMAIABsAGEAbgBnAHUAYQBnAGUALAAgAHAAZQByAG0AaQBzAHMAaQBvAG4AcwAgAGEAbgBkACAAbABpAG0AaQB0AGEAdABpAG8AbgBzACAAZwBvAHYAZQByAG4AaQBuAGcAIAB5AG8AdQByACAAdQBzAGUAIABvAGYAIAB0AGgAaQBzACAARgBvAG4AdAAgAFMAbwBmAHQAdwBhAHIAZQAuAGgAdAB0AHAAcwA6AC8ALwBvAHAAZQBuAGYAbwBuAHQAbABpAGMAZQBuAHMAZQAuAG8AcgBnAC8AAAACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAwAAAECAQMBBAEFAQYBBwEIAQkBCgELAQwIY2lkMDAwMDEIY2lkMDAwMTUIY2lkMDAwMTcIY2lkMDAwMzYIY2lkMDAwODAIY2lkMDAwODMIY2lkMDAwODUIY2lkMDAwODYIY2lkMDAxMTEIY2lkMTY5ODIIY2lkNDMwMTUAAAA=") format("truetype");font-weight:400;font-style:normal;font-display:block}
+:root {
+  color-scheme: light;
+  --background: #f3f5f0;
+  --paper: #fff;
+  --ink: #25352f;
+  --muted: #54685e;
+  --accent: #185c47;
+  --line: #dee6dd;
+  --inverse-zoom: 1;
+  --ui: "Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", sans-serif;
+  --serif: "Songti SC", SimSun, "Noto Serif CJK SC", serif;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+body { margin: 0; background: var(--background); color: var(--ink); font: 14px/1.5 var(--ui); }
+.page { max-width: 1600px; margin: auto; padding: 34px 36px 28px; }
+h1 { margin: 0 0 22px; font: 700 clamp(30px, 3.4vw, 44px)/1.16 var(--serif); letter-spacing: .045em; }
+.workspace { display: grid; grid-template-columns: minmax(0, 1fr) 188px; gap: 16px; align-items: start; }
+.sheet, .tray { min-width: 0; background: var(--paper); border: 1px solid var(--line); border-radius: 12px; }
+.sheet { max-height: calc(100dvh - 135px); min-height: 230px; overflow: auto; scrollbar-color: #aabcb0 transparent; scrollbar-width: thin; }
+table { width: 100%; border-spacing: 0; text-align: left; font-variant-numeric: tabular-nums; }
+th { position: sticky; top: 0; z-index: 1; background: #eaf1e9; }
+th, td { padding: 8px 15px; white-space: nowrap; }
+th { height: 48px; border-bottom: 1px solid #d6e2d6; color: #264737; font-size: 13px; }
+th small { margin-left: 3px; color: var(--muted); font: inherit; font-size: 11px; }
+tbody td { border-bottom: 1px solid #e9eee8; height: 40px; }
+tr:last-child td { border-bottom: 0; }
+th:nth-child(-n+3), td:nth-child(-n+3) { width: 1%; text-align: center; }
+td:last-child, th:last-child { border-left: 1px solid #e6ece5; padding-left: 17px; }
+tbody td:first-child { color: var(--accent); font-weight: 700; background: #f0f6ee; }
+.size-range { color: var(--muted); }
+.sample {
+  display: block;
+  overflow: visible;
+  width: calc(var(--ink-width) * var(--inverse-zoom));
+  height: calc(var(--ink-height) * var(--inverse-zoom));
+}
+.sample text { font-family: StudioSong, serif; font-kerning: none; font-variant-ligatures: none; fill: #232d29; user-select: none; }
+.sample path { stroke: #232d29; stroke-linecap: round; stroke-linejoin: round; fill: none; }
+.tray { display: grid; gap: 10px; padding: 10px; }
+.tray-group { display: grid; gap: 6px; }
+.tray-group + .tray-group { padding-top: 9px; border-top: 1px solid var(--line); }
+.tray-label { margin: 0 0 1px; color: var(--muted); font-size: 11px; font-weight: 600; }
+.tray button {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+  min-height: 49px;
+  padding: 7px 10px;
+  border: 1px solid #e0e9e1;
+  border-radius: 7px;
+  background: #f9fbf8;
+  color: #40574c;
+  text-align: left;
+  cursor: pointer;
+  font: 600 14px/1.35 var(--ui);
+}
+.tray button:hover { border-color: #88ab98; }
+.tray button[aria-pressed="true"] { color: #fff; border-color: var(--accent); background: var(--accent); }
+.format { color: inherit; opacity: .82; font-size: 11px; font-weight: 500; letter-spacing: .02em; }
+button:focus-visible, .sheet:focus-visible { outline: 2px solid #26876a; outline-offset: 2px; }
+@media (max-width: 900px) {
+  .page { padding: 26px 22px; }
+  .workspace { grid-template-columns: minmax(0, 1fr) 156px; gap: 12px; }
+  th, td { padding-inline: 11px; }
+}
+@media (max-width: 640px) {
+  .page { padding: 18px 12px; }
+  h1 { margin-bottom: 14px; }
+  .workspace { grid-template-columns: minmax(0, 1fr); }
+  .tray { grid-row: 1; gap: 7px; padding: 6px; }
+  .tray-group { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .tray-group + .tray-group { padding-top: 6px; }
+  .tray-label { grid-column: 1 / -1; }
+  .tray button { padding-inline: 5px; font-size: 12px; }
+  .sheet { max-height: calc(100dvh - 246px); }
+  th, td { padding-inline: 8px; }
+  td:last-child, th:last-child { padding-left: 10px; }
+}
+@page { size: A4 landscape; margin: 12mm; }
+@media print {
+  body { background: white; }
+  .page { padding: 0; }
+  .workspace { display: block; }
+  .tray { display: none; }
+  .sheet { max-height: none; overflow: visible; border: 0; }
+  th { position: static; }
+  tr { break-inside: avoid; }
+  .sample { width: var(--ink-width); height: var(--ink-height); }
+}
+</style>
+</head>
+<body>
+<main class="page">
+  <h1>字体识读</h1>
+  <div class="workspace">
+    <div class="sheet" tabindex="0" aria-label="字体样张">
+      <table aria-label="字高、磅值、字号对照">
+        <thead>
+          <tr>
+            <th scope="col">字高 <small>mm</small></th>
+            <th scope="col">磅值 <small>pt</small></th>
+            <th scope="col">字号</th>
+            <th scope="col">字样 <small id="sample-rule"></small></th>
+          </tr>
+        </thead>
+        <tbody id="specimens"></tbody>
+      </table>
+    </div>
+    <aside class="tray" aria-label="字体选项">
+      <div class="tray-group" role="group" aria-labelledby="font-group-label">
+        <p class="tray-label" id="font-group-label">字体类型</p>
+        <button type="button" data-font="shx" aria-pressed="true">汉字矢量字体<span class="format">SHX 长仿宋</span></button>
+        <button type="button" data-font="ttf" aria-pressed="false">TrueType 字体<span class="format">TTF 宋体</span></button>
+        <button type="button" data-font="latin" aria-pressed="false">非汉字矢量字体<span class="format">SHX 单线体</span></button>
+      </div>
+      <div class="tray-group" role="group" aria-labelledby="style-group-label">
+        <p class="tray-label" id="style-group-label">字形</p>
+        <button type="button" data-style="regular" aria-pressed="true">一般字体<span class="format">笔画宽 1/10 字高</span></button>
+        <button type="button" data-style="narrow" aria-pressed="false">窄体字<span class="format">笔画宽 1/14 字高</span></button>
+        <button type="button" data-style="oblique" aria-pressed="false">斜体字<span class="format">与底线成 75°</span></button>
+      </div>
+    </aside>
+  </div>
+</main>
+<script id="font-shx" type="application/octet-stream">QXV0b0NBRC04NiB1bmlmb250IDEuMA0KGgwAAAAWAFN0dWRpbyBGYW5nU29uZwBkGAAAAAAgAAYAAAIINAAALgAOAAACCAgDAQgBAAIIDf0AMAA7AAACCB1kAQj1/Qj49gj88Aj/7QgB6wgE7ggI9ggL/QgLAwgICggFEggBFQj/Ewj7EAj4Cgj1AwIIIpwAQwAyAAACCD5XAQj3CAj0BQjy/wj09wj58Qj97wgA8AgD7wgH8QgM9wgO/wgMBQgJCAIICvMAbwA1AAACCBtGAQj2/gj4+Aj88wgA6AgE8wgI+AgK/ggKAggICAgEDQgAGAj8DQj4CAj2AgIIILoAcgAcAAACCAZGAQgAugIIADABCAkMCAoICAoBAggIuwB0ACIAAAIIEFoBCAC7CAH1CAb4CAn/CAUDAgjgPwEIIAACCAW9AHUAJQAAAggGRgEIANEIAvMIB/gICf4ICwUIDAsCCAA2AQgAugIIDAAAsQAeAAACCAc4AQg0AAII5hkBCADPAgjm8AEINAACCAzwAK1eaQAAAgglZAEIBvcCCOL7AQg7AAIIxgABCADeCP3pCPnoAgggRQEI8uYIDgAI/O0I9/AI9vYCCAciAQgK7ggO8wga+wII+0sBCPT7CPX+AggNAgEIAM0CCPIhAQgfAAII4t8BCBsAAggO7ABilm0AAAIIBgABCABcCBMACPjmCAX2CAP2CP70CPj8CPoDAggoQwEIBvYCCOv7AQj87wIIAw4BCCcACPzyAgjj+gEIGAACCN7wAQguAAII4f8BCP7vCPrxCPT2AggiKgEIAN8IBPsICgAIAwsCCAjuAA==</script>
+<script id="font-latin" type="application/octet-stream">QXV0b0NBRC04NiB1bmlmb250IDEuMA0KGgoAAAAYAExhdGluIFNpbmdsZSBMaW5lAGQYAAAAACAABgAAAggsAAAuAA4AAAIICgQBCAIAAggM/AAwAC8AAAIIGWQBCPX6CPnyCADECAfyCAv6CBAACAsGCAcOCAA8CPkOCPUGCPAAAggpnABDADIAAAIIQ1QBCPkICPQICOwACPX4CPjzCPzwCADnCATvCAjzCAv4CBQACAwICAcIAggL8ABvAC8AAAIIGkgBCPP7CPnzCADeCAfyCA36CAwACAwGCAYOCAAiCPoNCPQFCPQAAggluAByABwAAAIICEcBCAC5AggALQEICQ8IDAgICwACCAi8AHQAHwAAAggQWwEIALcIA/UICPkIDQACCN1DAQglAAIIBr0AdQAlAAACCAdHAQgAzQgE9AgL+AgOAAgNBggHCgIIADcBCAC5AggKAACxAB4AAAIICDwBCDgAAgjkHAEIAMgCCOTvAQg4AAIIDPEA</script>
+<script>
+'use strict';
+
+const sampleText = '庭院 Court ±0.000';
+const latinSample = 'Court ±0.000';
+const sharedHeights = [20, 14, 10, 8, 6, 4, 3];
+const standardHeights = { shx: [20, 14, 10, 7, 5, 3.5], ttf: sharedHeights, latin: sharedHeights };
+const wordSizes = [
+  ['初号',42],['小初',36],['一号',26],['小一',24],['二号',22],['小二',18],
+  ['三号',16],['小三',15],['四号',14],['小四',12],['五号',10.5],['小五',9],
+  ['六号',7.5],['小六',6.5],['七号',5.5],['八号',5]
+];
+
+function decodeStrokeSample(id, text) {
+  // The embedded Unicode SHX subset uses pen up, pen down, XY displacement, and end.
+  const bytes = Uint8Array.from(atob(document.getElementById(id).textContent), char => char.charCodeAt(0));
+  const reader = new DataView(bytes.buffer);
+  const shapes = new Map();
+  let offset = 31 + reader.getUint16(29, true);
+  while (offset < bytes.length) {
+    const codePoint = reader.getUint16(offset, true);
+    const end = offset + 4 + reader.getUint16(offset + 2, true);
+    offset += 4;
+    while (bytes[offset++] !== 0) { /* Skip the record name. */ }
+    shapes.set(codePoint, bytes.subarray(offset, end));
+    offset = end;
+  }
+  let x = 0, y = 0, penDown = false;
+  const path = [];
+  for (const char of text) {
+    const shape = shapes.get(char.codePointAt(0));
+    for (let i = 0; i < shape.length - 1; i++) {
+      const command = shape[i];
+      if (command === 1) {
+        penDown = true;
+        path.push(`M${x} ${-y}`);
+      } else if (command === 2) {
+        penDown = false;
+      } else if (command === 8) {
+        x += (shape[++i] << 24) >> 24;
+        y += (shape[++i] << 24) >> 24;
+        if (penDown) path.push(`L${x} ${-y}`);
+      }
+    }
+  }
+  return { sample: text, advance: x, top: 100, bottom: 0, em: 100, guideTop: 100, guideBottom: 0, path: path.join('') };
+}
+
+const fontData = {
+  shx: decodeStrokeSample('font-shx', sampleText),
+  ttf: {
+    sample: sampleText, advance: 8836, top: 880, bottom: -120, em: 1000,
+    guideTop: 842, guideBottom: -79, referenceStem: 82,
+  },
+  latin: decodeStrokeSample('font-latin', latinSample),
+};
+const styles = {
+  regular: { divisor: 10, rule: '笔画宽＝字高的 1/10' },
+  narrow: { divisor: 14, rule: '笔画宽＝字高的 1/14' },
+  oblique: { divisor: 10, rule: '与底线成 75°，高宽同直体', slanted: true },
+};
+const mmPerPoint = 25.4 / 72;
+const formatNumber = new Intl.NumberFormat('zh-CN', { maximumFractionDigits: 2, useGrouping: false });
+const specimens = document.getElementById('specimens');
+const sampleRule = document.getElementById('sample-rule');
+const selection = { font: 'shx', style: 'regular' };
+
+function sizeName(points) {
+  const index = wordSizes.findIndex(([, size]) => points + 1e-9 >= size);
+  if (index === -1) return `小于${wordSizes.at(-1)[0]}`;
+  const [name, size] = wordSizes[index];
+  if (Math.abs(points - size) < 1e-9) return name;
+  if (index === 0) return `大于${name}`;
+  return `${name}～${wordSizes[index - 1][0]}`;
+}
+
+function sizeRows(font) {
+  const { em, guideTop, guideBottom } = fontData[font];
+  const heightPerPoint = mmPerPoint * (guideTop - guideBottom) / em;
+  return standardHeights[font].map(height => {
+    const points = height / heightPerPoint;
+    return { height, points, name: sizeName(points) };
+  });
+}
+
+const svgNamespace = 'http://www.w3.org/2000/svg';
+function svgElement(name, attributes) {
+  const node = document.createElementNS(svgNamespace,name);
+  for (const [key,value] of Object.entries(attributes)) node.setAttribute(key,value);
+  return node;
+}
+
+function makeSample(data, points, style) {
+  const scale = points * 96 / 72 / data.em;
+  const inkHeight = data.guideTop - data.guideBottom;
+  const stroke = inkHeight / style.divisor;
+  const slant = style.slanted ? 15 : 0;
+  const shift = Math.tan(slant * Math.PI / 180);
+  const left = -data.em * .065 + data.bottom * shift;
+  const right = data.advance + data.em * .065 + data.top * shift;
+  const top = -data.top - data.em * .035;
+  const width = right - left;
+  const height = data.top - data.bottom + data.em * .07;
+  const svg = svgElement('svg', {
+    class: 'sample',
+    viewBox: `${left} ${top} ${width} ${height}`,
+    role: 'img',
+    'aria-label': data.sample,
+  });
+  svg.style.setProperty('--ink-width', `${width * scale}px`);
+  svg.style.setProperty('--ink-height', `${height * scale}px`);
+  if (data.path) {
+    // Inset the stroke centerlines so the ink keeps the indicated cap height.
+    const centerlineScale = 1 - stroke / inkHeight;
+    const path = data.path.replace(/ (-?\d+)(?=[ML]|$)/g,
+      (_, y) => ` ${Number(y) * centerlineScale - stroke / 2}`);
+    svg.append(svgElement('path', { d: path, 'stroke-width': stroke }));
+  } else {
+    // Calibrate the Song contour to the left main stem of the sample's u.
+    const weightChange = stroke - data.referenceStem;
+    const label = svgElement('text', {
+      x: 0, y: 0, 'font-size': data.em,
+      stroke: weightChange >= 0 ? '#232d29' : 'white',
+      'stroke-width': Math.abs(weightChange),
+      'stroke-linejoin': 'round',
+    });
+    label.textContent = data.sample;
+    svg.append(label);
+  }
+  if (slant) svg.firstElementChild.setAttribute('transform', `skewX(${-slant})`);
+  return svg;
+}
+
+function renderFont() {
+  const { font } = selection;
+  const style = styles[selection.style];
+  sampleRule.textContent = style.rule;
+  sampleRule.title = font === 'ttf' ? '宋体保留粗细笔画，笔画宽度以样字的主笔画示意。' : '';
+  const rows = sizeRows(font).map(({ height, points, name }) => {
+    const row = document.createElement('tr');
+    row.insertCell().textContent = formatNumber.format(height);
+    row.insertCell().textContent = formatNumber.format(points);
+    const nameCell = row.insertCell();
+    nameCell.textContent = name;
+    nameCell.className = 'size-range';
+    row.insertCell().append(makeSample(fontData[font], points, style));
+    return row;
+  });
+  specimens.replaceChildren(...rows);
+}
+for (const group of ['font', 'style']) {
+  const buttons = document.querySelectorAll(`[data-${group}]`);
+  for (const button of buttons) {
+    button.addEventListener('click', () => {
+      if (selection[group] === button.dataset[group]) return;
+      selection[group] = button.dataset[group];
+      for (const control of buttons) control.setAttribute('aria-pressed', String(control === button));
+      renderFont();
+      if (group === 'font') specimens.closest('.sheet').scrollTo(0, 0);
+    });
+  }
+}
+
+const desktopBrowser = window === window.top && !navigator.maxTouchPoints;
+const overviewZoom = window.outerWidth / window.innerWidth;
+const nativeZoomLevels = [.25,.33,.5,.67,.75,.8,.9,1,1.1,1.25,1.5,1.75,2,2.5,3,4,5];
+const closestZoom = nativeZoomLevels.reduce((best, value) =>
+  Math.abs(value-overviewZoom) < Math.abs(best-overviewZoom) ? value : best, 1);
+const initialZoom = desktopBrowser && Math.abs(closestZoom-overviewZoom)<.022 ? closestZoom : 1;
+const initialDensity = (window.devicePixelRatio || 1) / initialZoom;
+let densityQuery;
+function updateZoom() {
+  const density = window.devicePixelRatio || 1;
+  const pinch = window.visualViewport?.scale || 1;
+  const inverse = initialDensity / density / pinch;
+  document.documentElement.style.setProperty('--inverse-zoom',String(inverse));
+  densityQuery?.removeEventListener('change',updateZoom);
+  densityQuery = matchMedia(`(resolution: ${density}dppx)`);
+  densityQuery.addEventListener('change',updateZoom);
+}
+
+window.addEventListener('resize',updateZoom,{passive:true});
+window.visualViewport?.addEventListener('resize',updateZoom,{passive:true});
+renderFont();
+updateZoom();
+</script>
+</body>
+</html>

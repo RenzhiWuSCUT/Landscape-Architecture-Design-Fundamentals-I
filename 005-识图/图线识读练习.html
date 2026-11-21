@@ -1,0 +1,912 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>图线识读练习</title>
+<style>
+:root {
+  color-scheme: light;
+  --bg: #edf0ec;
+  --paper: #fff;
+  --ink: #202b26;
+  --muted: #5c6860;
+  --border: #dce3dc;
+  --light: #f4f7f3;
+  --pine: #285143;
+  --pine-deep: #1d3a30;
+  --sage: #e7efe8;
+  --accent: #a4442c;
+  --c-line: #28352f;
+  --radius: 16px;
+  font-family: "Inter", "Segoe UI", "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); }
+button, input { font: inherit; }
+button { color: inherit; cursor: pointer; }
+button:focus-visible, summary:focus-visible, input:focus-visible { outline: 2px solid #287d65; outline-offset: 3px; }
+button:disabled { cursor: default; opacity: .38; }
+[hidden] { display: none !important; }
+.topbar { background: var(--pine-deep); color: #fff; }
+.topinner { max-width: 1650px; margin: auto; padding: 15px 31px; display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 76px; }
+.brand { display: flex; align-items: center; gap: 13px; }
+.brand-mark { width: 42px; height: 42px; display: grid; place-items: center; border: 1px solid #ffffff46; border-radius: 11px; color: #dceadd; flex: none; }
+.brand-mark svg { width: 24px; }
+h1, h2, h3, p { margin: 0; }
+h1 { font-size: clamp(21px, 2.1vw, 28px); line-height: 1.2; letter-spacing: .03em; }
+.subtitle { margin-top: 5px; color: #c9d9ce; font-size: 11px; letter-spacing: .08em; }
+.progress { color: #e2ede4; font-size: 12px; white-space: nowrap; font-variant-numeric: tabular-nums; padding: 8px 11px; border: 1px solid #ffffff36; border-radius: 7px; }
+.workspace { max-width: 1650px; padding: 22px 30px 28px; margin: auto; display: grid; grid-template-columns: minmax(0, 1fr) clamp(302px, 26vw, 366px); align-items: start; gap: 18px; }
+.workarea { min-width: 0; }
+.sheet, .panel { background: var(--paper); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: 0 8px 22px #19332307; }
+.sheet { overflow: hidden; padding: 19px 21px 20px; }
+.sheet-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 14px; }
+.sheet-head h2 { font-size: clamp(21px, 2.35vw, 31px); font-weight: 720; line-height: 1.2; letter-spacing: .015em; }
+.sheet-head .view-name { color: var(--muted); margin-top: 5px; font-size: 13px; }
+.figure-status { padding: 6px 10px; background: #f6f1e9; color: #6c513b; font-size: 12px; border-radius: 6px; flex: none; }
+.figure-status.selected { color: var(--pine-deep); background: var(--sage); }
+.plot { margin: 0; position: relative; min-width: 0; }
+.overview, .detail, .thumb, .modal-view { overflow: hidden; background: #fff; border: 1px solid var(--border); border-radius: 10px; }
+.overview { background: #fafffc; }
+.overview svg { width: 100%; height: clamp(240px, 38vh, 420px); display: block; }
+.exercise { display: grid; grid-template-columns: minmax(180px, .78fr) minmax(275px, 1.22fr); align-items: start; gap: 18px; margin-top: 6px; }
+.detail-head { position: relative; display: flex; gap: 8px; align-items: center; justify-content: space-between; margin: 0 0 8px; min-height: 29px; }
+.detail-label { display: flex; gap: 7px; align-items: center; font-size: 13px; font-weight: 650; }
+.detail-label b { background: #f6eae3; color: var(--accent); display: grid; place-items: center; width: 23px; height: 23px; border-radius: 5px; font-family: ui-monospace, monospace; font-size: 13px; }
+.iconbtn { display: grid; place-items: center; width: 30px; height: 29px; background: white; border: 1px solid var(--border); border-radius: 7px; padding: 0; }
+.iconbtn:hover { background: var(--light); }
+.iconbtn svg { width: 15px; height: 15px; }
+.detail { border-color: #d5a797; }
+.detail svg { display: block; width: 100%; aspect-ratio: 1.74; max-height: 212px; }
+.question { min-width: 0; padding-top: 8px; }
+.question-head { display: flex; gap: 12px; align-items: start; justify-content: space-between; margin-bottom: 10px; }
+.question h3 { font-size: 15px; font-weight: 700; line-height: 1.55; }
+.choice-count { font-size: 11px; color: var(--muted); background: var(--light); padding: 4px 7px; border-radius: 5px; white-space: nowrap; }
+.choices { display: grid; gap: 8px; grid-template-columns: repeat(var(--choices), minmax(0, 1fr)); }
+.choice { min-width: 0; text-align: left; background: #fff; border: 1px solid var(--border); border-radius: 9px; padding: 5px; transition: border-color .12s, box-shadow .12s; }
+.choice:hover { border-color: #83a092; }
+.choice[aria-pressed="true"] { border-color: var(--pine); box-shadow: 0 0 0 1px var(--pine); }
+.choice.is-answer { border-color: #54866c; background: #edf5ef; }
+.choice.is-wrong { border-color: #a85944; box-shadow: 0 0 0 1px #a85944; background: #faf2ee; }
+.thumb { border: 1px solid #e4e8e2; border-radius: 5px; }
+.thumb svg { width: 100%; aspect-ratio: 1.49; max-height: 110px; display: block; }
+.choice-tag { display: flex; align-items: center; gap: 5px; justify-content: space-between; padding: 4px 3px 1px; font-size: 11px; min-height: 24px; color: var(--muted); }
+.choice-letter { color: var(--ink); font-family: ui-monospace, monospace; font-size: 13px; font-weight: 700; }
+.is-answer .choice-tag { color: var(--pine); }
+.sheet-foot { margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.sequence { color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
+.tray { min-width: 0; display: grid; gap: 10px; }
+.panel { overflow: clip; }
+.panel summary { display: flex; gap: 8px; align-items: center; padding: 12px 14px; cursor: pointer; list-style: none; font-size: 14px; font-weight: 730; user-select: none; }
+summary::-webkit-details-marker { display: none; }
+summary:focus-visible { outline-offset: -4px; }
+.summary-icon { width: 16px; height: 16px; color: var(--pine); flex: none; }
+.summary-title { flex: 1; }
+.chevron { width: 15px; height: 15px; color: var(--muted); transition: transform .15s; }
+details[open] > summary > .chevron { transform: rotate(180deg); }
+.panel-body { padding: 0 12px 12px; }
+.topic-list, .variant-list { display: grid; gap: 4px; }
+.topic, .variant { width: 100%; display: flex; gap: 9px; align-items: center; text-align: left; border: 1px solid transparent; padding: 7px 8px; background: #fff; border-radius: 7px; min-height: 34px; font-size: 13px; }
+.topic:hover, .variant:hover { background: var(--light); }
+.topic[aria-current="true"], .variant[aria-current="true"] { background: var(--sage); border-color: #d7e5da; color: var(--pine-deep); font-weight: 700; }
+.topic-marker { min-width: 24px; text-align: center; color: var(--pine); font-family: ui-monospace, monospace; font-size: 12px; }
+.topic-ref { margin-left: auto; white-space: nowrap; color: var(--muted); font-size: 11px; font-weight: 500; }
+.variant { min-height: 32px; padding-block: 5px; }
+.variant-title { flex: 1; }
+.variant-num { font-variant-numeric: tabular-nums; font-size: 11px; color: var(--muted); min-width: 21px; text-align: center; }
+.done-dot { width: 6px; height: 6px; margin: 0 5px; background: #58906c; border-radius: 50%; }
+.btn { border: 1px solid var(--border); border-radius: 7px; background: #fff; padding: 7px 12px; font-size: 13px; line-height: 1.3; min-height: 33px; }
+.btn:hover:not(:disabled) { background: var(--light); border-color: #abbcaf; }
+.btn.primary { color: #fff; background: var(--pine); border-color: var(--pine); }
+.btn.primary:hover { background: #346753; }
+.sheet-foot .btn { min-width: 73px; }
+.answer-button { width: 100%; }
+.answer-live { margin-top: 10px; padding: 10px; border-radius: 8px; background: var(--light); font-size: 13px; line-height: 1.58; }
+.answer-live strong { color: var(--pine-deep); }
+.answer-live p { margin-top: 4px; }
+.answer-rule { padding-top: 7px; margin-top: 7px !important; border-top: 1px solid #dfe7dd; color: var(--muted); font-size: 12px; }
+.answer-live .btn { margin-top: 8px; }
+.layer-list { display: grid; gap: 8px; padding: 0 6px 2px; font-size: 13px; }
+.layer-list label { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+.layer-list input { accent-color: var(--pine); width: 16px; height: 16px; }
+.tool-buttons { display: flex; flex-wrap: wrap; gap: 6px; }
+dialog { border: 1px solid var(--border); background: var(--paper); color: var(--ink); border-radius: var(--radius); padding: 16px; width: min(760px, calc(100vw - 30px)); }
+dialog::backdrop { background: #142e25a8; }
+.modal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; gap: 10px; }
+.modal-head h2 { font-size: 17px; }
+.modal-view svg { display: block; width: 100%; max-height: 70vh; aspect-ratio: 1.74; }
+.diagram { font-family: "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif; }
+.diagram .outline, .diagram .fine, .diagram .cut, .diagram .measure, .diagram .hidden-line, .diagram .centerline, .diagram .guide, .diagram .callout { fill: none; stroke-linecap: butt; stroke-linejoin: round; }
+.diagram .outline { stroke: var(--c-line); stroke-width: 1.8; }
+.diagram .cut { stroke: var(--c-line); stroke-width: 2.65; }
+.diagram .fine { stroke: #67736b; stroke-width: .95; }
+.diagram .measure { stroke: #65736b; stroke-width: .8; }
+.diagram .hidden-line { stroke: #32443c; stroke-width: 1.35; }
+.diagram .centerline { stroke: #354c41; stroke-width: 1.05; }
+.diagram .guide { stroke: #738178; stroke-width: .8; }
+.diagram .note { fill: #394b42; font-size: 11px; }
+.diagram .target-note { fill: #263931; font-size: 10px; }
+.diagram .dim-text { fill: #4c6255; font-size: 10px; font-family: ui-monospace, monospace; }
+.diagram .slate { fill: #eff2ee; }
+.diagram .wood { fill: #f7f3e9; }
+.diagram .earth { fill: #f0f3eb; }
+.diagram .water { fill: #eef5f4; }
+.diagram .metal { fill: #e8eeec; }
+.diagram .white { fill: #fff; }
+.diagram .ground { stroke: #748b7d; stroke-width: 1.2; }
+.diagram .callout { stroke: var(--accent); stroke-width: 1.4; vector-effect: non-scaling-stroke; }
+.diagram .callout.tag { fill: #fcf2ee; }
+.diagram .callout-text { fill: var(--accent); font-size: 12px; font-family: ui-monospace, monospace; font-weight: 700; text-anchor: middle; dominant-baseline: central; }
+.diagram .mid { text-anchor: middle; }
+.diagram .end { text-anchor: end; }
+@media (max-width: 1120px) {
+  .topinner { padding-inline: 20px; }
+  .workspace { padding-inline: 19px; gap: 13px; grid-template-columns: minmax(0, 1fr) 296px; }
+  .sheet { padding-inline: 15px; }
+  .exercise { gap: 12px; grid-template-columns: minmax(145px, .71fr) minmax(240px, 1.29fr); }
+  .choices { gap: 6px; }
+}
+@media (max-width: 830px) {
+  .workspace { grid-template-columns: 1fr; }
+  .tray { grid-template-columns: 1fr 1fr; align-items: start; }
+  .overview svg { height: clamp(215px, 38vw, 330px); }
+}
+@media (max-width: 505px) {
+  .topinner { padding-inline: 12px; }
+  .workspace { padding: 12px 9px 20px; }
+  .sheet { padding-inline: 11px; }
+  .exercise, .tray { grid-template-columns: 1fr; }
+  .overview svg { height: auto; min-height: 140px; aspect-ratio: 2.3; }
+  .detail svg { max-height: 158px; }
+  .thumb svg { max-height: 92px; }
+  .question { padding-top: 0; }
+}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="topinner">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.35"><path d="M4 5h16v14H4zM3 12h3m2 0h3m2 0h3m2 0h3M12 3v18"/></svg>
+      </span>
+      <div><h1>图线识读练习</h1><p class="subtitle">大一上 Studio · 风景园林识图</p></div>
+    </div>
+    <p id="progress" class="progress" aria-live="polite"></p>
+  </div>
+</header>
+<main class="workspace">
+  <article class="workarea" aria-labelledby="sceneTitle">
+    <div class="sheet">
+      <header class="sheet-head">
+        <div><h2 id="sceneTitle"></h2><p class="view-name" id="viewName"></p></div>
+        <span class="figure-status" id="figureStatus" aria-live="polite"></span>
+      </header>
+      <figure class="plot" aria-label="构件全图及特写位置"><div class="overview" id="overview"></div></figure>
+      <div class="exercise">
+        <figure class="plot" aria-labelledby="detailCaption">
+          <figcaption class="detail-head">
+            <span class="detail-label" id="detailCaption"><b>Ⅰ</b> 局部放大</span>
+            <button class="iconbtn" type="button" data-zoom id="detailZoom" aria-label="放大特写" title="放大特写"></button>
+          </figcaption>
+          <div class="detail" id="detailView"></div>
+        </figure>
+        <section class="question" aria-labelledby="questionText">
+          <div class="question-head"><h3 id="questionText"></h3><span class="choice-count" id="choiceCount"></span></div>
+          <div class="choices" id="choices" role="group" aria-label="选择一种画法"></div>
+        </section>
+      </div>
+      <nav class="sheet-foot" aria-label="题目导航">
+        <button class="btn" id="prev" type="button">‹ 上一题</button>
+        <span class="sequence" id="sequence"></span>
+        <button class="btn" id="next" type="button">下一题 ›</button>
+      </nav>
+    </div>
+  </article>
+  <aside class="tray" aria-label="教学托盘">
+    <details class="panel" open>
+      <summary data-icon="book"><span class="summary-title">知识点</span></summary>
+      <div class="panel-body"><nav class="topic-list" id="topics" aria-label="选择知识点"></nav></div>
+    </details>
+    <details class="panel" open>
+      <summary data-icon="list"><span class="summary-title">选题</span></summary>
+      <div class="panel-body"><nav class="variant-list" id="variants" aria-label="选择本知识点的题目"></nav></div>
+    </details>
+    <details class="panel" open>
+      <summary data-icon="answer"><span class="summary-title">答案与解析</span></summary>
+      <div class="panel-body">
+        <button class="btn primary answer-button" id="answerToggle" aria-controls="answerLive" aria-expanded="false" type="button">公布答案</button>
+        <div class="answer-live" id="answerLive" aria-live="polite" hidden>
+          <strong id="answerTitle"></strong><p id="answerExplanation"></p><p class="answer-rule" id="answerRule"></p>
+          <button class="btn" id="compare" type="button" hidden>显示正确画法</button>
+        </div>
+      </div>
+    </details>
+    <details class="panel">
+      <summary data-icon="layers"><span class="summary-title">图层</span></summary>
+      <div class="panel-body layer-list" id="layers">
+        <label><input type="checkbox" value="outline" checked> 构件轮廓</label>
+        <label><input type="checkbox" value="material" checked> 材料纹理</label>
+        <label><input type="checkbox" value="annotation" checked> 参考尺寸与标注</label>
+        <label><input type="checkbox" value="callout" checked> 特写框与引线</label>
+      </div>
+    </details>
+    <details class="panel">
+      <summary data-icon="view"><span class="summary-title">视图工具</span></summary>
+      <div class="panel-body tool-buttons">
+        <button class="btn" type="button" data-zoom>放大特写</button>
+        <button class="btn" id="layerReset" type="button">恢复图层</button>
+        <button class="btn" id="fullscreen" type="button">全屏</button>
+      </div>
+    </details>
+  </aside>
+</main>
+<dialog id="zoomDialog" aria-labelledby="zoomTitle">
+  <div class="modal-head"><h2 id="zoomTitle">局部放大</h2><form method="dialog"><button class="btn" type="submit">关闭</button></form></div>
+  <div class="modal-view" id="modalView"></div>
+</dialog>
+<script>
+'use strict';
+const line = (x1, y1, x2, y2, cls = 'fine') =>
+  `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" class="${cls}"/>`;
+const path = (d, cls = 'outline') => `<path d="${d}" class="${cls}"/>`;
+const rect = (x, y, w, h, cls = 'outline') =>
+  `<rect x="${x}" y="${y}" width="${w}" height="${h}" class="${cls}"/>`;
+const circle = (x, y, r, cls = 'outline') => `<circle cx="${x}" cy="${y}" r="${r}" class="${cls}"/>`;
+const label = (x, y, words, cls = 'note') =>
+  `<text x="${x}" y="${y}" class="${cls}">${words}</text>`;
+const translate = (x, y, svg) => `<g transform="translate(${x} ${y})">${svg}</g>`;
+const hatchRect = (x, y, w, h, name) =>
+  `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="url(#@-${name})"/>`;
+const hatchCircle = (x, y, r, name) =>
+  `<circle cx="${x}" cy="${y}" r="${r}" fill="url(#@-${name})"/>`;
+const ticks = (n, step, start, draw) => Array.from({length: n}, (_, i) => draw(start + i * step, i)).join('');
+
+function dimH(x1, x2, y, from, value) {
+  return path(`M${x1} ${from}V${y + 8} M${x2} ${from}V${y + 8} M${x1 - 6} ${y}H${x2 + 6} M${x1 - 3} ${y + 3}l6 -6 M${x2 - 3} ${y + 3}l6 -6`, 'measure')
+    + label((x1 + x2) / 2, y - 5, value, 'dim-text mid');
+}
+function dimV(y1, y2, x, from, value) {
+  const textY = (y1 + y2) / 2;
+  return path(`M${from} ${y1}H${x - 8} M${from} ${y2}H${x - 8} M${x} ${y1 - 6}V${y2 + 6} M${x - 3} ${y1 + 3}l6 -6 M${x - 3} ${y2 + 3}l6 -6`, 'measure')
+    + `<text x="${x - 6}" y="${textY}" transform="rotate(-90 ${x - 6} ${textY})" class="dim-text mid">${value}</text>`;
+}
+function note(words, x, y, toX, toY) {
+  return label(x, y - 5, words) + path(`M${x} ${y}h28L${toX} ${toY}`, 'measure')
+    + `<circle cx="${toX}" cy="${toY}" r="1.65" fill="#627268"/>`;
+}
+
+const dashPattern = [[-5, 5]];
+const chainPattern = [[-10, 10], [15, 17]];
+const doublePattern = [[-10, 10], [14, 16], [20, 22]];
+function patterned(axis, start, end, pattern, period, phase, cls, offset = 0) {
+  const marks = [];
+  const first = Math.floor((start - phase) / period) - 1;
+  const last = Math.ceil((end - phase) / period) + 1;
+  for (let i = first; i <= last; i++) {
+    for (const [lo, hi] of pattern) {
+      const a = Math.max(start, i * period + phase + lo);
+      const b = Math.min(end, i * period + phase + hi);
+      if (b > a) marks.push(axis === 'h' ? line(a, offset, b, offset, cls) : line(offset, a, offset, b, cls));
+    }
+  }
+  return marks.join('');
+}
+const dash = (axis, a, b, phase = 0) =>
+  patterned(axis, a, b, dashPattern, 16, phase, 'hidden-line');
+const seatEdge = phase => dash('v', 0, 77, phase) + dash('v', 77, 93, 8);
+const seamDash = (a, b, phase = 0) => patterned('h', a, b, dashPattern, 15, phase, 'hidden-line');
+const chain = (axis, a, b, phase = 0, offset = 0) =>
+  patterned(axis, a, b, chainPattern, 32, phase, 'centerline', offset);
+const doubleChain = (axis, a, b, phase = 0, offset = 0) =>
+  patterned(axis, a, b, doublePattern, 34, phase, 'centerline', offset);
+
+function ringAxis(axis, center) {
+  const pattern = [[-11, 11], [14, 16]];
+  const segment = (a, b, phase = 0) =>
+    patterned(axis, a, b, pattern, 27, phase, 'centerline');
+  if (center === 0) return segment(-107, 107);
+  return segment(-107, -12) + segment(-12, 12, center) + segment(12, 107);
+}
+const linesAt = (lines, x, y) => translate(x, y, lines);
+
+function railingPost(x, top, bottom) {
+  return rect(x - 7, top, 14, bottom - top, 'slate outline')
+    + rect(x - 12, bottom - 4, 24, 4, 'metal outline');
+}
+function decking(x, y, w, h, horizontal = true) {
+  const marks = horizontal
+    ? ticks(Math.floor((h - 1) / 14), 14, y + 14, dy => line(x, dy, x + w, dy))
+    : ticks(Math.floor((w - 1) / 14), 14, x + 14, dx => line(dx, y, dx, y + h));
+  return hatchRect(x, y, w, h, 'wood') + marks;
+}
+function staggeredPaving(x, y, w, h) {
+  return hatchRect(x, y, w, h, 'paving');
+}
+function woodBeams(x, y, w, h) {
+  return ticks(Math.floor(w / 36) + 1, 36, x, dx => rect(dx, y, 11, h, 'wood outline'));
+}
+function grateBars(x, y, w, h) {
+  return ticks(Math.floor((w - 1) / 10), 10, x + 10, dx => line(dx, y, dx, y + h));
+}
+function levelMark(y, value, x = 0) {
+  return path(`M${x} ${y}l-7 -8h14z M${x + 7} ${y - 8}h34`, 'outline')
+    + label(x + 12, y - 11, value, 'target-note');
+}
+
+const topics = [
+  {ref: 'a', title: '虚线交接', rule: '虚线与虚线或其他图线交接时，应由线段相接。'},
+  {ref: 'b', title: '虚线延续实线', rule: '虚线为实线的延长线时，应在实线末端与首段虚线之间留空。'},
+  {ref: 'c', title: '长画线交接', rule: '单点长画线、双点长画线彼此交接或与其他图线交接时，应在线段处相接。'},
+  {ref: 'f', title: '小图形线型简化', rule: '较小图形中，单点长画线、双点长画线难以绘制时，可用实线代替。'},
+  {ref: 'g', title: '图线避让标注', rule: '图线应避开文字、数字、符号。重叠不可避免时，断开相应图线以保证标注清晰。'}
+];
+
+// Each option is expressed in the same local coordinates as the detail box.
+const cases = [
+  {
+    topic: 0, title: '花岗岩坐凳', view: '平面图', target: [321, 126], box: [136, 78],
+    question: '凳面下的支墩边线，怎样接到可见轮廓？',
+    outline: () => rect(151, 126, 512, 93, 'slate outline') + line(151, 210, 663, 210)
+      + linesAt(seatEdge(5), 239, 126) + linesAt(seatEdge(5), 518, 126)
+      + linesAt(seatEdge(5), 600, 126),
+    material: () => hatchRect(152, 127, 510, 91, 'stone'),
+    annotation: () => note('花岗岩凳面', 485, 89, 473, 153)
+      + note('凳面下的支墩边线', 129, 79, 239, 158)
+      + dimH(151, 663, 260, 222, '2400') + dimV(126, 219, 105, 147, '440'),
+    options: [
+      seatEdge(-5),
+      seatEdge(5)
+    ],
+    answer: 1, explanation: '支墩藏在凳面下，其投影边线终止于凳面边缘。首段虚线从实线轮廓起画，既相接也不越过轮廓。'
+  },
+  {
+    topic: 0, title: '木平台', view: '下部构架投影平面图', target: [376, 152], box: [144, 82],
+    question: '面板下方的主梁与龙骨，投影交叉处应怎样画？',
+    outline: () => rect(143, 68, 517, 166, 'wood outline')
+      + linesAt(dash('h', 0, 508, 5), 147, 119) + linesAt(dash('v', 0, 158, 47), 343, 72)
+      + linesAt(dash('v', 0, 158, 47), 524, 72) + linesAt(dash('v', 0, 158, 47), 552, 72),
+    material: () => decking(144, 69, 515, 164, false),
+    annotation: () => note('木面板', 570, 47, 608, 98)
+      + note('主梁投影边线', 158, 48, 219, 119)
+      + dimH(143, 660, 270, 238, '3600') + dimV(68, 234, 99, 139, '1200'),
+    options: [
+      dash('h', -229, 279) + dash('v', -80, 78),
+      dash('h', -229, -22) + dash('h', -22, 22, 8) + dash('h', 22, 279)
+        + dash('v', -80, -22) + dash('v', -22, 22, 8) + dash('v', 22, 78),
+      dash('h', -229, 279) + dash('v', -80, -22) + dash('v', -22, 22, 8) + dash('v', 22, 78)
+    ],
+    answer: 0, explanation: '两条边线都被木面板遮住。让两条虚线的线段在交点处相交，交点才清楚。'
+  },
+  {
+    topic: 0, title: '过路排水沟', view: '平面图', target: [410, 129], box: [146, 84],
+    question: '盖板下的沟壁线穿过盖板拼缝，交点应落在哪里？',
+    outline: () => rect(130, 89, 542, 137, 'slate outline')
+      + ticks(5, 90, 230, x => line(x, 89, x, 226, 'outline'))
+      + line(130, 95, 672, 95) + line(130, 220, 672, 220)
+      + linesAt(seamDash(-276, 258), 410, 185),
+    material: () => hatchRect(131, 96, 540, 123, 'stone'),
+    annotation: () => note('预制混凝土盖板', 470, 52, 543, 103)
+      + note('盖板下的沟壁线', 150, 261, 192, 185)
+      + dimV(89, 226, 91, 126, '600') + dimH(410, 500, 72, 86, '400'),
+    options: [
+      seamDash(-276, -23) + seamDash(-23, 23, 8) + seamDash(23, 258),
+      seamDash(-276, -23) + seamDash(-23, -4, 1) + seamDash(0, 23, 5) + seamDash(23, 258),
+      seamDash(-276, 258)
+    ],
+    answer: 2, explanation: '盖板的拼缝可见，沟壁被盖板遮住。沟壁虚线应有一段跨过可见拼缝。'
+  },
+  {
+    topic: 1, title: '木栈道栏杆', view: '侧立面图', target: [430, 177], box: [142, 66],
+    question: '下横杆伸入实心端墙，它的上缘由实线变为虚线时，第一段虚线应从哪里起画？',
+    outline: () => rect(134, 205, 532, 14, 'wood outline') + rect(430, 87, 237, 118, 'slate outline')
+      + [170, 262, 355].map(x => railingPost(x, 100, 205)).join('')
+      + rect(138, 100, 292, 8, 'wood') + rect(138, 177, 292, 7, 'wood')
+      + path('M430 100H138V108H430 M138 177V184H430', 'outline')
+      + [100, 108, 184].map(y => linesAt(dash('h', 6, 88, 11), 430, y)).join('')
+      + line(518, 100, 518, 108, 'hidden-line') + line(518, 177, 518, 184, 'hidden-line')
+      + line(114, 219, 699, 219, 'ground') + line(174, 219, 174, 247, 'fine') + line(369, 219, 369, 247, 'fine'),
+    material: () => hatchRect(431, 88, 235, 116, 'stone')
+      + decking(135, 205, 530, 13, false),
+    annotation: () => note('实心端墙', 620, 77, 614, 126)
+      + note('下横杆', 197, 149, 245, 177) + dimV(100, 205, 100, 131, '1050'),
+    pending: line(-292, 0, 0, 0, 'outline'),
+    options: [
+      line(-292, 0, 0, 0, 'outline') + dash('h', 6, 88, 11),
+      line(-292, 0, 0, 0, 'outline') + dash('h', 0, 88, 5)
+    ],
+    answer: 0, explanation: '下横杆的上缘在墙前可见，实线画到端墙边。被遮挡的部分沿同一高度画成虚线，首段与实线末端留空。'
+  },
+  {
+    topic: 1, title: '水景检修管', view: '管线平面图', target: [339, 159], box: [142, 82],
+    question: '检修管从明槽进入盖板下方，同一根图线怎样续接？',
+    outline: () => rect(133, 86, 535, 138, 'slate outline')
+      + rect(148, 112, 191, 94, 'white outline') + line(339, 113, 339, 205, 'outline')
+      + rect(525, 119, 92, 80, 'metal outline') + rect(533, 127, 76, 64),
+    material: () => hatchRect(134, 87, 533, 24, 'stone')
+      + hatchRect(134, 207, 533, 16, 'stone')
+      + hatchRect(340, 113, 184, 93, 'concrete')
+      + hatchRect(618, 113, 49, 93, 'stone'),
+    annotation: () => note('明槽', 170, 56, 213, 134)
+      + note('盖板', 386, 57, 435, 133) + note('检修口', 601, 58, 574, 133)
+      + dimH(133, 668, 265, 228, '2600'),
+    pending: line(-172, 0, 0, 0, 'outline'),
+    options: [
+      line(-172, 0, 0, 0, 'outline') + dash('h', 0, 186, 5),
+      line(-172, 0, 0, 0, 'outline') + dash('h', 4, 186, 9)
+    ],
+    answer: 1, explanation: '盖板边缘前后画的是同一条管线。虚线在盖板下延续，首段与露出的实线留一个小空隙。'
+  },
+  {
+    topic: 1, title: '景墙下的种植槽', view: '正投影立面图', target: [441, 169], box: [142, 82],
+    question: '种植槽边线由可见转为被景墙遮挡，分界处该怎么画？',
+    outline: () => rect(128, 117, 360, 21, 'slate outline') + rect(134, 138, 314, 73, 'earth outline')
+      + rect(441, 72, 193, 139, 'slate outline') + rect(431, 62, 213, 10, 'slate outline')
+      + line(109, 212, 680, 212, 'ground') + rect(136, 212, 511, 13, 'earth fine')
+      + path('M159 117q20 -52 46 0m-20 0q13 -50 40 -54q17 20 14 54m42 0q9 -47 33 -37q13 8 13 37m-29 0q-3 -37 -24 -46', 'fine'),
+    material: () => hatchRect(442, 73, 191, 137, 'masonry') + hatchRect(136, 213, 510, 11, 'earth'),
+    annotation: () => note('架高种植槽', 125, 80, 156, 129)
+      + note('景墙', 665, 109, 597, 137) + dimV(72, 211, 685, 642, '1400'),
+    pending: line(-306, 0, 0, 0, 'outline'),
+    options: [
+      line(-306, 0, 0, 0, 'outline') + dash('h', 0, 110, 5),
+      line(-306, 0, 0, 0, 'outline') + dash('h', 4, 110, 9)
+    ],
+    answer: 1, explanation: '槽边线在景墙后仍沿原方向延伸。其虚线首段与墙前可见的实线末端留空。'
+  },
+  {
+    topic: 2, title: '圆形树池', view: '平面图', target: [392, 148], box: [140, 80],
+    question: '圆形树池的两条定位中心线，怎样在圆心相交？',
+    outline: () => rect(204, 40, 377, 220, 'slate fine') + circle(392, 148, 90, 'earth outline')
+      + circle(392, 148, 74) + circle(419, 173, 12, 'fine') + circle(419, 173, 7, 'fine'),
+    material: () => staggeredPaving(205, 41, 375, 218)
+      + circle(392, 148, 89, 'earth') + hatchCircle(392, 148, 89, 'stone')
+      + circle(392, 148, 73, 'earth') + hatchCircle(392, 148, 73, 'earth'),
+    annotation: () => note('石材树池边缘', 583, 75, 459, 89)
+      + note('乔木树干', 592, 210, 429, 177) + dimV(58, 238, 169, 202, 'Ø1800'),
+    options: [
+      ringAxis('h', 12) + ringAxis('v', 12),
+      ringAxis('h', 14) + ringAxis('v', 14),
+      ringAxis('h', 0) + ringAxis('v', 0)
+    ],
+    answer: 2, explanation: '圆心处应由两条中心线的长画相交。外围中心线与圆形轮廓交接，也应落在各自的长画内。'
+  },
+  {
+    topic: 2, title: '线性排水篦子', view: '平面图', target: [273, 147], box: [142, 82],
+    question: '排水口的中心线与篦子边框相交，应采用哪种画法？',
+    outline: () => rect(150, 71, 507, 151, 'slate fine') + rect(273, 104, 252, 86, 'metal outline')
+      + rect(282, 104, 234, 86, 'outline') + line(273, 110, 525, 110)
+      + line(273, 184, 525, 184),
+    material: () => staggeredPaving(151, 72, 121, 149) + staggeredPaving(526, 72, 130, 149)
+      + grateBars(282, 111, 234, 72),
+    annotation: () => note('金属边框', 550, 61, 524, 115)
+      + dimH(273, 525, 264, 226, '1200') + dimV(104, 190, 112, 147, '400'),
+    options: [
+      chain('h', -50, 19, 12) + chain('h', 19, 268, -4),
+      chain('h', -50, 19, 0) + chain('h', 19, 268, -4),
+      chain('h', -50, 19, 16) + chain('h', 19, 268, -4)
+    ],
+    answer: 1, explanation: '单点长画线穿过可见的边框时，交点落在长画上。若交点落在点或空隙里，端部位置就不够清楚。'
+  },
+  {
+    topic: 2, title: '木廊架', view: '柱网定位平面图', target: [424, 136], box: [142, 82],
+    question: '柱网轴线穿过拟增遮阳顶的假想轮廓，应怎样画？',
+    outline: () => rect(141, 65, 523, 168, 'slate fine') + rect(199, 78, 410, 134, 'wood fine')
+      + [212, 424, 596].flatMap(x => [95, 197].map(y => rect(x - 10, y - 8, 20, 16, 'wood outline'))).join('')
+      + linesAt(chain('v', 0, 172, 5), 212, 60) + linesAt(chain('v', 0, 172, 5), 596, 60)
+      + linesAt(chain('h', 0, 464, 5), 176, 197),
+    material: () => staggeredPaving(142, 66, 521, 166) + woodBeams(226, 81, 350, 128),
+    annotation: () => note('木柱', 592, 45, 596, 96)
+      + note('柱网定位轴线', 347, 48, 424, 77)
+      + note('拟增遮阳顶轮廓', 106, 150, 173, 136)
+      + dimH(212, 424, 271, 232, '3000') + dimH(424, 596, 271, 232, '2400'),
+    options: [
+      chain('v', -84, 99) + doubleChain('h', -258, 224),
+      chain('v', -84, 99) + doubleChain('h', -258, 224, 19),
+      chain('v', -84, 99, 13) + doubleChain('h', -258, 224, 17)
+    ],
+    answer: 0, explanation: '竖向是单点长画线，横向是双点长画线。调整两种线型的起画位置，让交点同时落在两条线的长画上。'
+  },
+  {
+    topic: 3, title: '栏杆立柱底板', view: '底板平面图 · 小比例出图', target: [246, 158], box: [65, 38],
+    question: '底板上的螺栓孔很小，单点长画线难以绘制时怎么简化？',
+    outline: () => rect(216, 130, 134, 100, 'metal outline') + rect(451, 130, 134, 100, 'metal outline')
+      + rect(262, 155, 42, 50, 'slate cut') + rect(497, 155, 42, 50, 'slate cut')
+      + rect(163, 109, 476, 142, 'fine')
+      + [246, 320, 481, 555].flatMap(x => [158, 202].map(y => circle(x, y, 6, 'white outline'))).join(''),
+    material: () => hatchRect(164, 110, 474, 20, 'stone') + hatchRect(164, 231, 474, 19, 'stone'),
+    annotation: () => note('立柱', 282, 59, 289, 157) + note('钢底板', 588, 79, 561, 144)
+      + dimH(216, 350, 271, 233, '180'),
+    options: [
+      line(-12, 0, 12, 0, 'centerline') + line(0, -12, 0, 12, 'centerline'),
+      path('M-12 0h4m4 0h4m4 0h4 M0 -12v4m0 4v4m0 4v4', 'centerline'),
+      path('M-12 0h24', 'centerline')
+    ],
+    answer: 0, explanation: '小孔的两个方向仍需标出中心。用两条相交的细实线代替难以绘制的单点长画线。'
+  },
+  {
+    topic: 3, title: '透水铺装排水盖', view: '盖板平面图 · 小比例出图', target: [403, 145], box: [96, 55],
+    question: '盖板的短条形提手孔太小，中心线的线型该怎么简化？',
+    outline: () => rect(144, 62, 512, 169, 'slate fine') + rect(338, 86, 130, 131, 'metal outline')
+      + rect(346, 94, 114, 115, 'outline')
+      + `<rect x="389" y="139" width="28" height="12" rx="6" class="white outline"/>`
+      + `<rect x="389" y="178" width="28" height="12" rx="6" class="white outline"/>`,
+    material: () => staggeredPaving(145, 63, 192, 167) + staggeredPaving(469, 63, 186, 167),
+    annotation: () => note('提手孔', 480, 74, 417, 145)
+      + dimH(338, 468, 262, 220, '450'),
+    options: [
+      path('M-23 0h6m4 0h6m4 0h6m4 0h6m4 0h6 M0 -14v4m0 3v4m0 3v4m0 3v4', 'centerline'),
+      line(-23, 0, 23, 0, 'centerline') + line(0, -14, 0, 14, 'centerline')
+    ],
+    answer: 1, explanation: '保留长、短方向的定位关系。小孔里画不清单点长画线时，两条中心线可简化成细实线。'
+  },
+  {
+    topic: 3, title: '喷泉喷头', view: '安装平面图 · 小比例出图', target: [534, 161], box: [82, 47],
+    question: '喷头定位中的双点长画线太短，怎样保留完整的定位十字？',
+    outline: () => rect(171, 72, 462, 156, 'water outline') + rect(181, 82, 442, 136)
+      + [297, 416, 534].map(x => circle(x, 161, 12, 'slate outline') + circle(x, 161, 5, 'white outline')).join('')
+      + circle(240, 107, 8, 'fine') + circle(574, 198, 8, 'fine'),
+    material: () => hatchRect(182, 83, 440, 134, 'water'),
+    annotation: () => note('可调喷头', 274, 56, 296, 150)
+      + note('池壁', 628, 56, 618, 81) + dimH(171, 633, 266, 232, '3000'),
+    options: [
+      path('M-18 0h36 M0 -18v6m0 3v3m0 3v6m0 3v3m0 3v6', 'centerline'),
+      path('M-18 0h7m3 0h3m3 0h7m3 0h3m3 0h4 M0 -18v7m0 3v3m0 3v7m0 3v3m0 3v4', 'centerline'),
+      path('M-18 0h36 M0 -18v36', 'centerline')
+    ],
+    answer: 2, explanation: '两个方向的双点长画线都难以完整绘制，用同样粗细的细实线代替，喷头的定位十字仍然完整。'
+  },
+  {
+    topic: 4, title: '花池矮墙', view: '剖面图', target: [429, 133], box: [126, 72],
+    question: '墙身剖面线碰到尺寸数字，哪里应让开？',
+    outline: () => rect(359, 86, 140, 119, 'slate cut') + rect(348, 72, 162, 14, 'slate outline')
+      + rect(319, 205, 220, 24, 'slate cut') + rect(309, 229, 240, 11, 'earth fine')
+      + rect(499, 110, 122, 95, 'earth fine') + line(240, 190, 359, 190, 'ground')
+      + line(499, 109, 654, 109, 'ground'),
+    material: () => hatchRect(350, 73, 158, 12, 'stone') + hatchRect(320, 206, 218, 22, 'concrete')
+      + hatchRect(500, 111, 121, 93, 'earth') + hatchRect(310, 230, 238, 9, 'concrete'),
+    annotation: () => note('花岗岩压顶', 180, 61, 357, 78)
+      + note('砖砌墙身', 175, 122, 360, 156) + note('种植土', 602, 80, 584, 132)
+      + dimV(72, 205, 274, 342, '450'),
+    pending: wallDimension(),
+    options: [wallNumber('overlap'), wallNumber('gap'), wallNumber('offset')],
+    answer: 1, explanation: '墙身剖面线经过 490 时，断开经过数字的那几条线。数字、尺寸线和墙身轮廓都应保留。'
+  },
+  {
+    topic: 4, title: '透水砖步道', view: '铺装平面图', target: [441, 146], box: [136, 78],
+    question: '铺装分缝会穿过材料名称，哪种画法能保留文字和铺装信息？',
+    outline: () => rect(147, 86, 511, 132, 'slate outline')
+      + rect(147, 96, 511, 106, 'earth fine') + line(147, 191, 658, 191)
+      + line(147, 106, 658, 106),
+    material: () => hatchRect(148, 87, 509, 8, 'stone') + hatchRect(148, 203, 509, 14, 'stone'),
+    annotation: () => note('路缘石', 547, 60, 548, 91) + dimV(86, 218, 111, 144, '1800')
+      + dimH(147, 658, 258, 222, '7200'),
+    pending: pavingText(),
+    options: [pavingLabel('gap'), pavingLabel('overlap'), pavingLabel('offset')],
+    answer: 0, explanation: '把穿过“透水砖”的分缝线局部断开。文字保持完整，其余分缝仍按原位置绘制。'
+  },
+  {
+    topic: 4, title: '景墙前台阶', view: '台阶剖面及背景立面', target: [472, 155], box: [146, 84],
+    question: '背景景墙的分缝穿过标高符号，哪条线应在标注处断开？',
+    outline: () => rect(280, 60, 291, 124, 'slate outline') + rect(270, 53, 310, 9, 'slate outline')
+      + path('M138 213H270V195H363V175H453V155H599V225H138Z', 'wood cut')
+      + line(117, 226, 673, 226, 'ground')
+      + line(336, 62, 336, 194) + line(402, 62, 402, 174) + line(537, 62, 537, 154),
+    material: () => `<path d="M140 214H271V196H364V176H454V157H597V223H140Z" fill="url(#@-concrete)"/>`,
+    annotation: () => note('景墙分缝', 140, 90, 337, 103) + note('台阶踏步', 613, 120, 571, 154)
+      + dimH(270, 363, 267, 228, '300'),
+    pending: levelMark(0, '+0.450'),
+    options: [levelJoint('offset'), levelJoint('overlap'), levelJoint('gap')],
+    answer: 2, explanation: '背景分缝穿过标高符号，应断开背景分缝。标高三角、引线和数字都保持清楚。'
+  }
+];
+
+function withGap(svg, mode, correct, misplaced) {
+  if (mode === 'overlap') return svg;
+  const [x, y, w, h] = mode === 'gap' ? correct : misplaced;
+  return `<defs><mask id="@-gap" maskUnits="userSpaceOnUse" x="-500" y="-300" width="1000" height="600">
+    <rect x="-500" y="-300" width="1000" height="600" fill="white"/>
+    <rect x="${x}" y="${y}" width="${w}" height="${h}" fill="black"/>
+  </mask></defs><g mask="url(#@-gap)">${svg}</g>`;
+}
+
+function wallDimension() {
+  return path('M-73 8h146 M-73 11l6 -6 M67 11l6 -6', 'measure')
+    + label(0, 3, '490', 'dim-text mid');
+}
+function wallNumber(mode) {
+  const hatch = hatchRect(-68, -46, 136, 117, 'section');
+  return withGap(hatch, mode, [-11, -5.5, 22, 9.5], [-11, 13, 22, 9.5]) + wallDimension();
+}
+function pavingText() {
+  return label(0, 2, '透水砖', 'target-note mid');
+}
+function pavingLabel(mode) {
+  const horizontal = path('M-293 -24h509 M-293 -10h509 M-293 4h509 M-293 18h509 M-293 32h509', 'fine');
+  const vertical = ticks(32, 16, -291, (x, i) => {
+    return i % 2 === 0
+      ? path(`M${x} -38v14 m0 14v14 m0 14v14 m0 0v13`, 'fine')
+      : path(`M${x} -24v14 m0 14v14 m0 14v13`, 'fine');
+  });
+  return withGap(horizontal + vertical, mode, [-16.5, -7.5, 33, 10.5], [-16.5, 12, 33, 10.5])
+    + pavingText();
+}
+function levelJoint(mode) {
+  const joint = line(-3, -93, -3, 0, 'fine');
+  return withGap(joint, mode, [-8, -9, 17, 9], [-8, -23, 17, 8])
+    + levelMark(0, '+0.450');
+}
+
+const iconPaths = {
+  book: 'M12 6c-2.5-2-6-2.5-9-1v14c3-1.5 6.5-1 9 1 2.5-2 6-2.5 9-1V5c-3-1.5-6.5-1-9 1v14',
+  list: 'M9 6h12M9 12h12M9 18h12M3 6h2m-2 6h2m-2 6h2',
+  answer: 'M6 3h9l4 4v14H6z M14 3v5h5m-10 6 2 2 4-4',
+  layers: 'm3 7 9-4 9 4-9 4zM3 12l9 4 9-4M3 17l9 4 9-4',
+  view: 'M4 9V4h5m6 0h5v5m0 6v5h-5m-6 0H4v-5',
+  zoom: 'M4 9V4h5m6 0h5v5m0 6v5h-5m-6 0H4v-5M8 12h8m-4-4v8',
+  chevron: 'm6 9 6 6 6-6'
+};
+const icon = (name, cls = '') =>
+  `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${iconPaths[name]}"/></svg>`;
+document.querySelectorAll('[data-icon]').forEach(element => {
+  element.insertAdjacentHTML('afterbegin', icon(element.dataset.icon, 'summary-icon'));
+  element.insertAdjacentHTML('beforeend', icon('chevron', 'chevron'));
+});
+
+const defs = `<defs>
+  <pattern id="@-board" width="20" height="20" patternUnits="userSpaceOnUse">
+    <circle cx="1" cy="1" r=".55" fill="#c5d4ca" opacity=".7"/>
+  </pattern>
+  <pattern id="@-stone" width="17" height="13" patternUnits="userSpaceOnUse">
+    <path d="M2 4h1m8 5h1m2-7h1M4 12h1" fill="none" stroke="#aebcb1" stroke-width=".7"/>
+  </pattern>
+  <pattern id="@-wood" width="31" height="13" patternUnits="userSpaceOnUse">
+    <path d="M3 3h18m4 6h5M0 9h12" fill="none" stroke="#d3c8ac" stroke-width=".6"/>
+  </pattern>
+  <pattern id="@-paving" width="32" height="22" patternUnits="userSpaceOnUse">
+    <path d="M0 0h32M0 11h32M0 0v11m16 0v11" fill="none" stroke="#b4c0b6" stroke-width=".78"/>
+  </pattern>
+  <pattern id="@-masonry" width="33" height="19" patternUnits="userSpaceOnUse">
+    <path d="M0 0h33M0 9.5h33M0 0v9.5m16.5 0v9.5" fill="none" stroke="#a6b1a9" stroke-width=".8"/>
+  </pattern>
+  <pattern id="@-concrete" width="14" height="12" patternUnits="userSpaceOnUse">
+    <path d="M3 3l2 1-2 1zM9 8l2-1" fill="none" stroke="#9eada2" stroke-width=".65"/>
+  </pattern>
+  <pattern id="@-earth" width="13" height="11" patternUnits="userSpaceOnUse">
+    <path d="M2 6h4m3-4h2m-3 8h3" fill="none" stroke="#a7b5a4" stroke-width=".7"/>
+  </pattern>
+  <pattern id="@-water" width="31" height="14" patternUnits="userSpaceOnUse">
+    <path d="M3 9h10m7-5h7" fill="none" stroke="#bbd1cc" stroke-width=".75"/>
+  </pattern>
+  <pattern id="@-section" width="9" height="9" patternUnits="userSpaceOnUse">
+    <path d="M-1 1l2-2M0 9L9 0m-1 10 2-2" fill="none" stroke="#4a584f" stroke-width=".8"/>
+  </pattern>
+</defs>`;
+
+const byId = id => document.getElementById(id);
+const letters = ['A', 'B', 'C'];
+const counts = ['零', '一', '二', '三'];
+const layerDefaults = {outline: true, material: true, annotation: true, callout: true};
+const layers = {...layerDefaults};
+const selections = new Map();
+const drawings = cases.map(scene => ({
+  outline: scene.outline(),
+  material: scene.material(),
+  annotation: scene.annotation()
+}));
+let current = 0;
+let revealed = false;
+let showingAnswer = false;
+
+function detailBox(scene) {
+  const [x, y] = scene.target;
+  const [w, h] = scene.box;
+  return [x - w / 2, y - h / 2, w, h];
+}
+function callout(scene) {
+  const [x, y, w, h] = detailBox(scene);
+  const upward = scene.target[1] < 128;
+  const startY = upward ? y : y + h;
+  const badgeY = startY + (upward ? -18 : 18);
+  const startX = x + w;
+  const badgeX = startX + 34;
+  return rect(x, y, w, h, 'callout')
+    + path(`M${startX} ${startY}l17 ${badgeY - startY}H${badgeX - 11}`, 'callout')
+    + circle(badgeX, badgeY, 11, 'callout tag')
+    + label(badgeX, badgeY, 'Ⅰ', 'callout-text');
+}
+function diagramMarkup(kind, option) {
+  const scene = cases[current];
+  const drawing = drawings[current];
+  const full = kind === 'overview';
+  const thumb = kind.startsWith('option');
+  const viewBox = full ? [0, 0, 800, 290] : detailBox(scene);
+  const idSuffix = `drawing-${kind}`;
+  const head = full
+    ? rect(0, 0, 800, 290, 'white') + hatchRect(0, 0, 800, 290, 'board')
+      + label(18, 23, '构件全图', 'note') + (layers.annotation ? label(782, 23, 'mm', 'dim-text end') : '')
+    : rect(...viewBox, 'white');
+  const visibleTarget = scene.options[option] ?? scene.pending ?? '';
+  const svg = defs + head
+    + ((layers.outline || thumb) ? drawing.outline : '')
+    + ((layers.material || thumb) ? drawing.material : '')
+    + ((layers.annotation && !thumb) ? drawing.annotation : '')
+    + translate(scene.target[0], scene.target[1], visibleTarget)
+    + ((full && layers.callout) ? callout(scene) : '');
+  const aria = thumb ? 'aria-hidden="true"' : `role="img" aria-label="${scene.title}${full ? '全图及局部位置' : '局部图'}"`;
+  return `<svg class="diagram" viewBox="${viewBox.join(' ')}" ${aria}>${svg.replaceAll('@', idSuffix)}</svg>`;
+}
+
+function activeDrawing() {
+  if (revealed && (showingAnswer || !selections.has(current))) return cases[current].answer;
+  return selections.get(current);
+}
+function updateDrawings() {
+  const option = activeDrawing();
+  byId('overview').innerHTML = diagramMarkup('overview', option);
+  byId('detailView').innerHTML = diagramMarkup('detail', option);
+  if (byId('zoomDialog').open) byId('modalView').innerHTML = diagramMarkup('modal', option);
+  const status = byId('figureStatus');
+  status.textContent = option === undefined ? '待选画法'
+    : revealed && (showingAnswer || !selections.has(current)) ? `正确画法 ${letters[option]}`
+    : `画法 ${letters[option]}`;
+  status.classList.toggle('selected', option !== undefined);
+}
+function renderTopics() {
+  byId('topics').innerHTML = topics.map((topic, index) =>
+    `<button type="button" class="topic" data-topic="${index}" aria-current="${index === cases[current].topic}">
+      <span class="topic-marker">${String(index + 1).padStart(2, '0')}</span>
+      <span>${topic.title}</span><span class="topic-ref">图 ${topic.ref}</span>
+    </button>`).join('');
+}
+function renderVariants() {
+  const related = cases.map((scene, index) => ({scene, index})).filter(item => item.scene.topic === cases[current].topic);
+  byId('variants').innerHTML = related.map(({scene, index}, order) =>
+    `<button type="button" class="variant" data-question="${index}" aria-current="${index === current}">
+      <span class="variant-num">${String(order + 1).padStart(2, '0')}</span>
+      <span class="variant-title">${scene.title}</span>
+      ${selections.has(index) ? '<span class="done-dot" title="已作答" aria-label="已作答"></span>' : ''}
+    </button>`).join('');
+}
+function renderChoices() {
+  const scene = cases[current];
+  byId('choices').style.setProperty('--choices', scene.options.length);
+  byId('choices').innerHTML = scene.options.map((_, index) =>
+    `<button type="button" class="choice" data-choice="${index}" aria-pressed="false" aria-label="画法 ${letters[index]}">
+      <div class="thumb">${diagramMarkup('option' + index, index)}</div>
+      <div class="choice-tag"><span class="choice-letter">${letters[index]}</span><span class="choice-state"></span></div>
+    </button>`).join('');
+}
+function updateAnswers() {
+  const scene = cases[current];
+  const selected = selections.get(current);
+  const toggle = byId('answerToggle');
+  const live = byId('answerLive');
+  toggle.textContent = revealed ? '隐藏答案' : '公布答案';
+  toggle.setAttribute('aria-expanded', String(revealed));
+  live.hidden = !revealed;
+  if (revealed) {
+    const feedback = selected === undefined ? '' : selected === scene.answer ? ' · 你选对了' : ` · 你选了 ${letters[selected]}`;
+    byId('answerTitle').textContent = `正确答案 ${letters[scene.answer]}${feedback}`;
+    byId('answerExplanation').textContent = scene.explanation;
+    const topic = topics[scene.topic];
+    byId('answerRule').textContent = `图 ${topic.ref} · ${topic.rule}`;
+    byId('compare').hidden = selected === undefined || selected === scene.answer;
+    byId('compare').textContent = showingAnswer ? '返回所选画法' : '显示正确画法';
+  } else {
+    byId('answerTitle').textContent = '';
+    byId('answerExplanation').textContent = '';
+    byId('answerRule').textContent = '';
+    byId('compare').hidden = true;
+  }
+  byId('choices').querySelectorAll('.choice').forEach(button => {
+    const index = Number(button.dataset.choice);
+    const chosen = selected === index;
+    const correct = revealed && scene.answer === index;
+    const wrong = revealed && chosen && !correct;
+    const state = correct ? '正确' : wrong ? '所选' : chosen ? '已选' : '';
+    button.classList.toggle('is-answer', correct);
+    button.classList.toggle('is-wrong', wrong);
+    button.setAttribute('aria-pressed', String(chosen));
+    button.setAttribute('aria-label', [`画法 ${letters[index]}`, state].filter(Boolean).join('，'));
+    button.querySelector('.choice-state').textContent = state;
+  });
+}
+function refreshProgress() {
+  byId('progress').textContent = `已作答 ${selections.size} / ${cases.length}`;
+}
+function renderQuestion() {
+  const scene = cases[current];
+  byId('sceneTitle').textContent = scene.title;
+  byId('viewName').textContent = scene.view;
+  byId('questionText').textContent = scene.question;
+  byId('choiceCount').textContent = `${counts[scene.options.length]}选一`;
+  byId('sequence').textContent = `第 ${current + 1} / ${cases.length} 题`;
+  byId('prev').disabled = current === 0;
+  byId('next').disabled = current === cases.length - 1;
+  renderTopics();
+  renderVariants();
+  renderChoices();
+  updateAnswers();
+  updateDrawings();
+}
+function goTo(index) {
+  if (index < 0 || index >= cases.length || index === current) return;
+  current = index;
+  revealed = false;
+  showingAnswer = false;
+  renderQuestion();
+}
+
+byId('topics').addEventListener('click', event => {
+  const button = event.target.closest('[data-topic]');
+  if (!button) return;
+  const topic = Number(button.dataset.topic);
+  if (topic === cases[current].topic) return;
+  goTo(cases.findIndex(scene => scene.topic === topic));
+  byId('topics').querySelector('[aria-current="true"]').focus({preventScroll: true});
+});
+byId('variants').addEventListener('click', event => {
+  const button = event.target.closest('[data-question]');
+  if (!button) return;
+  goTo(Number(button.dataset.question));
+  byId('variants').querySelector('[aria-current="true"]').focus({preventScroll: true});
+});
+byId('choices').addEventListener('click', event => {
+  const button = event.target.closest('[data-choice]');
+  if (!button) return;
+  selections.set(current, Number(button.dataset.choice));
+  showingAnswer = false;
+  refreshProgress();
+  renderVariants();
+  updateAnswers();
+  updateDrawings();
+});
+byId('prev').addEventListener('click', () => goTo(current - 1));
+byId('next').addEventListener('click', () => goTo(current + 1));
+byId('answerToggle').addEventListener('click', () => {
+  revealed = !revealed;
+  showingAnswer = false;
+  updateAnswers();
+  updateDrawings();
+});
+byId('compare').addEventListener('click', () => {
+  showingAnswer = !showingAnswer;
+  updateAnswers();
+  updateDrawings();
+});
+byId('layers').addEventListener('change', event => {
+  layers[event.target.value] = event.target.checked;
+  updateDrawings();
+});
+byId('layerReset').addEventListener('click', () => {
+  Object.assign(layers, layerDefaults);
+  byId('layers').querySelectorAll('input').forEach(input => { input.checked = layers[input.value]; });
+  updateDrawings();
+});
+byId('detailZoom').innerHTML = icon('zoom');
+document.querySelectorAll('[data-zoom]').forEach(button => button.addEventListener('click', () => {
+  byId('modalView').innerHTML = diagramMarkup('modal', activeDrawing());
+  byId('zoomDialog').showModal();
+}));
+byId('zoomDialog').addEventListener('close', () => { byId('modalView').innerHTML = ''; });
+const fullscreen = byId('fullscreen');
+fullscreen.hidden = !document.fullscreenEnabled;
+fullscreen.addEventListener('click', async () => {
+  try {
+    if (document.fullscreenElement) await document.exitFullscreen();
+    else await document.documentElement.requestFullscreen();
+  } catch {
+    fullscreen.hidden = true;
+  }
+});
+document.addEventListener('fullscreenchange', () => {
+  fullscreen.textContent = document.fullscreenElement ? '退出全屏' : '全屏';
+});
+
+refreshProgress();
+renderQuestion();
+</script>
+</body>
+</html>

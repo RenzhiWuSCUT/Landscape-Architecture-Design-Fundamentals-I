@@ -1,0 +1,854 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>3.2 标题栏 · 房屋建筑制图统一标准</title>
+<style>
+  :root {
+    color-scheme: light;
+    --ink: #162e34;
+    --muted: #52676d;
+    --soft: #73868a;
+    --line: #dce6e4;
+    --teal: #116659;
+    --teal-dark: #084d43;
+    --pale: #e8f4ef;
+    --surface: #fff;
+    --ui: "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif;
+    --num: ui-monospace, "Cascadia Mono", Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  body { margin: 0; color: var(--ink); background: #f4f7f6; font: 14px/1.5 var(--ui); }
+  button, summary { font: inherit; color: inherit; }
+  button { cursor: pointer; }
+  button:disabled { cursor: default; }
+  button:focus-visible, summary:focus-visible { outline: 2px solid var(--teal); outline-offset: 3px; }
+  .masthead { height: 86px; background: var(--surface); border-bottom: 1px solid var(--line); }
+  .mast-inner { max-width: 1700px; height: 100%; margin: auto; padding: 0 31px; display: flex; align-items: center; gap: 15px; }
+  .brand { flex: none; display: grid; place-items: center; width: 44px; height: 44px; border-radius: 13px; background: var(--teal-dark); color: white; }
+  .brand svg { width: 24px; height: 24px; }
+  h1, h2, p { margin: 0; }
+  h1 { font-size: 24px; font-weight: 740; letter-spacing: .015em; line-height: 1.22; }
+  .source { margin-top: 5px; color: var(--muted); font-size: 12px; }
+  .standard { margin-left: auto; color: var(--muted); background: #f4f7f6; border: 1px solid var(--line); padding: 6px 10px; border-radius: 7px; font: 12px var(--num); white-space: nowrap; }
+  .workspace { max-width: 1700px; margin: auto; padding: 22px 28px; display: grid; grid-template-columns: minmax(0, 1fr) 328px; gap: 18px; }
+  .board, .tray { min-width: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 15px; box-shadow: 0 6px 24px #25423c09; }
+  .board { height: max(640px, calc(100dvh - 130px)); display: flex; flex-direction: column; overflow: hidden; }
+  .board-head { min-height: 75px; padding: 12px 18px; display: flex; align-items: center; justify-content: space-between; gap: 12px; border-bottom: 1px solid var(--line); }
+  .board-head h2 { font-size: 18px; font-weight: 700; letter-spacing: .015em; }
+  .fig { color: var(--muted); margin-top: 3px; font-size: 11px; }
+  .controls { display: flex; align-items: center; gap: 8px; flex: none; }
+  .zoom { display: flex; align-items: center; gap: 1px; padding: 2px; background: #f4f7f6; border: 1px solid var(--line); border-radius: 8px; }
+  .control { display: grid; place-items: center; padding: 0; width: 29px; height: 29px; color: #3c575a; border: 0; border-radius: 5px; background: transparent; }
+  .control:is(:hover,:focus-visible):not(:disabled) { background: #dcebe5; color: var(--teal-dark); }
+  .control:disabled { opacity: .35; }
+  .control svg, summary svg, .legend-icon svg, .detail-back svg { width: 16px; height: 16px; }
+  .control.fit { width: 43px; font: 11px var(--num); }
+  .control.full { width: 34px; height: 35px; border: 1px solid var(--line); border-radius: 8px; }
+  .scene { flex: 1; min-height: 0; overflow: hidden; position: relative; background-color: #eef4f1; background-image: radial-gradient(#b9cdc6 0.7px, transparent 0.8px); background-size: 17px 17px; }
+  .scene > svg { width: 100%; height: 100%; display: block; -webkit-user-select: none; user-select: none; touch-action: pan-y; }
+  .scene > svg.zoomed { cursor: grab; touch-action: none; }
+  .scene > svg.dragging { cursor: grabbing; }
+  .board-foot { min-height: 45px; padding: 8px 18px; display: flex; align-items: center; justify-content: space-between; gap: 12px; border-top: 1px solid var(--line); }
+  .measure { display: flex; align-items: center; gap: 10px; color: var(--muted); font: 12px var(--num); white-space: nowrap; }
+  .size-tag { color: var(--teal-dark); background: var(--pale); padding: 4px 7px; font-weight: 700; border-radius: 5px; line-height: 1; }
+  .status { color: var(--muted); font-size: 11px; text-align: right; }
+  .detail-back { display: flex; align-items: center; gap: 5px; padding: 0; border: 0; background: none; color: var(--teal); font-size: 12px; }
+  .detail-back:hover { text-decoration: underline; }
+  .tray { align-self: start; overflow: auto; max-height: max(640px, calc(100dvh - 130px)); scrollbar-width: thin; scrollbar-color: #b7ccc5 transparent; }
+  details + details { border-top: 1px solid var(--line); }
+  summary { display: flex; align-items: center; gap: 9px; min-height: 47px; padding: 10px 16px; cursor: pointer; list-style: none; font-size: 13px; font-weight: 700; }
+  summary::-webkit-details-marker { display: none; }
+  summary:hover { background: #f5f9f7; }
+  summary > svg { color: var(--teal); flex: none; }
+  summary .chevron { margin-left: auto; color: var(--soft); transition: transform .15s ease; }
+  details[open] summary .chevron { transform: rotate(180deg); }
+  .panel { padding: 0 16px 14px; }
+  .layout-group + .layout-group { margin-top: 11px; }
+  .group-head { font-size: 11px; color: var(--muted); font-weight: 650; margin-bottom: 5px; }
+  .layout-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+  .layout { display: grid; justify-items: center; gap: 3px; min-height: 72px; padding: 5px 2px 4px; background: #fafcfb; border: 1px solid var(--line); border-radius: 8px; line-height: 1.18; }
+  .layout:hover { border-color: #9bbdb1; background: #f0f7f4; }
+  .layout[aria-pressed="true"] { border-color: #5c9b88; color: var(--teal-dark); background: var(--pale); box-shadow: inset 0 0 0 1px #5c9b8824; }
+  .layout svg { display: block; width: 49px; height: 32px; }
+  .layout-name { font-size: 12px; font-weight: 670; }
+  .layout-range { color: var(--muted); font: 10px var(--num); }
+  .layout-grid.title-grid { grid-template-columns: repeat(2, 1fr); }
+  .title-grid .layout { min-height: 56px; align-content: center; gap: 3px; }
+  .title-grid .layout svg { width: 66px; height: 25px; }
+  .sizes { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; }
+  .size, .detail-choice { border: 1px solid var(--line); background: #fafcfb; border-radius: 7px; min-height: 33px; }
+  .size { font: 700 13px var(--num); }
+  .size:hover:not(:disabled), .detail-choice:hover { background: #f0f7f4; border-color: #9bbdb1; }
+  .size[aria-pressed="true"], .detail-choice[aria-pressed="true"] { color: #fff; background: var(--teal); border-color: var(--teal); }
+  .size:disabled { background: #f6f8f7; color: #879694; border-color: #e9eeec; text-decoration: line-through; }
+  .segments { display: flex; background: #f0f5f3; border-radius: 7px; padding: 3px; gap: 3px; }
+  .segments button { flex: 1; min-height: 29px; border: 1px solid transparent; border-radius: 5px; background: transparent; font-size: 11px; font-weight: 640; padding: 2px 6px; white-space: nowrap; }
+  .segments button:hover { color: var(--teal-dark); }
+  .segments button[aria-pressed="true"] { color: var(--teal-dark); background: white; border-color: #dae8e3; box-shadow: 0 1px 2px #1a403217; }
+  .layers { margin-top: 8px; display: grid; grid-template-columns: 1fr 1fr; column-gap: 5px; row-gap: 2px; }
+  .layer { display: flex; align-items: center; padding: 3px 6px; gap: 7px; min-height: 29px; color: var(--muted); background: transparent; border: 1px solid transparent; border-radius: 6px; text-align: left; font-size: 11.5px; }
+  .layer:hover:not(:disabled) { background: #f0f7f4; }
+  .layer[aria-pressed="true"] { background: var(--pale); border-color: #c9e5dc; color: var(--teal-dark); font-weight: 700; }
+  .layer:disabled { opacity: .44; }
+  .legend-icon { display: grid; place-items: center; width: 19px; height: 19px; border-radius: 4px; background: #eaf2ee; color: #3d7468; flex: none; }
+  .detail-options { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .detail-choice { padding: 3px 5px; font-size: 11px; }
+  .display-tools { display: grid; gap: 6px; margin-top: 10px; padding-top: 9px; border-top: 1px solid var(--line); }
+  .tools-label { font-size: 11px; color: var(--muted); }
+  .aria-only { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .paper-bg { fill: white; filter: drop-shadow(0 7px 9px #1c433426) drop-shadow(0 1px 1px #1c433422); }
+  .paper-edge { fill: none; stroke: #344d50; stroke-width: 1.05; }
+  .frame-edge { fill: none; stroke: #1d373d; stroke-width: 1.75; }
+  .title-fill { fill: #e3efeb; }
+  .sign-fill { fill: #e3efeb; }
+  .block-edge { fill: none; stroke: #29474a; stroke-width: 1.02; }
+  .center-mark { stroke: #23444a; stroke-width: 1.2; }
+  .dev-label { font-family: var(--ui); }
+  .dim-line { stroke: #678084; stroke-width: .82; fill: none; }
+  .dim-ext { stroke: #91a5a7; stroke-width: .7; fill: none; }
+  .dim-tick { stroke: #48676c; stroke-width: 1.1; fill: none; }
+  .dim-text, .dim-symbol { font: 600 12px var(--num); fill: #28454b; paint-order: stroke; stroke: #eef4f1; stroke-width: 4px; stroke-linejoin: round; }
+  .dim-symbol { font-size: 11px; font-weight: 450; fill: #587176; }
+  .leader { stroke: #508b7e; stroke-width: 1.04; fill: none; }
+  .leader-dot { fill: #398374; stroke: white; stroke-width: 1; }
+  .name-tag { fill: #f2faf6; stroke: #bddcd1; stroke-width: .8; }
+  .name-text { fill: #1b5b50; font-size: 12px; font-weight: 650; }
+  .callout.selected .name-tag { fill: var(--teal); stroke: var(--teal); }
+  .callout.selected .name-text { fill: white; }
+  .callout.selected .leader { stroke: #087361; stroke-width: 1.65; }
+  .focus-shape { stroke: #078575; stroke-width: 2.2; fill: none; pointer-events: none; }
+  .focus-area { fill: #8cd3bc; fill-opacity: .34; stroke: #078575; stroke-width: 1.2; pointer-events: none; }
+  .target { cursor: pointer; outline: none; }
+  .hit-area { fill: transparent; }
+  .hit-line { fill: none; stroke: transparent; stroke-width: 15; }
+  .target:focus-visible .hit-line { stroke: #4ca796; stroke-opacity: .65; stroke-width: 4; }
+  .target:focus-visible .hit-area { stroke: #078575; stroke-width: 2; fill: #8cd3bc44; }
+  .cell { fill: #fff; stroke: #476363; stroke-width: .9; }
+  .cell.alt { fill: #eaf4ef; }
+  .cell-table-line { stroke: #657d7e; stroke-width: .9; }
+  .cell-name { fill: #245849; font-weight: 650; font-size: 13px; }
+  .clause-note { color: var(--muted); margin-top: 8px; font-size: 11px; }
+  .board:fullscreen { width: 100%; height: 100%; border: 0; border-radius: 0; }
+  @media (max-width: 1030px) {
+    .workspace { padding: 16px; grid-template-columns: minmax(0, 1fr) 296px; gap: 12px; }
+    .board, .tray { max-height: none; }
+    .board { height: max(620px, calc(100dvh - 118px)); }
+    .mast-inner { padding: 0 18px; }
+  }
+  @media (max-width: 760px) {
+    .masthead { height: 70px; }
+    .mast-inner { gap: 10px; padding: 0 13px; }
+    .brand { width: 36px; height: 36px; border-radius: 9px; }
+    .brand svg { width: 21px; height: 21px; }
+    h1 { font-size: 20px; }
+    .source { font-size: 10px; margin-top: 2px; }
+    .standard { padding: 5px 6px; font-size: 10px; }
+    .workspace { padding: 10px; grid-template-columns: 1fr; gap: 10px; }
+    .board { height: 530px; }
+    .board-head { min-height: 60px; padding: 8px 10px; gap: 6px; }
+    .board-head h2 { font-size: 15px; }
+    .controls { gap: 4px; }
+    .board-foot { min-height: 42px; padding: 6px 10px; }
+    .status { font-size: 10px; }
+    .tray { max-height: none; }
+  }
+  @media (max-width: 380px) {
+    .standard { font-size: 9px; }
+    .control.full { display: none !important; }
+  }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<header class="masthead">
+  <div class="mast-inner">
+    <span class="brand" id="brand" aria-hidden="true"></span>
+    <div><h1>3.2 标题栏</h1><p class="source">房屋建筑制图统一标准</p></div>
+    <span class="standard">GB/T 50001-2017</span>
+  </div>
+</header>
+<main class="workspace">
+  <section class="board" id="board" aria-label="图纸画面">
+    <div class="board-head">
+      <div><h2 id="figureName"></h2><p class="fig" id="figureRef"></p></div>
+      <div class="controls">
+        <div class="zoom" role="group" aria-label="缩放图纸">
+          <button class="control" type="button" id="zoomOut" aria-label="缩小" title="缩小"></button>
+          <button class="control fit" type="button" id="fit" aria-label="适合画面" title="适合画面">100%</button>
+          <button class="control" type="button" id="zoomIn" aria-label="放大" title="放大"></button>
+        </div>
+        <button class="control full" type="button" id="full" aria-label="全屏" title="全屏"></button>
+      </div>
+    </div>
+    <div class="scene" id="scene">
+      <svg id="drawing" aria-label="图纸示意图" role="group"></svg>
+    </div>
+    <div class="board-foot">
+      <div class="measure" id="measure"></div>
+      <button class="detail-back" type="button" id="back" hidden>返回幅面</button>
+      <p class="status" id="status" role="status">点击或长按图纸查看名称</p>
+    </div>
+  </section>
+  <aside class="tray" aria-label="工具托盘">
+    <details open>
+      <summary data-icon="book">知识点</summary>
+      <div class="panel" id="layouts"></div>
+    </details>
+    <details open id="presetPanel">
+      <summary data-icon="ruler">幅面预设</summary>
+      <div class="panel sizes" id="sizes" role="group" aria-label="选择幅面"></div>
+    </details>
+    <details open>
+      <summary data-icon="layers">图层</summary>
+      <div class="panel">
+        <div class="segments" id="annotationModes" role="group" aria-label="名称标注">
+          <button type="button" data-annotation="all">显示全部</button>
+          <button type="button" data-annotation="one">显示单项</button>
+          <button type="button" data-annotation="none">隐藏名称</button>
+        </div>
+        <div class="layers" id="layers"></div>
+        <div class="display-tools">
+          <div class="tools-label" id="dimensionLabel">尺寸标注</div>
+          <div class="segments" id="dimensions" role="group" aria-labelledby="dimensionLabel">
+            <button type="button" data-dimension="both">数值与符号</button>
+            <button type="button" data-dimension="value">仅数值</button>
+            <button type="button" data-dimension="none">隐藏尺寸</button>
+          </div>
+        </div>
+      </div>
+    </details>
+    <details>
+      <summary data-icon="detail">其他详图</summary>
+      <div class="panel"><div class="detail-options" id="details"></div><p class="clause-note" id="clauseNote" hidden></p></div>
+    </details>
+  </aside>
+</main>
+<script>
+"use strict";
+
+const icons = {
+  brand: '<path d="M3 4h18v16H3zM6.5 7h11v10h-11zM14 13h3.5M14 13v4M3 11.5h3.5M11.5 4v3"/>',
+  book: '<path d="M12 5v15m0-14C9 4 6.5 4 3 5v13c3.5-1 6-1 9 1 3-2 5.5-2 9-1V5c-3.5-1-6-1-9 1Z"/>',
+  ruler: '<path d="M3 8h18v8H3zM7 8v4m5-4v3m5-3v4"/>',
+  layers: '<path d="m12 3 9 5-9 5-9-5 9-5ZM3 12l9 5 9-5M3 16l9 5 9-5"/>',
+  detail: '<path d="M4 5h16v14H4zM4 12h16m-6-7v14M8 12v7"/>',
+  chevron: '<path d="m6 9 6 6 6-6"/>',
+  minus: '<path d="M6 12h12"/>',
+  plus: '<path d="M12 6v12M6 12h12"/>',
+  full: '<path d="M9 4H4v5m11-5h5v5M9 20H4v-5m16 0v5h-5"/>',
+  unfull: '<path d="M4 9h5V4m11 5h-5V4M4 15h5v5m6 0v-5h5"/>',
+  back: '<path d="m10 6-6 6 6 6m-6-6h16"/>',
+  trim: '<path d="M5 18V6h14" opacity=".8"/>',
+  frame: '<path d="M5 18V6h14" stroke-width="2.6"/>',
+  binding: '<path d="M4 5h6v14H4zM15 19V5M4 10l6 5M4 14l6 5"/>',
+  center: '<path d="M5 6h14m-7-3v7M7 17h10"/>',
+  title: '<path d="M4 5h16v14H4zM13 12h7m-7 0v7m3-7v7"/>',
+  sign: '<path d="M4 7h16v10H4zM8 7v10m4-10v10m4-10v10"/>',
+};
+function icon(name, cls = "") {
+  return '<svg aria-hidden="true" class="' + cls + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round">' + icons[name] + '</svg>';
+}
+const byId = (id) => document.getElementById(id);
+byId("brand").innerHTML = icon("brand");
+for (const [id, name] of [["zoomOut","minus"],["zoomIn","plus"],["full","full"]]) byId(id).innerHTML = icon(name);
+byId("back").insertAdjacentHTML("afterbegin", icon("back"));
+for (const summary of document.querySelectorAll("summary")) {
+  summary.insertAdjacentHTML("afterbegin", icon(summary.dataset.icon));
+  summary.insertAdjacentHTML("beforeend", icon("chevron", "chevron"));
+}
+const layouts = [
+  { name: "横式幅面（一）", portrait: false, max: 3, title: "right" },
+  { name: "横式幅面（二）", portrait: false, max: 3, title: "bottom" },
+  { name: "横式幅面（三）", portrait: false, max: 1, title: "corner", sign: "left" },
+  { name: "立式幅面（一）", portrait: true, max: 4, title: "bottom" },
+  { name: "立式幅面（二）", portrait: true, max: 4, title: "right" },
+  { name: "立式幅面（三）", portrait: true, max: 2, title: "corner", sign: "top" }
+];
+const sizes = [
+  { short: 841, long: 1189, c: 10 },
+  { short: 594, long: 841, c: 10 },
+  { short: 420, long: 594, c: 10 },
+  { short: 297, long: 420, c: 5 },
+  { short: 210, long: 297, c: 5 }
+];
+const binding = 25;
+const layers = {
+  trim: "幅面线", frame: "图框线", binding: "装订边",
+  center: "对中标志", title: "标题栏", sign: "会签栏",
+  design: "设计单位名称区", seal: "注册师签章区", manager: "项目经理区",
+  revision: "修改记录区", project: "工程名称区", number: "图号区",
+  signature: "签字区", note: "附注栏", drawing: "图名区",
+  specialty: "专业", realName: "实名", autograph: "签名", date: "日期"
+};
+const detailNames = ["标题栏（一）", "标题栏（二）", "标题栏（三）", "标题栏（四）", "会签栏"];
+const fullSheetLayers = ["trim","frame","binding","center","title","sign"];
+const regularCells = ["design","seal","manager","revision","project","number","signature","sign","note"];
+const compactCells = ["design","project","drawing","signature","number"];
+const signCells = ["specialty", "realName", "autograph", "date"];
+const state = { layout: 0, preferred: 3, size: 3, mode: "all", layer: "title", picked: null, detail: null, dimensions: "both", zoom: 1, panX: 0, panY: 0 };
+
+const layoutBox = byId("layouts");
+function thumbnail(layout) {
+  const { portrait, title, sign } = layout;
+  const x = portrait ? 13 : 5, y = portrait ? 2 : 4, w = portrait ? 22 : 39, h = portrait ? 28 : 24;
+  const ix = x + (portrait ? 2.4 : 4), iy = y + (portrait ? 4 : 2.1), ir = x + w - 2.2, ib = y + h - 2.2;
+  const titleX = title === "right" ? ir - 5.2 : title === "corner" ? ir - (portrait ? 9 : 12) : ix;
+  const titleY = title === "right" ? iy : ib - 4.1;
+  let content = '<rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" rx="1" fill="white" stroke="#8da8a2"/>';
+  content += '<rect x="' + ix + '" y="' + iy + '" width="' + (ir-ix) + '" height="' + (ib-iy) + '" fill="none" stroke="#506f68"/>';
+  content += '<rect x="' + titleX + '" y="' + titleY + '" width="' + (ir-titleX) + '" height="' + (ib-titleY) + '" fill="#9dcaba" stroke="#528c7e" stroke-width=".7"/>';
+  if (sign === "left") content += '<rect x="' + (ix-2.3) + '" y="' + (iy+1) + '" width="2.3" height="6.7" fill="#9dcaba" stroke="#528c7e" stroke-width=".6"/>';
+  if (sign === "top") content += '<rect x="' + (ir-6) + '" y="' + (iy-2.3) + '" width="6" height="2.3" fill="#9dcaba" stroke="#528c7e" stroke-width=".6"/>';
+  return '<svg aria-hidden="true" viewBox="0 0 49 32">' + content + '</svg>';
+}
+for (const first of [0, 3]) {
+  const title = first === 0 ? "横式幅面" : "立式幅面";
+  const buttons = layouts.slice(first, first + 3).map((layout, i) =>
+    '<button type="button" class="layout" data-layout="' + (first+i) + '" aria-label="' + layout.name + '，A0 至 A' + layout.max + '">' +
+    thumbnail(layout) + '<span class="layout-name">' + layout.name.slice(4) + '</span><span class="layout-range">A0–A' + layout.max + '</span></button>'
+  ).join("");
+  layoutBox.insertAdjacentHTML("beforeend", '<div class="layout-group"><p class="group-head">' + title + '</p><div class="layout-grid" role="group" aria-label="' + title + '">' + buttons + '</div></div>');
+}
+const titlePreviews = [
+  { frame: '<rect x="3" y="4" width="60" height="17" rx=".6"/>', dividers: 'M17.4 4v17m16.8-17v17M17.4 9.3h16.8', shade: 'M3 4h14.4v17H3z' },
+  { frame: '<rect x="8" y="4" width="50" height="17" rx=".6"/>', dividers: 'M8 9.1h50m-34 0v11.9m21.5-11.9v11.9M24 12.5h21.5', shade: 'M8 4h50v5.1H8z' }
+];
+const titleCards = titlePreviews.map(({frame, dividers, shade}, offset) => {
+  const index = offset+2;
+  return '<button type="button" class="layout" data-detail="' + index + '">' +
+    '<svg aria-hidden="true" viewBox="0 0 66 25" fill="white" stroke="#506f68">' + frame +
+    '<path d="' + shade + '" fill="#b5d7ca" stroke="none"/><path d="' + dividers + '" fill="none"/>' +
+    frame.replace('/>', ' fill="none"/>') + '</svg>' +
+    '<span class="layout-name">' + detailNames[index] + '</span></button>';
+}).join("");
+layoutBox.insertAdjacentHTML("beforeend",
+  '<div class="layout-group"><p class="group-head">标题栏详图</p><div class="layout-grid title-grid" role="group" aria-label="标题栏详图">' + titleCards + '</div></div>');
+byId("sizes").innerHTML = sizes.map((_, index) => '<button type="button" class="size" data-size="' + index + '">A' + index + '</button>').join("");
+
+function layerKeys() {
+  if (state.detail === null) return fullSheetLayers;
+  if (state.detail < 2) return regularCells;
+  if (state.detail < 4) return compactCells;
+  return signCells;
+}
+function showLayers() {
+  byId("layers").innerHTML = layerKeys().map((key) => {
+    const mark = fullSheetLayers.includes(key) ? key : "detail";
+    const disabled = state.detail === null && key === "sign" && !layouts[state.layout].sign;
+    const description = disabled ? ' title="此幅面无独立会签栏" disabled' : "";
+    return '<button type="button" class="layer" data-layer="' + key + '"' + description + '><span class="legend-icon">' + icon(mark) + '</span>' + layers[key] + '</button>';
+  }).join("");
+}
+function syncControls() {
+  const layout = layouts[state.layout], size = sizes[state.size];
+  const isDetail = state.detail !== null;
+  byId("figureName").textContent = isDetail ? detailNames[state.detail] : layout.name;
+  byId("figureRef").textContent = isDetail ? "图 3.2.2-" + (state.detail + 1) : "图 3.2.1-" + (state.layout + 1) + "  ·  A0～A" + layout.max;
+  byId("measure").hidden = isDetail;
+  byId("back").hidden = !isDetail;
+  byId("presetPanel").hidden = isDetail;
+  byId("measure").innerHTML = '<span class="size-tag">A' + state.size + '</span>' +
+    '<span>' + (layout.portrait ? size.short : size.long) + ' × ' + (layout.portrait ? size.long : size.short) + ' mm</span>';
+  for (const button of document.querySelectorAll("[data-layout]")) button.setAttribute("aria-pressed", !isDetail && +button.dataset.layout === state.layout);
+  for (const button of document.querySelectorAll("[data-size]")) {
+    const index = +button.dataset.size;
+    button.disabled = index > layout.max;
+    button.setAttribute("aria-pressed", index === state.size);
+    button.title = button.disabled ? "此版式未列入 A" + index : sizes[index].short + " × " + sizes[index].long + " mm";
+  }
+  for (const button of document.querySelectorAll("[data-annotation]")) button.setAttribute("aria-pressed", button.dataset.annotation === state.mode);
+  for (const button of document.querySelectorAll("[data-layer]")) button.setAttribute("aria-pressed", button.dataset.layer === state.layer && state.mode === "one");
+  for (const button of document.querySelectorAll("[data-dimension]")) button.setAttribute("aria-pressed", button.dataset.dimension === state.dimensions);
+  for (const button of document.querySelectorAll("[data-detail]")) button.setAttribute("aria-pressed", +button.dataset.detail === state.detail);
+  byId("fit").textContent = Math.round(state.zoom * 100) + "%";
+  byId("zoomOut").disabled = state.zoom <= 1;
+  byId("zoomIn").disabled = state.zoom >= 3;
+  const focus = state.picked?.key ?? (state.mode === "one" ? state.layer : null);
+  byId("status").textContent = focus ? layers[focus] : "点击或长按图纸查看名称";
+}
+function showDetailChoices() {
+  const layout = layouts[state.layout];
+  const indices = layout.title === "corner" ? [4] : [0, 1];
+  byId("details").innerHTML = indices.map((index) => '<button type="button" class="detail-choice" data-detail="' + index + '">' + detailNames[index] + '</button>').join("");
+  byId("clauseNote").hidden = !layout.sign;
+  byId("clauseNote").textContent = "签字栏应包含实名列和签名列。";
+}
+
+const svg = byId("drawing");
+const rect = (cls, x, y, w, h) => '<rect class="' + cls + '" x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '"/>';
+const line = (cls, x1, y1, x2, y2) => '<line class="' + cls + '" x1="' + x1 + '" y1="' + y1 + '" x2="' + x2 + '" y2="' + y2 + '"/>';
+const path = (cls, d) => '<path class="' + cls + '" d="' + d + '"/>';
+const labelText = (cls, x, y, value, anchor = "middle", extra = "") =>
+  '<text class="' + cls + '" x="' + x + '" y="' + y + '" text-anchor="' + anchor + '" ' + extra + '>' + value + '</text>';
+
+function dimensionLabels(symbol, number) {
+  return state.dimensions === "both" ? [String(number), symbol] : [String(number), ""];
+}
+function horizontalDimension(xs, y, edge, measures) {
+  let drawing = line("dim-line", xs[0], y, xs.at(-1), y);
+  for (const x of xs) {
+    drawing += line("dim-ext", x, edge, x, y+5);
+    drawing += line("dim-tick", x-3, y+3, x+3, y-3);
+  }
+  for (const [index, item] of measures.entries()) {
+    const start = xs[index], end = xs[index+1];
+    const [value, symbol] = dimensionLabels(...item);
+    const small = end-start < 30;
+    const isFirst = index === 0;
+    const x = small ? (isFirst ? start-10 : end+10) : (start+end)/2;
+    const anchor = small ? (isFirst ? "end" : "start") : "middle";
+    if (small) {
+      const endX = isFirst ? start-8 : end+8;
+      drawing += path("dim-ext", "M" + (start+end)/2 + " " + y + " L" + endX + " " + (y-7));
+      drawing += labelText("dim-text", x, y-6, symbol ? symbol + " " + value : value, anchor);
+    } else {
+      drawing += labelText("dim-text", x, y-5, value);
+      if (symbol) drawing += labelText("dim-symbol", x, y+13, symbol);
+    }
+  }
+  return drawing;
+}
+function verticalDimension(ys, x, edge, measures, detail = false) {
+  const sign = detail ? 1 : -1;
+  let drawing = line("dim-line", x, ys[0], x, ys.at(-1));
+  for (const y of ys) {
+    drawing += line("dim-ext", x+sign*5, y, edge, y);
+    drawing += line("dim-tick", x-3, y-3, x+3, y+3);
+  }
+  for (const [index, item] of measures.entries()) {
+    const start = ys[index], end = ys[index+1];
+    const [value, symbol] = dimensionLabels(...item);
+    if (end-start < 26 && !detail) {
+      const isFirst = index === 0;
+      const y = isFirst ? start-9 : end+5;
+      drawing += path("dim-ext", "M" + x + " " + (start+end)/2 + " L" + (x-7) + " " + (y-3));
+      drawing += labelText("dim-text", x-10, y, symbol ? symbol + " " + value : value, "end");
+    } else if (detail) {
+      drawing += labelText("dim-text", x+sign*8, (start+end)/2+4, value, "start");
+    } else {
+      const y = (start+end)/2;
+      drawing += labelText("dim-text", x-6, y, value, "middle", 'transform="rotate(-90 ' + (x-6) + ' ' + y + ')"');
+      if (symbol) drawing += labelText("dim-symbol", x+12, y, symbol, "middle", 'transform="rotate(-90 ' + (x+12) + ' ' + y + ')"');
+    }
+  }
+  return drawing;
+}
+
+function entity(key, id, hit, focus, point, label) {
+  return { key, id, hit, focus, point, label };
+}
+function visibleName(item) {
+  return state.mode === "all" || (state.mode === "one" && state.layer === item.key) || state.picked?.id === item.id;
+}
+function overlay(entities, viewW, viewH) {
+  let hits = "", emphasis = "", names = "";
+  const usedLabels = [];
+  const hitOrder = ["binding","title","sign","trim","frame","center"];
+  const sorted = [...entities].sort((a,b) => hitOrder.indexOf(a.key)-hitOrder.indexOf(b.key));
+  for (const item of sorted) {
+    const caption = layers[item.key];
+    hits += '<g class="target" tabindex="0" role="button" aria-label="' + caption + '" data-target="' + item.id + '" data-key="' + item.key + '">' + item.hit + '</g>';
+    const selected = state.picked ? state.picked.id === item.id : state.mode === "one" && state.layer === item.key;
+    if (selected) emphasis += item.focus;
+    if (visibleName(item)) {
+      const [ax, ay] = item.point;
+      const [x, preferredY, align] = item.label;
+      const width = caption.length * 12 + 14, height = 22;
+      const desiredLeft = align === "end" ? x-width : align === "start" ? x : x-width/2;
+      const left = Math.max(6, Math.min(viewW-width-6, desiredLeft));
+      const offsets = [0,-24,24,-48,48,-72,72];
+      const y = offsets.map(offset => preferredY+offset).find(candidate =>
+        candidate > 14 && candidate < viewH-14 && usedLabels.every(other =>
+          Math.abs(candidate-other.y) >= height+3 || left >= other.left+other.width+4 || other.left >= left+width+4
+        )
+      ) ?? preferredY;
+      usedLabels.push({ left, y, width });
+      const edge = Math.max(left+5, Math.min(ax, left+width-5));
+      const edgeY = Math.max(y-height/2, Math.min(ay, y+height/2));
+      const dx = Math.abs(ax-edge), dy = Math.abs(ay-edgeY);
+      const route = "M" + ax + " " + ay + " L" + (dx > dy ? edge+(ax-edge)*.42 : ax) + " " + (dy > dx ? edgeY+(ay-edgeY)*.42 : ay) + " L" + edge + " " + edgeY;
+      names += '<g class="callout' + (selected ? " selected" : "") + '" pointer-events="none">' +
+        path("leader", route) + '<circle class="leader-dot" cx="' + ax + '" cy="' + ay + '" r="2.7"/>' +
+        '<rect class="name-tag" x="' + left + '" y="' + (y-height/2) + '" width="' + width + '" height="' + height + '" rx="5"/>' +
+        labelText("name-text", left+width/2, y, caption, "middle", 'dominant-baseline="central"') + '</g>';
+    }
+  }
+  return emphasis + names + hits;
+}
+
+function renderSheet(viewW, viewH) {
+  const layout = layouts[state.layout], size = sizes[state.size], p = layout.portrait;
+  const modelW = p ? size.short : size.long, modelH = p ? size.long : size.short;
+  const tight = viewW < 620;
+  const dim = state.dimensions !== "none";
+  const leftMargin = dim ? (tight ? 66 : 111) : 32;
+  const rightMargin = tight ? 43 : 70;
+  const topMargin = 35;
+  const bottomMargin = dim ? (tight ? 72 : 82) : 32;
+  const scale = Math.min((viewW-leftMargin-rightMargin)/modelW, (viewH-topMargin-bottomMargin)/modelH, 1.8);
+  const w = modelW*scale, h = modelH*scale;
+  const x = leftMargin + (viewW-leftMargin-rightMargin-w)/2;
+  const y = topMargin + (viewH-topMargin-bottomMargin-h)/2;
+  const r = x+w, b = y+h;
+  const fx = x+(p ? size.c : binding)*scale, fy = y+(p ? binding : size.c)*scale;
+  const fr = r-size.c*scale, fb = b-size.c*scale;
+  const fw = fr-fx, fh = fb-fy;
+  const cx = (fx+fr)/2, cy = (fy+fb)/2;
+  const bindBox = p ? [x,y,w,fy-y] : [x,y,fx-x,h];
+  let base = rect("paper-bg",x,y,w,h) + rect("binding-fill",...bindBox) +
+    rect("paper-edge",x,y,w,h) + rect("frame-edge",fx,fy,fw,fh);
+  const items = [];
+  items.push(entity("binding","binding",rect("hit-area", ...bindBox),rect("focus-area", ...bindBox),
+    p ? [fx+fw*.19,y] : [x,cy+fh*.24],
+    p ? [fx+10,fy+29,"start"] : [fx+23,cy+fh*.24-12,"start"]));
+  const hitWidth = Math.min(12, size.c*scale*.96);
+  const focusableEdge = (left,top,width,height) =>
+    '<rect class="hit-line" x="'+left+'" y="'+top+'" width="'+width+'" height="'+height+'" style="stroke-width:'+hitWidth+'px"/>';
+  items.push(entity("trim","trim",focusableEdge(x,y,w,h),rect("focus-shape",x,y,w,h),
+    [r, fy+fh*.30], [fr-22,fy+fh*.30+5,"end"]));
+  items.push(entity("frame","frame",focusableEdge(fx,fy,fw,fh),rect("focus-shape",fx,fy,fw,fh),
+    [fr,fy+fh*.19], [fr-22,fy+fh*.19+2,"end"]));
+
+  let tx, ty;
+  const rightStrip = layout.title === "right";
+  if (rightStrip) {
+    tx = fr-55*scale; ty = fy;
+  } else if (layout.title === "bottom") {
+    tx = fx; ty = fb-40*scale;
+  } else {
+    tx = fr-(p ? 200 : 240)*scale; ty = fb-30*scale;
+  }
+  const tw = fr-tx, th = fb-ty;
+  base += rect("title-fill",tx,ty,tw,th) + rect("block-edge",tx,ty,tw,th);
+  const titlePoint = rightStrip ? [tx+tw/2,fy+fh*.74] : [Math.max(tx+tw*.58,cx+tw*.09),ty+th/2];
+  const titleLabel = rightStrip ? [tx-16,fy+fh*.74-10,"end"] : [fr-11,ty-14,"end"];
+  items.push(entity("title","title",rect("hit-area",tx,ty,tw,th),rect("focus-area",tx,ty,tw,th),titlePoint,titleLabel));
+
+  if (layout.sign) {
+    const signX = p ? fr-100*scale : fx-20*scale;
+    const signY = p ? fy-20*scale : fy+4*scale;
+    const signW = (p ? 100 : 20)*scale, signH = (p ? 20 : 100)*scale;
+    base += rect("sign-fill",signX,signY,signW,signH) + rect("block-edge",signX,signY,signW,signH);
+    items.push(entity("sign","sign",rect("hit-area",signX,signY,signW,signH),rect("focus-area",signX,signY,signW,signH),
+      [signX+signW/2,signY+signH/2],p ? [fr-8,fy+27,"end"] : [fx+18,signY+signH/2+29,"start"]));
+  }
+
+  const mark = 5*scale, inMark = Math.max(1.5,1.6*scale);
+  const topLabel = p ? (tight ? [cx-14,fy+54,"middle"] : [cx+16,fy+58,"start"]) : [cx-11,fy+33,"end"];
+  const midY = cy-13;
+  const positions = [
+    ["top", [cx,fy-mark,cx,fy+inMark], topLabel],
+    ["left", [fx-mark,cy,fx+inMark,cy], [fx+17,midY,"start"]],
+    ["right", [fr-inMark,cy,fr+mark,cy], [fr-19,tight && !p ? cy+4 : midY,"end"]],
+    ["bottom", [cx,fb-inMark,cx,fb+mark], [cx-11,(rightStrip ? fb : ty)-25,"end"]]
+  ];
+  for (const [side, pts, label] of positions) {
+    base += line("center-mark",...pts);
+    const px = (pts[0]+pts[2])/2, py = (pts[1]+pts[3])/2;
+    const epsilon = 7;
+    const focus = '<circle class="focus-shape" cx="' + px + '" cy="' + py + '" r="7"/>';
+    items.push(entity("center","center-"+side,rect("hit-area",px-epsilon,py-epsilon,2*epsilon,2*epsilon),focus,[px,py],label));
+  }
+
+  if (dim) {
+    const innerW = modelW-(p ? 2*size.c : binding+size.c);
+    const innerH = modelH-(p ? binding+size.c : 2*size.c);
+    const wHalf = p ? "b₁/2" : "l₁/2", hHalf = p ? "l₁/2" : "b₁/2";
+    const inset = tight ? 17 : 23;
+    const outer = tight ? 48 : 56;
+    base += horizontalDimension([x,fx,cx,fr,r], b+22, b+4, [[p ? "c" : "a",p ? size.c : binding],[wHalf,innerW/2],[wHalf,innerW/2],["c",size.c]]);
+    base += horizontalDimension([x,r], b+53, b+27, [[p ? "b" : "l",modelW]]);
+    base += verticalDimension([y,fy,cy,fb,b], x-inset, x-4, [[p ? "a" : "c",p ? binding : size.c],[hHalf,innerH/2],[hHalf,innerH/2],["c",size.c]]);
+    base += verticalDimension([y,b], x-outer, x-inset-4, [[p ? "l" : "b",modelH]]);
+  }
+  return base + overlay(items, viewW, viewH);
+}
+
+function detailSpec(index) {
+  if (index === 0) return { w: 59, h: 375, side: "40～70", vertical: true };
+  if (index === 1) return { w: 400, h: 40, side: "30～50" };
+  if (index === 2) return { w: 240, h: 40, across: 240, side: "30（40）" };
+  if (index === 3) return { w: 200, h: 40, across: 200, side: "30（40）" };
+  return { w: 100, h: 20, across: 100, side: 20 };
+}
+function renderDetail(viewW, viewH) {
+  const index = state.detail;
+  const spec = detailSpec(index);
+  const compact = viewW < 620;
+  const isSign = index === 4;
+  const horizontalRegular = index === 1;
+  const sizeFactor = Math.min((viewW-(compact ? 87 : 185))/spec.w,(viewH-128)/spec.h,
+    spec.vertical ? 1.9 : isSign ? 7 : index > 1 ? 3.3 : 2.45);
+  const w = spec.w*sizeFactor, h = horizontalRegular ? Math.max(72, spec.h*sizeFactor) : spec.h*sizeFactor;
+  const x = (viewW-w)/2-(spec.vertical ? 0 : compact ? 15 : 20);
+  const y = (viewH-h)/2-(spec.vertical ? 12 : 25);
+  let base = rect("paper-bg",x,y,w,h);
+  const zones = [];
+
+  function zone(key, px, py, pw, ph, indexInTable) {
+    const sx = x+px*w, sy = y+py*h, sw = pw*w, sh = ph*h;
+    zones.push({ key, id: key, x: sx, y: sy, w: sw, h: sh });
+    if (indexInTable !== undefined) base += rect("cell" + (indexInTable % 2 === 0 ? " alt" : ""),sx,sy,sw,sh);
+  }
+
+  if (index < 2) {
+    const parts = index === 0 ? [106,61,58,117,35,146,97,64,66] : [87,82,77,73,84,66,65,57,64];
+    const sum = parts.reduce((total, part) => total+part,0);
+    let start = 0;
+    for (const [i, key] of regularCells.entries()) {
+      const extent = parts[i]/sum;
+      if (spec.vertical) zone(key,0,start,1,extent,i);
+      else zone(key,start,0,extent,1,i);
+      start += extent;
+    }
+  } else if (index === 2) {
+    zone("design",0,0,.24,1,0);
+    zone("project",.24,0,.28,.31,1);
+    zone("drawing",.24,.31,.28,.69,2);
+    base += rect("cell",x+w*.52,y,w*.48,h);
+    zone("signature",.52,0,.25,1);
+    zone("number",.77,0,.23,1);
+  } else if (index === 3) {
+    zone("design",0,0,1,.30,0);
+    zone("signature",0,.30,.32,.70,1);
+    zone("project",.32,.30,.43,.20,2);
+    zone("drawing",.32,.50,.43,.50,3);
+    zone("number",.75,.30,.25,.70,4);
+  } else {
+    for (const [i,key] of signCells.entries()) zone(key,i/4,0,.25,1,i);
+    for (let i = 1; i <= 3; i++) base += line("cell-table-line",x,y+h*i/4,x+w,y+h*i/4);
+  }
+  base += rect("frame-edge",x,y,w,h);
+
+  if (state.dimensions !== "none") {
+    if (spec.vertical) {
+      base += horizontalDimension([x,x+w],y+h+35,y+h+5,[["",spec.side]]);
+    } else if (horizontalRegular) {
+      base += verticalDimension([y,y+h],x-22,x-4,[["",spec.side]]);
+    } else {
+      if (isSign) {
+        const xs = Array.from({length: 5},(_,i) => x+w*i/4);
+        const ys = Array.from({length: 5},(_,i) => y+h*i/4);
+        base += horizontalDimension(xs,y+h+25,y+h+4,Array.from({length: 4},() => ["",25]));
+        base += verticalDimension(ys,x+w+22,x+w+3,Array.from({length: 4},() => ["",5]),true);
+      }
+      base += horizontalDimension([x,x+w],y+h+(isSign ? 52 : 28),y+h+(isSign ? 30 : 4),[["",spec.across]]);
+      base += verticalDimension([y,y+h],x+w+(isSign ? 52 : 22),x+w+(isSign ? 28 : 3),[["",spec.side]],true);
+    }
+  }
+
+  let focus = "", captions = "", hits = "";
+  for (const zone of zones) {
+    const selected = state.picked ? state.picked.id === zone.id : state.mode === "one" && state.layer === zone.key;
+    if (selected) focus += rect("focus-area",zone.x+.7,zone.y+.7,zone.w-1.4,zone.h-1.4);
+    if (visibleName(zone)) {
+      const source = layers[zone.key];
+      const font = Math.min(14, Math.max(8, zone.w*.39), Math.max(8, zone.h*.50), horizontalRegular && compact ? 10 : 14);
+      const maxChars = Math.max(2, Math.floor((zone.w-4)/font));
+      const chunks = source.length <= maxChars ? [source] :
+        Array.from({length: Math.ceil(source.length/maxChars)},(_,i) => source.slice(i*maxChars,(i+1)*maxChars));
+      const lineHeight = font+1;
+      const centerY = zone.y + (isSign ? zone.h/8 : zone.h/2);
+      for (const [i,chunk] of chunks.entries()) {
+        const yy = centerY+(i-(chunks.length-1)/2)*lineHeight;
+        captions += labelText("cell-name",zone.x+zone.w/2,yy,chunk,"middle",'dominant-baseline="central" style="font-size:'+font+'px"');
+      }
+    }
+    hits += '<g class="target" tabindex="0" role="button" aria-label="'+layers[zone.key]+'" data-target="'+zone.id+'" data-key="'+zone.key+'">'+rect("hit-area",zone.x,zone.y,zone.w,zone.h)+'</g>';
+  }
+  return base + focus + '<g pointer-events="none">' + captions + '</g>' + hits;
+}
+
+let lastWidth = 0, lastHeight = 0;
+function render() {
+  const vw = svg.clientWidth, vh = svg.clientHeight;
+  if (!vw || !vh) return;
+  lastWidth = vw;
+  lastHeight = vh;
+  svg.setAttribute("viewBox", "0 0 " + vw + " " + vh);
+  const defs = '<defs><pattern id="hatch" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="5" height="5" fill="#f0f5f2"/><path d="M0 0v5" stroke="#dbe8e2" stroke-width="1"/></pattern></defs><style>.binding-fill{fill:url(#hatch)}</style>';
+  svg.innerHTML = defs + '<g id="artwork">' + (state.detail === null ? renderSheet(vw,vh) : renderDetail(vw,vh)) + '</g>';
+  applyTransform();
+}
+function applyTransform() {
+  const canvas = byId("artwork");
+  if (!canvas) return;
+  const limitX = lastWidth*(state.zoom-1)/2;
+  const limitY = lastHeight*(state.zoom-1)/2;
+  state.panX = Math.max(-limitX,Math.min(limitX,state.panX));
+  state.panY = Math.max(-limitY,Math.min(limitY,state.panY));
+  const x = lastWidth/2*(1-state.zoom)+state.panX;
+  const y = lastHeight/2*(1-state.zoom)+state.panY;
+  canvas.setAttribute("transform", "translate("+x+" "+y+") scale("+state.zoom+")");
+  svg.classList.toggle("zoomed",state.zoom > 1);
+}
+function resetZoom() {
+  state.zoom = 1;
+  state.panX = 0;
+  state.panY = 0;
+}
+function changeZoom(factor) {
+  state.zoom = Math.max(1,Math.min(3,Math.round(state.zoom*factor*100)/100));
+  applyTransform();
+  syncControls();
+}
+function chooseLayerIfAvailable() {
+  const keys = layerKeys();
+  if (!keys.includes(state.layer) || (state.layer === "sign" && state.detail === null && !layouts[state.layout].sign)) state.layer = keys[0];
+}
+function update() {
+  syncControls();
+  render();
+}
+function activateSheet(index) {
+  state.layout = index;
+  state.detail = null;
+  state.size = Math.min(state.preferred,layouts[index].max);
+  state.picked = null;
+  chooseLayerIfAvailable();
+  resetZoom();
+  showLayers();
+  showDetailChoices();
+  update();
+}
+function activateDetail(index) {
+  state.detail = index;
+  state.picked = null;
+  chooseLayerIfAvailable();
+  resetZoom();
+  showLayers();
+  update();
+}
+function chooseTarget(target) {
+  const {key, target: id} = target.dataset;
+  const keyboard = document.activeElement === target;
+  state.picked = state.picked?.id === id ? null : { key, id };
+  if (state.mode === "one") state.layer = key;
+  update();
+  if (keyboard) svg.querySelector('[data-target="'+id+'"]')?.focus({preventScroll:true});
+}
+layoutBox.addEventListener("click",event => {
+  const button = event.target.closest("[data-layout], [data-detail]");
+  if (button?.hasAttribute("data-layout")) activateSheet(+button.dataset.layout);
+  else if (button) activateDetail(+button.dataset.detail);
+});
+byId("sizes").addEventListener("click",event => {
+  const button = event.target.closest("[data-size]");
+  if (!button || button.disabled) return;
+  state.size = +button.dataset.size;
+  state.preferred = state.size;
+  state.picked = null;
+  update();
+});
+byId("annotationModes").addEventListener("click",event => {
+  const button = event.target.closest("[data-annotation]");
+  if (!button) return;
+  state.mode = button.dataset.annotation;
+  state.picked = null;
+  update();
+});
+byId("layers").addEventListener("click",event => {
+  const button = event.target.closest("[data-layer]");
+  if (!button || button.disabled) return;
+  state.mode = "one";
+  state.layer = button.dataset.layer;
+  state.picked = null;
+  update();
+});
+byId("details").addEventListener("click",event => {
+  const button = event.target.closest("[data-detail]");
+  if (button) activateDetail(+button.dataset.detail);
+});
+byId("dimensions").addEventListener("click",event => {
+  const button = event.target.closest("[data-dimension]");
+  if (!button) return;
+  state.dimensions = button.dataset.dimension;
+  update();
+});
+byId("back").addEventListener("click",() => activateSheet(state.layout));
+byId("zoomOut").addEventListener("click",() => changeZoom(1/1.25));
+byId("zoomIn").addEventListener("click",() => changeZoom(1.25));
+byId("fit").addEventListener("click",() => { resetZoom(); applyTransform(); syncControls(); });
+const full = byId("full");
+full.hidden = !document.fullscreenEnabled;
+full.addEventListener("click",async () => {
+  try {
+    if (document.fullscreenElement) await document.exitFullscreen();
+    else await byId("board").requestFullscreen();
+  } catch {
+    byId("status").textContent = "当前浏览器无法进入全屏";
+  }
+});
+document.addEventListener("fullscreenchange",() => {
+  const label = document.fullscreenElement ? "退出全屏" : "全屏";
+  full.innerHTML = icon(document.fullscreenElement ? "unfull" : "full");
+  full.setAttribute("aria-label",label);
+  full.title = label;
+});
+
+let press = null;
+let timer = 0;
+let suppressClick = false;
+function clearPress() {
+  clearTimeout(timer);
+  press = null;
+  svg.classList.remove("dragging");
+}
+svg.addEventListener("pointerdown",event => {
+  if (!event.isPrimary || event.button !== 0) return;
+  const target = event.target.closest("[data-target]");
+  suppressClick = false;
+  press = { x:event.clientX, y:event.clientY, startX:state.panX, startY:state.panY, active:event.pointerId, moved:false };
+  if (target) timer = setTimeout(() => {
+    if (!press || press.moved || !target.isConnected) return;
+    suppressClick = true;
+    chooseTarget(target);
+  }, 440);
+});
+svg.addEventListener("pointermove",event => {
+  if (!press || press.active !== event.pointerId) return;
+  const dx = event.clientX-press.x, dy = event.clientY-press.y;
+  if (!press.moved && Math.hypot(dx,dy) < 6) return;
+  clearTimeout(timer);
+  press.moved = true;
+  suppressClick = true;
+  if (state.zoom > 1) {
+    if (!svg.hasPointerCapture(event.pointerId)) svg.setPointerCapture(event.pointerId);
+    svg.classList.add("dragging");
+    state.panX = press.startX+dx;
+    state.panY = press.startY+dy;
+    applyTransform();
+  }
+});
+addEventListener("pointerup",clearPress);
+addEventListener("pointercancel",clearPress);
+svg.addEventListener("contextmenu",event => {
+  if (event.target.closest("[data-target]") || suppressClick) event.preventDefault();
+});
+svg.addEventListener("click",event => {
+  if (suppressClick) { suppressClick = false; return; }
+  const target = event.target.closest("[data-target]");
+  if (target) chooseTarget(target);
+  else if (state.picked) { state.picked = null; update(); }
+});
+svg.addEventListener("keydown",event => {
+  const target = event.target.closest("[data-target]");
+  if (target && (event.key === "Enter" || event.key === " ")) {
+    event.preventDefault();
+    chooseTarget(target);
+  }
+  if (event.key === "Escape" && state.picked) {
+    state.picked = null;
+    update();
+    if (target) svg.querySelector('[data-target="'+target.dataset.target+'"]')?.focus({preventScroll:true});
+  }
+});
+
+activateSheet(0);
+new ResizeObserver(render).observe(byId("scene"));
+</script>
+</body>
+</html>

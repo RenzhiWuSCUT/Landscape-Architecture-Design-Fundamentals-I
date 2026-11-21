@@ -1,0 +1,365 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#eef2ec">
+<title>建筑制图 · 符号识读练习</title>
+<style>
+:root {
+  color-scheme: light;
+  --page: #eef2ec;
+  --ink: #183029;
+  --muted: #52665d;
+  --green: #1e5f47;
+  --soft: #e9f2e9;
+  --line: #d8e2d9;
+  --red: #963b2a;
+  --red-soft: #fcf0ea;
+  --white: #fff;
+  --draft: #222b27;
+  font-family: "Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", sans-serif;
+}
+* { box-sizing: border-box; }
+body { margin: 0; color: var(--ink); background: var(--page); font-size: 15px; }
+[hidden] { display: none !important; }
+button { font: inherit; color: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+button:focus-visible { outline: 2px solid var(--green); outline-offset: 3px; }
+.shell { width: min(1350px, 100%); margin-inline: auto; padding: 32px clamp(14px, 4vw, 54px); }
+.mast { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; margin-bottom: 23px; }
+.kicker { display: flex; flex-wrap: wrap; gap: 7px 10px; color: var(--muted); font-size: 12px; }
+.kicker span { color: var(--green); font-weight: 700; }
+h1 { font-size: clamp(32px, 4.7vw, 51px); letter-spacing: -.05em; line-height: 1.14; margin: 6px 0 0; }
+.mast button { width: 39px; height: 39px; display: grid; place-items: center; border-radius: 8px; border: 1px solid var(--line); background: #fff; flex: none; }
+.mast button:hover { background: var(--soft); }
+.icon { height: 17px; width: 17px; fill: none; stroke: currentColor; stroke-width: 1.65; stroke-linecap: round; stroke-linejoin: round; }
+.layout { display: grid; grid-template-columns: minmax(0, 1fr) 308px; gap: 16px; align-items: start; }
+.panel { min-width: 0; background: #fff; border: 1px solid var(--line); border-radius: 15px; }
+.board { overflow: hidden; }
+.board-head { display: flex; gap: 12px; align-items: center; justify-content: space-between; padding: 16px 20px; min-height: 83px; }
+.board-head h2 { margin: 3px 0 0; font-size: clamp(19px, 2.6vw, 26px); letter-spacing: -.02em; }
+.progress-label { color: var(--green); font-size: 12px; font-weight: 700; }
+.board-head progress { width: clamp(70px, 13vw, 145px); height: 5px; border: 0; border-radius: 20px; accent-color: var(--green); flex: none; }
+progress::-webkit-progress-bar { border-radius: 20px; background: #e8efe7; }
+progress::-webkit-progress-value { border-radius: 20px; background: var(--green); }
+progress::-moz-progress-bar { border-radius: 20px; background: var(--green); }
+.stage { display: grid; place-items: center; min-height: clamp(310px, 36vw, 476px); background-color: #fbfcf8; background-image: radial-gradient(#dce7dd .7px, transparent .7px); background-size: 16px 16px; border-block: 1px solid var(--line); padding: 14px; }
+.paper { display: grid; place-items: center; width: min(100%, 725px); min-height: 100%; background: #fff; border: 1px solid #e1e8e0; border-radius: 8px; }
+.paper svg { display: block; height: auto; width: 100%; max-height: 416px; }
+.draft { color: var(--draft); }
+.draft .draft-text { fill: currentColor; font-family: system-ui, "Microsoft YaHei", sans-serif; text-anchor: middle; dominant-baseline: central; font-weight: 520; }
+.draft .draft-line { fill: none; stroke: currentColor; stroke-linecap: butt; stroke-linejoin: round; }
+.draft .draft-ring { fill: #fff; stroke: currentColor; }
+.draft .chain { stroke-dasharray: 23 6 2.2 6; }
+.board-foot { display: flex; gap: 8px; justify-content: space-between; flex-wrap: wrap; padding: 12px 19px; color: var(--muted); font-size: 12px; }
+.tray { padding: 16px; }
+.tray h2 { font-size: 17px; margin: 0 0 11px; }
+.choices { display: grid; gap: 7px; }
+.choice { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 47px; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--line); text-align: left; background: #fff; }
+.choice:enabled:hover { border-color: #6f9c82; background: #f5f9f4; }
+.choice:disabled { cursor: default; opacity: 1; }
+.choice[data-status="correct"] { border-color: #77a88a; color: #1a583f; background: var(--soft); font-weight: 720; }
+.choice[data-status="wrong"] { border-color: #d9a28f; color: var(--red); background: var(--red-soft); font-weight: 660; }
+.choice-tag { border: 1px solid #dce7dc; border-radius: 5px; width: 24px; height: 24px; display: grid; place-items: center; font-size: 11px; color: var(--muted); background: #f5f8f4; flex: none; }
+.choice-result { font-size: 11px; margin-left: auto; white-space: nowrap; }
+.feedback { padding: 11px 10px; margin-top: 11px; border-radius: 8px; background: var(--soft); color: var(--ink); }
+.feedback[data-outcome="wrong"] { background: var(--red-soft); }
+.feedback strong { color: var(--green); font-size: 13px; }
+.feedback[data-outcome="wrong"] strong { color: var(--red); }
+.feedback p { font-size: 12px; margin: 5px 0 0; line-height: 1.65; }
+.feedback small { display: block; color: var(--muted); font-size: 10px; margin-top: 5px; }
+.action-row { display: grid; gap: 7px; margin-top: 13px; }
+.primary, .secondary { min-height: 41px; border-radius: 8px; padding: 6px 10px; }
+.primary { border: 1px solid var(--green); background: var(--green); color: #fff; font-weight: 710; }
+.primary:hover:enabled { background: #164c38; }
+.primary:disabled { color: #65796b; border-color: #e1e9e0; background: #eff3ee; cursor: default; }
+.secondary { border: 1px solid var(--line); color: var(--green); background: #fff; }
+.secondary:hover { background: var(--soft); }
+.score-block { display: grid; gap: 10px; width: min(390px, 92%); padding: 29px 16px; }
+.score-number { margin: 0; color: var(--green); font-weight: 780; font-size: clamp(42px, 8vw, 78px); line-height: 1; letter-spacing: -.075em; }
+.summary-line { display: flex; justify-content: space-between; gap: 10px; border-top: 1px solid var(--line); padding: 9px 0 0; font-size: 14px; }
+.summary-line span:last-child { color: var(--green); font-weight: 700; }
+.summary-copy { color: var(--muted); font-size: 13px; margin: 0 0 5px; }
+.score-strip { font-size: 12px; color: var(--muted); }
+@media (max-width: 920px) { .layout { grid-template-columns: minmax(0,1fr) 257px; gap: 11px; } .tray { padding: 12px; } }
+@media (max-width: 660px) {
+  .shell { padding-top: 18px; }
+  .mast { margin-bottom: 14px; }
+  .layout { grid-template-columns: minmax(0,1fr); }
+  .board-head { min-height: 67px; padding-inline: 12px; }
+  .stage { min-height: 220px; padding: 8px; }
+  .paper { min-height: 196px; }
+  .board-foot { padding: 8px 12px; font-size: 10px; }
+  .choices { gap: 5px; }
+  .choice { min-height: 41px; }
+}
+</style>
+</head>
+<body>
+<div class="shell">
+  <header class="mast">
+    <div>
+      <div class="kicker">房屋建筑制图统一标准 <span>GB/T 50001–2017</span></div>
+      <h1>符号识读练习</h1>
+    </div>
+    <button id="fullscreen" type="button" aria-label="全屏" title="全屏"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3H4a1 1 0 0 0-1 1v4m13-5h4a1 1 0 0 1 1 1v4M3 16v4a1 1 0 0 0 1 1h4m13-5v4a1 1 0 0 1-1 1h-4"/></svg></button>
+  </header>
+  <main class="layout">
+    <section class="panel board" aria-labelledby="question-title">
+      <header class="board-head">
+        <div><div class="progress-label" id="position"></div><h2 id="question-title">图中是哪类符号？</h2></div>
+        <progress id="progress" aria-label="本轮作答进度"></progress>
+      </header>
+      <div class="stage"><div class="paper" id="drawing"></div></div>
+      <footer class="board-foot">
+        <span id="score" class="score-strip"></span>
+        <span id="keys">可用键盘 1、2、3 选择</span>
+      </footer>
+    </section>
+    <aside class="panel tray" aria-label="答题托盘">
+      <div id="answer-panel">
+        <h2>请选择</h2>
+        <div class="choices" id="choices"></div>
+        <div class="feedback" id="feedback" role="status" hidden></div>
+      </div>
+      <div class="action-row">
+        <button class="primary" id="next" type="button" disabled>下一题</button>
+        <button class="secondary" id="redo" type="button" hidden>重练错题</button>
+        <button class="secondary" id="restart" type="button">重新随机</button>
+      </div>
+    </aside>
+  </main>
+</div>
+<script>
+"use strict";
+const categories = {
+  index: "索引符号",
+  detail: "详图符号",
+  axis: "定位轴线符号"
+};
+const reasons = {
+  indexSame: ["细圆中的水平直径与引出线相接。上半圆为详图编号，下半圆的一小段细线表示详图在同一张图纸上。", "第 7.2.1 条"],
+  indexOther: ["细圆中的水平直径与引出线相接。上半圆为详图编号，下半圆为详图所在的图纸编号。", "第 7.2.1 条"],
+  detailSame: ["粗实线圆内直接写详图编号。与被索引图样在同一张图纸上时，圆内直接标这个编号。", "第 7.2.4 条"],
+  detailOther: ["圆的外框为粗实线，圆内水平直径为细实线。上半圆为详图编号，下半圆为被索引图样所在的图纸编号。", "第 7.2.4 条"],
+  axis: ["圆里的编号对应定位轴线。辨认其相接的单点长画线，以及轴线经过的柱或墙。", "第 8.0.1～8.0.3 条"]
+};
+function question(id,category,kind,geometry={}) {
+  const [explanation,clause]=reasons[kind];
+  return {id,category,kind,geometry,explanation,clause};
+}
+const bank = [
+  question("i1","index","indexSame",{top:"6",side:"right"}),
+  question("i2","index","indexSame",{top:"8",side:"left"}),
+  question("i3","index","indexOther",{top:"5",bottom:"3",side:"left"}),
+  question("i4","index","indexOther",{top:"2",bottom:"4",side:"right"}),
+  question("d1","detail","detailSame",{top:"6"}),
+  question("d2","detail","detailSame",{top:"8"}),
+  question("d3","detail","detailOther",{top:"5",bottom:"3"}),
+  question("d4","detail","detailOther",{top:"2",bottom:"4"}),
+  question("a1","axis","axis",{layout:"plan",labels:["1","2","3","4","5"],rows:["B","A"]}),
+  question("a2","axis","axis",{layout:"plan",labels:["2","3","4","5"],rows:["C","B"]}),
+  question("a3","axis","axis",{layout:"row",label:"B"}),
+  question("a4","axis","axis",{layout:"column",label:"3"})
+];
+const line = (x1,y1,x2,y2,w=2,extra="") =>
+  `<line class="draft-line ${extra}" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke-width="${w}"/>`;
+const path = (data,w=2) => `<path class="draft-line" d="${data}" stroke-width="${w}"/>`;
+const rect = (x,y,w,h,stroke=3) =>
+  `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="none" stroke="currentColor" stroke-width="${stroke}"/>`;
+const ring = (x,y,r,w=2) =>
+  `<circle class="draft-ring" cx="${x}" cy="${y}" r="${r}" stroke-width="${w}"/>`;
+const number = (x,y,value,size) =>
+  `<text class="draft-text" x="${x}" y="${y}" font-size="${size}">${value}</text>`;
+const figure = markup =>
+  `<svg class="draft" viewBox="0 0 700 390" role="img" aria-label="待识读的制图符号">${markup}</svg>`;
+
+function circularSymbol(item) {
+  const g=item.geometry, isIndex=item.category==="index", y=195;
+  const r=isIndex?60:93.333;
+  const x=isIndex?(g.side==="left"?416:284):350;
+  const outer=ring(x,y,r,isIndex?2.15:8.6);
+  if (item.kind==="detailSame") return outer+number(x,y,g.top,62);
+  const leader=isIndex
+    ? (g.side==="left"?line(x-r-154,y,x+r,y,2.15):line(x-r,y,x+r+154,y,2.15))
+    : line(x-r,y,x+r,y,2.15);
+  const top=number(x,y-r*.47,g.top,isIndex?37:48);
+  const bottom=g.bottom
+    ? number(x,y+r*.47,g.bottom,isIndex?37:48)
+    : line(x-11,y+r*.47,x+11,y+r*.47,2.15);
+  return outer+leader+top+bottom;
+}
+const axisCircle=(x,y,label)=>ring(x,y,24,2)+number(x,y,label,24);
+function planGrid(g) {
+  const left=154,right=620,top=93,bottom=249, yUpper=130, axisBottom=240;
+  const colX=g.labels.map((_,i)=>left+(right-left)*i/(g.labels.length-1));
+  const outline=path(`M${left-9} ${top} V${bottom} H${right+9} V${top} M${left+8} ${top} V${bottom-17} H${right-8} V${top}`,4.2)+
+    path(`M113 ${top} H264 l8-9 4 19 7-10 H481 l8-9 4 19 7-10 H655`,2.35);
+  const verticals=colX.map((x,i)=>line(x,72,x,296,1.8,"chain")+axisCircle(x,320,g.labels[i])).join("");
+  const horizontals=[yUpper,axisBottom].map((y,i)=>line(96,y,633,y,1.8,"chain")+axisCircle(72,y,g.rows[i])).join("");
+  const cols=colX.slice(1,-1).map(x=>rect(x-10,yUpper-10,20,20)).join("");
+  return outline+verticals+horizontals+cols;
+}
+function axisFragment(g) {
+  if (g.layout==="row") {
+    const y=197;
+    return path("M221 135 V254 M537 135 V254",3.5)+
+      line(168,y,560,y,2.1,"chain")+
+      [242,346,457,528].map(x=>rect(x-12,y-12,24,24)).join("")+
+      axisCircle(144,y,g.label);
+  }
+  const x=350;
+  return path("M243 127 H469 M243 221 H469",3.5)+
+    line(x,69,x,273,2.1,"chain")+
+    [127,221].map(y=>rect(x-12,y-12,24,24)).join("")+
+    axisCircle(x,297,g.label);
+}
+function draw(item) {
+  if (item.category!=="axis") return figure(circularSymbol(item));
+  return figure(item.geometry.layout==="plan"?planGrid(item.geometry):axisFragment(item.geometry));
+}
+function shuffle(items,rng=Math.random) {
+  const copy=[...items];
+  for(let i=copy.length-1;i>0;i--) {
+    const j=Math.floor(rng()*(i+1));
+    [copy[i],copy[j]]=[copy[j],copy[i]];
+  }
+  return copy;
+}
+
+const element=id=>document.getElementById(id);
+const ui={
+  position:element("position"), title:element("question-title"), progress:element("progress"),
+  drawing:element("drawing"), choices:element("choices"), feedback:element("feedback"),
+  answer:element("answer-panel"), next:element("next"), redo:element("redo"), restart:element("restart"),
+  score:element("score"), keys:element("keys"), fullscreen:element("fullscreen")
+};
+const state={deck:[],at:0,choice:null,answers:[],order:[],mode:"full",done:false};
+
+function scoreText() {
+  return `已答 ${state.answers.length}/${state.deck.length} · 答对 ${state.answers.filter(a=>a.correct).length} 题`;
+}
+function refreshScore() {
+  ui.score.textContent=scoreText();
+  ui.progress.value=state.answers.length;
+}
+function renderQuestion() {
+  const item=state.deck[state.at];
+  const isLast=state.at===state.deck.length-1;
+  ui.position.textContent=`${state.mode==="redo"?"错题重练 · ":""}第 ${state.at+1} / ${state.deck.length} 题`;
+  ui.title.textContent="图中是哪类符号？";
+  ui.progress.max=state.deck.length;
+  ui.drawing.innerHTML=draw(item);
+  ui.choices.innerHTML=state.order.map((key,i)=>
+    `<button class="choice" data-answer="${key}" type="button"><span class="choice-tag" aria-hidden="true">${i+1}</span><span>${categories[key]}</span><span class="choice-result"></span></button>`).join("");
+  ui.feedback.hidden=true;
+  ui.feedback.replaceChildren();
+  ui.answer.hidden=false;
+  ui.keys.hidden=false;
+  ui.keys.textContent="可用键盘 1、2、3 选择";
+  ui.next.hidden=false;
+  ui.next.disabled=true;
+  ui.next.textContent=isLast?"查看结果":"下一题";
+  ui.redo.hidden=true;
+  refreshScore();
+}
+function nextOrder() {
+  state.order=shuffle(Object.keys(categories));
+}
+function start(items=bank,mode="full") {
+  state.deck=shuffle(items);
+  state.at=0;
+  state.choice=null;
+  state.answers=[];
+  state.mode=mode;
+  state.done=false;
+  nextOrder();
+  renderQuestion();
+}
+function select(key,moveFocus=false) {
+  if(state.done||state.choice!==null||!Object.hasOwn(categories,key))return;
+  const item=state.deck[state.at], correct=key===item.category;
+  state.choice=key;
+  state.answers.push({item,correct});
+  for(const button of ui.choices.querySelectorAll("button")) {
+    const isRight=button.dataset.answer===item.category, isMine=button.dataset.answer===key;
+    button.disabled=true;
+    if(isRight)button.dataset.status="correct";
+    if(isMine&&!isRight)button.dataset.status="wrong";
+    button.querySelector(".choice-result").textContent=isRight?"正确答案":isMine?"你的选择":"";
+  }
+  ui.feedback.dataset.outcome=correct?"correct":"wrong";
+  ui.feedback.innerHTML=`<strong>${correct?"答对了":"正确答案是"+categories[item.category]}</strong><p>${item.explanation}</p><small>${item.clause}</small>`;
+  ui.feedback.hidden=false;
+  ui.next.disabled=false;
+  ui.keys.textContent="按 Enter 继续";
+  refreshScore();
+  if(moveFocus)ui.next.focus({preventScroll:true});
+}
+function summarize() {
+  state.done=true;
+  const right=state.answers.filter(a=>a.correct).length;
+  const breakdown=Object.entries(categories).map(([key,n])=>{
+    const rows=state.answers.filter(a=>a.item.category===key);
+    if(!rows.length)return "";
+    return `<div class="summary-line"><span>${n}</span><span>${rows.filter(a=>a.correct).length}/${rows.length}</span></div>`;
+  }).join("");
+  ui.position.textContent=state.mode==="redo"?"错题重练完成":"本轮完成";
+  ui.title.textContent="练习结果";
+  ui.drawing.innerHTML=`<div class="score-block" aria-label="本轮答对 ${right} 题，共 ${state.deck.length} 题"><p class="score-number">${right}/${state.deck.length}</p><p class="summary-copy">答对题数</p>${breakdown}</div>`;
+  ui.answer.hidden=true;
+  ui.next.hidden=true;
+  ui.keys.hidden=true;
+  ui.redo.hidden=right===state.deck.length;
+  (ui.redo.hidden?ui.restart:ui.redo).focus({preventScroll:true});
+}
+function advance() {
+  if(state.choice===null||state.done)return;
+  if(state.at+1===state.deck.length) {
+    summarize();
+    return;
+  }
+  state.at+=1;
+  state.choice=null;
+  nextOrder();
+  renderQuestion();
+}
+ui.choices.addEventListener("click",event=>{
+  const button=event.target.closest("button[data-answer]");
+  if(button)select(button.dataset.answer);
+});
+ui.next.addEventListener("click",advance);
+ui.restart.addEventListener("click",()=>start());
+ui.redo.addEventListener("click",()=>{
+  const mistakes=state.answers.filter(a=>!a.correct).map(a=>a.item);
+  if(mistakes.length)start(mistakes,"redo");
+});
+document.addEventListener("keydown",event=>{
+  if(event.altKey||event.ctrlKey||event.metaKey||event.repeat||state.done)return;
+  if(/^[123]$/.test(event.key)&&state.choice===null) {
+    event.preventDefault();
+    select(state.order[Number(event.key)-1],true);
+  } else if(event.key==="Enter"&&state.choice!==null&&!event.target.closest("button")) {
+    event.preventDefault();
+    advance();
+  }
+});
+function reflectFullscreen() {
+  const on=Boolean(document.fullscreenElement);
+  ui.fullscreen.title=on?"退出全屏":"全屏";
+  ui.fullscreen.setAttribute("aria-label",ui.fullscreen.title);
+}
+ui.fullscreen.hidden=!document.fullscreenEnabled;
+ui.fullscreen.addEventListener("click",async()=>{
+  try {
+    if(document.fullscreenElement)await document.exitFullscreen();
+    else await document.documentElement.requestFullscreen();
+  } catch {
+    ui.fullscreen.hidden=true;
+  }
+});
+document.addEventListener("fullscreenchange",reflectFullscreen);
+start();
+</script>
+</body>
+</html>

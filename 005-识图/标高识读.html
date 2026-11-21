@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="GB/T 50001—2017 第11.8节标高识读互动教学">
+<title>标高识读 · 大一上 Studio 05</title>
+<style>
+:root{color-scheme:light;--bg:#edf1eb;--paper:#fdfefa;--ink:#20372e;--muted:#53665d;--accent:#1f624a;--line:#d9e2d9;--soft:#e9f1e9;--gold:#895115;--font:"Microsoft YaHei","Noto Sans CJK SC","PingFang SC",sans-serif}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.55 var(--font)}
+button,input,select{font:inherit}
+button,select{cursor:pointer}
+button{color:inherit}
+button:focus-visible,summary:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+button:disabled{cursor:default;opacity:.4}
+header{background:#fcfdf9;border-bottom:1px solid var(--line)}
+.header-inner{max-width:1710px;margin:auto;padding:21px 38px 20px;display:flex;align-items:center;justify-content:space-between;gap:14px}
+.brand{display:flex;align-items:center;gap:17px}
+.brand-mark{width:48px;height:48px;display:grid;place-items:center;background:#225b44;border-radius:13px;color:white;flex:none}
+.brand-mark svg{width:29px}
+.eyebrow{font-size:12px;letter-spacing:.14em;color:var(--accent);font-weight:700}
+h1{font-family:"Source Han Serif SC","Noto Serif CJK SC","Songti SC",SimSun,serif;font-size:33px;line-height:1.2;letter-spacing:.045em;margin:3px 0 0}
+.header-ref{text-align:right;font-size:13px;color:var(--muted)}
+.header-ref strong{display:block;font-family:ui-monospace,Consolas,monospace;color:#224b3a;font-size:15px;font-weight:650;letter-spacing:.01em}
+main{max-width:1710px;margin:0 auto;padding:24px 38px 18px;display:grid;grid-template-columns:minmax(0,1fr) 322px;gap:18px;align-items:start}
+.viewer,.tray section{background:var(--paper);border:1px solid var(--line);border-radius:14px}
+.viewer{overflow:hidden;min-width:0}
+.viewer:fullscreen{background:var(--paper);display:flex;flex-direction:column}
+.viewer:fullscreen #stage{flex:1;min-height:0}
+.viewer:fullscreen .viewer-head,.viewer:fullscreen .viewer-foot{flex:none}
+.viewer-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 13px;border-bottom:1px solid var(--line);background:#fdfefa}
+.tabs,.quick-tools{display:flex;align-items:center;gap:4px}
+.tabs{overflow:auto;scrollbar-width:thin}
+.tab,.icon-btn,.action{background:transparent;border:1px solid transparent;border-radius:8px}
+.tab{padding:8px 13px;white-space:nowrap;color:#46594e;font-weight:650}
+.tab:hover,.icon-btn:hover,.action:hover{background:#edf3ed}
+.tab[aria-selected="true"]{background:var(--soft);border-color:#d9e8dc;color:#194d39}
+.icon-btn{min-width:34px;height:34px;display:grid;place-items:center;padding:5px}
+.icon-btn svg,.action svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.65;stroke-linecap:round;stroke-linejoin:round}
+.stage{position:relative;background:#f5f8f2;overflow:hidden;min-height:540px;height:clamp(560px,calc(100dvh - 260px),830px);isolation:isolate;background-image:radial-gradient(#b8c9bc 0.65px,transparent 0.65px);background-size:17px 17px;background-position:center}
+.stage-meta{position:absolute;left:19px;top:16px;z-index:2;pointer-events:none}
+.stage-meta strong{display:block;font-family:"Source Han Serif SC","Noto Serif CJK SC","Songti SC",SimSun,serif;color:#29483b;font-size:22px;font-weight:750;line-height:1.3}
+.stage-meta span{display:block;margin-top:5px;color:var(--muted);font-size:12px}
+#plot{position:absolute;display:block;width:100%;height:calc(100% - 86px);top:85px;left:0;color:#273a33;touch-action:none;user-select:none;cursor:grab}
+#plot.panning{cursor:grabbing}
+#plot.mono .wash,#plot.mono .finish,.mono .finish>*{fill:#fafbf7!important}
+#plot.mono .soft-line{opacity:.4}
+#plot.mono .glass{fill:#f5f7f4}
+#plot .outline{stroke:#42584b;stroke-width:1.35}
+#plot .soft-line{stroke:#77897d;stroke-width:1;fill:none}
+#plot .space{font:13px var(--font);letter-spacing:.09em;fill:#466055;paint-order:stroke;stroke:#f8faf5;stroke-width:3.2px;stroke-linejoin:round}
+#plot .travel-arrow{stroke:#3b5548;stroke-width:1.5;fill:none;stroke-linecap:round;stroke-linejoin:round}
+#plot .travel-halo{stroke:#f7f8f0;stroke-width:3.8;fill:none;stroke-linecap:round;stroke-linejoin:round}
+#plot .travel-label{font:650 11px var(--font);fill:#344e41;paint-order:stroke;stroke:#f7f8f0;stroke-width:2.8px;stroke-linejoin:round}
+#plot .diagram-note{font:12px var(--font);fill:#53665d;letter-spacing:.04em}
+#plot .axis-text{font:12px ui-monospace,Consolas,monospace;fill:#52655a}
+.hotspot{cursor:pointer;outline:none;color:#23382e}
+.hotspot .pin{fill:#0f6347;opacity:0;pointer-events:none}
+.hotspot .dimension,.hotspot .tag{pointer-events:none}
+.hotspot:hover,.hotspot:focus-visible,.hotspot.active{color:#935316}
+.hotspot.active .pin,.hotspot:focus-visible .pin{opacity:.2}
+.hotspot .level-value{font:700 15.5px/1.1 ui-monospace,Consolas,"Cascadia Mono",monospace;paint-order:stroke;stroke:#f8faf5;stroke-width:3.5px;stroke-linejoin:round;fill:currentColor}
+.hotspot .tag text{font:600 12px var(--font);fill:#275c46}
+.hotspot.active .tag text{fill:#794611}
+.hotspot.dim .dimension{opacity:.23}
+.hotspot .hit{fill:transparent;stroke:none;pointer-events:all}
+.explainer{width:min(326px,47%);position:absolute;top:13px;right:15px;z-index:3;background:#fffffff7;border:1px solid #cdded0;border-radius:11px;padding:10px 13px 11px;box-shadow:0 5px 15px #1d483810}
+.explainer-head{display:flex;align-items:center;justify-content:space-between;gap:8px;color:var(--accent);font-size:12px;font-weight:750;letter-spacing:.025em}
+.explainer-head button{width:23px;height:22px;padding:0;border:0;background:transparent;border-radius:5px;color:#50665a}
+.explainer-head button:hover{background:var(--soft)}
+.explainer h2{margin:3px 0 2px;font-size:15px;line-height:1.36}
+.explainer h2 code{font:700 14px/1.4 ui-monospace,Consolas,monospace;color:var(--gold);margin-left:6px;white-space:nowrap}
+.explainer p{font-size:12px;color:#43584c;margin:2px 0 0;line-height:1.52}
+.explainer p.ref{margin-top:5px;color:#386c54;font-size:11px}
+.explainer.is-collapsed{width:144px}
+.explainer.is-collapsed #explanation{display:none}
+.viewer-foot{min-height:51px;border-top:1px solid var(--line);background:#fdfefa;padding:9px 15px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px 17px;color:var(--muted);font-size:12px}
+.viewer-key{display:flex;align-items:center;gap:13px;flex-wrap:wrap}
+.key-label{display:flex;align-items:center;gap:5px}
+.key-label svg{width:17px;height:13px;color:#25392f}
+.tray{display:grid;gap:10px;min-width:0}
+.tray details>summary{list-style:none;display:flex;align-items:center;gap:9px;padding:13px 14px;cursor:pointer;font-size:15px;font-weight:750}
+.tray summary::-webkit-details-marker{display:none}
+.tray summary:after{content:"";width:7px;height:7px;border:solid #557262;border-width:0 1.5px 1.5px 0;transform:rotate(45deg);margin:0 1px 3px auto}
+.tray details[open]>summary:after{transform:rotate(225deg);margin-bottom:-4px}
+.tray details[open]>summary{border-bottom:1px solid #e6ece5}
+.summary-icon{width:24px;height:24px;display:grid;place-items:center;color:#326b53;background:#eaf2ea;border-radius:6px}
+.summary-icon svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.55;stroke-linecap:round;stroke-linejoin:round}
+.topic-list{padding:7px 8px 8px;display:grid;gap:2px}
+.topic{width:100%;text-align:left;background:transparent;border:1px solid transparent;border-radius:8px;display:flex;align-items:center;gap:11px;padding:8px;min-height:45px}
+.topic:hover{background:#f0f5ee}
+.topic[aria-pressed="true"]{background:#e8f1e7;border-color:#d5e5d6;color:#215941}
+.topic-icon{display:grid;place-items:center;width:30px;height:29px;flex:none;background:#eff3eb;border:1px solid #e2eae0;border-radius:6px;color:#385b48;font:700 12px ui-monospace,Consolas,monospace}
+.topic[aria-pressed="true"] .topic-icon{background:#f9fcf8}
+.topic-icon svg{width:20px;height:17px}
+.topic-title{font-size:13px;font-weight:700}
+.topic-ref{margin-left:auto;color:#51675a;font:11px ui-monospace,Consolas,monospace}
+.body-panel{padding:11px 13px 13px}
+.layer-label{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:13px;font-weight:650}
+select{max-width:150px;background:#f8faf6;border:1px solid #cedcd1;border-radius:7px;padding:5px 6px;color:#244536}
+#zone-row{margin-top:8px}
+[hidden]{display:none!important}
+.toggles{display:grid;gap:7px;border-top:1px solid #e8ede6;margin-top:11px;padding-top:9px;color:#435b4d;font-size:13px}
+.toggles label{display:flex;align-items:center;gap:7px}
+input[type=checkbox]{accent-color:#226349;margin:0;width:15px;height:15px}
+.actions{display:flex;gap:5px;flex-wrap:wrap;align-items:center}
+.action{padding:6px 8px;border-color:#dbe5da;background:#fbfcf9;font-size:12px;display:flex;gap:5px;align-items:center}
+.action svg{width:14px;height:14px}
+.hint{font-size:12px;margin:9px 0 0;color:var(--muted)}
+.source{max-width:1710px;margin:auto;padding:0 38px 17px;color:#53665b;font-size:12px}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+@media(max-width:1160px){main{padding-inline:20px;grid-template-columns:minmax(0,1fr) 282px}.header-inner,.source{padding-inline:20px}.tab{padding-inline:9px}.stage-meta strong{font-size:19px}}
+@media(max-width:850px){main{grid-template-columns:1fr}.stage{height:clamp(525px,75vw,660px);min-height:0}.tray{grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:start}.tray section:first-child{grid-row:span 2}.explainer{width:min(310px,49%)}}
+@media(max-width:540px){.header-inner{padding:13px 11px}.brand{gap:9px}.brand-mark{width:39px;height:39px;border-radius:9px}.brand-mark svg{width:23px}.eyebrow{font-size:10px}.header-ref{font-size:10px}.header-ref strong{font-size:11px}h1{font-size:24px}main{padding:11px 7px 10px;gap:10px}.viewer-head{padding:8px 5px;gap:3px}.viewer-head .tab{font-size:11px;padding:7px 5px}.quick-tools{gap:0}.quick-tools .icon-btn{min-width:28px;height:30px}.quick-tools .icon-btn svg{width:15px}.stage{height:465px}.stage-meta{left:10px;top:10px}.stage-meta strong{font-size:17px}.stage-meta span{font-size:10px;margin-top:3px}.explainer{top:51px;right:8px;width:min(270px,76%);padding:7px 9px}.explainer p{font-size:11px}.explainer h2{font-size:13px}.explainer h2 code{font-size:12px}.viewer-foot{padding:8px 9px;font-size:11px;gap:4px}.viewer-key{gap:9px}.tray{grid-template-columns:1fr}.tray section:first-child{grid-row:auto}.source{padding:0 10px 12px}#plot{top:126px;height:calc(100% - 126px)}}
+@media(prefers-reduced-motion:no-preference){button{transition:background-color .12s,border-color .12s}}
+</style>
+</head>
+<body>
+<header><div class="header-inner">
+  <div class="brand"><div class="brand-mark" aria-hidden="true"><svg viewBox="0 0 36 36" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M5 14h26M5 14l6 6 6-6M9 27h18M18 23v8M21 9h7"/></svg></div><div><div class="eyebrow">大一上 STUDIO · 05 识图</div><h1>标高识读</h1></div></div>
+  <div class="header-ref"><strong>GB/T 50001—2017</strong>第 11 章 尺寸标注 · 11.8 标高</div>
+</div></header>
+<main>
+  <section id="viewer" class="viewer" aria-label="标高教学图">
+    <div class="viewer-head">
+      <div class="tabs" role="tablist" aria-label="教学图纸" id="tabs"></div>
+      <div class="quick-tools" id="quick-tools" aria-label="画面快捷工具"></div>
+    </div>
+    <div class="stage" id="stage" role="tabpanel" aria-label="教学图纸">
+      <div class="stage-meta"><strong id="sheet-title"></strong><span id="sheet-subtitle"></span></div>
+      <svg xmlns="http://www.w3.org/2000/svg" id="plot" aria-label="可交互图纸。用 Tab 定位标高，用 Enter 查看说明。"></svg>
+      <aside class="explainer" id="explainer" aria-label="知识点解释窗口">
+        <div class="explainer-head"><span>知识点解释</span><button id="explanation-toggle" aria-label="折叠知识点解释" aria-controls="explanation" aria-expanded="true">−</button></div>
+        <div id="explanation" aria-live="polite"></div>
+      </aside>
+    </div>
+    <div class="viewer-foot">
+      <div class="viewer-key"><span class="key-label"><svg viewBox="0 0 19 15" aria-hidden="true"><path d="M1 4h12l-6 6zM13 4h5" fill="none" stroke="currentColor" stroke-width="1.1"/></svg>普通标高</span><span class="key-label"><svg viewBox="0 0 19 15" aria-hidden="true"><path d="M2 4h12l-6 6z" fill="currentColor"/></svg>总平面室外地坪</span><span>数值单位 m</span></div>
+      <span>点选或长按标高 · 滚轮缩放 · 拖动平移</span>
+    </div>
+  </section>
+  <aside class="tray" aria-label="右侧教学托盘">
+    <section><details open><summary><span class="summary-icon" id="icon-book"></span>知识点</summary><div class="topic-list" id="topics"></div></details></section>
+    <section><details open><summary><span class="summary-icon" id="icon-layers"></span>图层</summary>
+      <div class="body-panel">
+        <label class="layer-label" for="name-mode">标注名称<select id="name-mode"><option value="selected">仅显示选中项</option><option value="all">显示全部名称</option><option value="zone">按区域显示</option></select></label>
+        <label class="layer-label" id="zone-row" for="zone" hidden>选择区域<select id="zone"></select></label>
+        <div class="toggles">
+          <label><input id="levels" type="checkbox" checked>标高符号及数值</label>
+          <label><input id="finishes" type="checkbox" checked>材质与填色</label>
+          <label><input id="spaces" type="checkbox" checked>图纸空间名称</label>
+        </div>
+      </div>
+    </details></section>
+    <section><details><summary><span class="summary-icon" id="icon-tools"></span>视图工具</summary>
+      <div class="body-panel"><div class="actions" id="actions"></div><p class="hint">拖动空白处平移。双指张合也可缩放。</p></div>
+    </details></section>
+  </aside>
+</main>
+<footer class="source">依据《房屋建筑制图统一标准》GB/T 50001—2017，第 11.8.1 至 11.8.6 条及条文说明。图纸为原创教学案例。</footer>
+<script>
+"use strict";
+const $ = (id) => document.getElementById(id);
+const icons = {
+  book:"M3 4h6a3 3 0 0 1 3 3v13a3 3 0 0 0-3-3H3zM21 4h-6a3 3 0 0 0-3 3v13a3 3 0 0 1 3-3h6z",
+  layers:"m12 3 9 5-9 5-9-5 9-5zM3 12l9 5 9-5M3 16l9 5 9-5",
+  tools:"M4 6h16M4 12h16M4 18h16M8 3v6m8 0v6m-6 0v6",
+  minus:"M5 12h14",
+  plus:"M5 12h14M12 5v14",
+  reset:"M4 10a8 8 0 1 1 1 7M4 4v6h6",
+  full:"M9 4H4v5m11-5h5v5M4 15v5h5m11-5v5h-5"
+};
+const icon = (name) => `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="${icons[name]}"/></svg>`;
+const triangleIcon = (filled, lifted = false, up = false) => `<svg viewBox="0 0 23 18" aria-hidden="true"><g transform="${up ? 'translate(0 18) scale(1 -1)' : ''}"><path d="M3 7h12l-6 6z" fill="${filled ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="1.15"/>${filled ? '' : `<path d="${lifted ? 'M9 13V3h12' : 'M15 7h6'}" fill="none" stroke="currentColor" stroke-width="1.15"/>`}</g></svg>`;
+const lessons = {
+  open:{name:"普通标高符号", art:triangleIcon(false), ref:"11.8.1", sample:"plan", text:"首层平面图的室内外标高均可用细实线绘制空心等腰直角三角形。常规画法把三角形横边延长，尖端向下时数字写在横线上方。"},
+  lifted:{name:"空间不足时的画法", art:triangleIcon(false,true), ref:"11.8.1", sample:"plan", text:"标注位置不足时，按图 11.8.1（b）从三角形尖端引出竖线，再折成水平线。尖端仍指在被注地坪上，朝下时数字写在水平线上方。"},
+  solid:{name:"总平面室外地坪", art:triangleIcon(true), ref:"11.8.2", sample:"site", text:"总平面图的室外地坪宜用涂黑的三角形。尖端向下指至地坪，标高数字写在三角形上方（见第 11.8.3 条）。可切到首层平面图，查看同一点的空心标高符号。"},
+  direction:{name:"尖端指向与数字位置", art:triangleIcon(false,false,true), ref:"11.8.3", sample:"elevation", text:"尖端指到被注高度，宜朝下，也可朝上。朝下时数字写在横线上方，朝上时写在横线下方。"},
+  precision:{name:"单位与小数位", art:".000", ref:"11.8.4", sample:"site", text:"标高以米为单位，通常写到小数点后第三位。总平面图可保留两位。本例总平面采用高程，首层平面和立面采用相对标高。"},
+  sign:{name:"零点、正负标高", art:"±", ref:"11.8.5", sample:"plan", text:"零点写作 ±0.000，正值省略加号，负值保留负号。此茶庭把室内完成面设为零点。"},
+  stack:{name:"同一位置的多个标高", art:"≡", ref:"11.8.6", sample:"plan", text:"同一平面位置有几个不同高度时，可共用一个标高符号，数值从大到小自上而下写。池内同一位置同时示出水面和池底。"}
+};
+const box = (x,y,w,h) => [x,y,w,h];
+const level = (id, name, value, x, y, zone, tags, description, options = {}) =>
+  ({id, name, values:[].concat(value), x,y,zone,tags,description,...options});
+const benchmark = 15300;
+const outdoorPoints = [
+  {id:"entry", name:"南入口地坪", xy:[446,499], relative:-600, siteZone:0, planZone:1,
+    area:box(374,476,144,46),
+    siteTag:[0,10], planSymbol:{tag:[0,10]},
+    siteNote:"尖端落在坡道底部相接的南入口铺装上。",
+    planNote:"尖端落在南入口铺装上，比茶室完成面低 0.60 m。"},
+  {id:"ramp-foot", name:"坡道下口", xy:[350,474.5], relative:-600, siteZone:0, planZone:1,
+    area:box(331,463,30,23), siteTag:[-47,9], planSymbol:{side:-1,length:60,tag:[-47,9]},
+    siteNote:"尖端落在坡道下口的路面中心。这是水平入口与上坡段的交点，与南入口铺装同高。",
+    planNote:"下口与入口铺装接平，沿上坡箭头到标高 -0.150 m 的上口，高差 0.45 m。"},
+  {id:"ramp", name:"坡道上口", xy:[298,385.5], relative:-150, siteZone:0, planZone:1,
+    area:box(275,373,38,25),
+    siteTag:[-65,9], planSymbol:{side:-1,tag:[-65,9]},
+    siteNote:"尖端指至坡道上口，与铺装前场同高。",
+    planNote:"尖端指至坡道上口。坡道从南入口升高 0.45 m 后，与铺装前场接平。"},
+  {id:"court", name:"茶庭前场", xy:[446,376], relative:-150, siteZone:1, planZone:1,
+    area:box(412,367,131,30),
+    siteTag:[0,10], planSymbol:{lift:20,side:-1,length:62,tag:[0,10]},
+    siteNote:"尖端指在茶室门外的铺装前场，地坪比茶室完成面低 0.15 m。",
+    planNote:"折引线把数字让出前场的通行范围。尖端指在门外铺装面，较茶室完成面低 0.15 m。"},
+  {id:"deck", name:"临水木平台", xy:[590,254], relative:0, siteZone:1, planZone:1,
+    area:box(565,229,75,84),
+    siteTag:[-6,10], planSymbol:{lift:25,tag:[0,9]},
+    siteNote:"尖端指向室外木平台面。平台与茶室室内地坪齐平，比铺装前场高 0.15 m。",
+    planNote:"尖端指向室外木平台面。平台与茶室室内地坪齐平。折引线将数字移至邻近空位。"},
+  {id:"terrace", name:"花园观景台", xy:[753,193], relative:300, siteZone:2, planZone:2,
+    area:box(716,168,118,62),
+    siteTag:[-42,11], planSymbol:{side:-1,length:62,tag:[-86,10]},
+    siteNote:"尖端指到观景台面，比茶庭前场高 0.45 m。",
+    planNote:"观景台面比茶室完成面高 0.30 m。标注正值时省略加号。"},
+  {id:"garden", name:"花园步道", xy:[742,407], relative:-150, siteZone:2, planZone:2,
+    area:box(696,394,89,26),
+    siteTag:[-15,10], planSymbol:{tag:[-15,10]},
+    siteNote:"尖端落在镜水池南侧的花园步道上，与茶庭前场同高。",
+    planNote:"尖端落在镜水池南侧的花园步道上，标高与茶庭前场一致。"},
+  {id:"garden-slope-foot", name:"东侧园路变坡点", xy:[816,351], relative:-150, siteZone:2, planZone:2,
+    area:box(799,341,32,24), siteTag:[-15,10], planSymbol:{length:54,tag:[-15,10]},
+    siteNote:"尖端指在园路中心线上。这里是南侧平段转入东侧上坡段的位置。",
+    planNote:"园路从此处向北升高 0.06 m，到观景台阶前的水平落脚处。"},
+  {id:"garden-slope-top", name:"观景台阶下口", xy:[816,269], relative:-90, siteZone:2, planZone:2,
+    area:box(799,256,33,26), siteTag:[-4,10], planSymbol:{length:54,tag:[-4,10]},
+    siteNote:"尖端指在园路上坡段结束处，往北接观景台阶的下部平台。台阶向上三级，每级高 0.13 m。",
+    planNote:"园路坡顶与台阶下部平台齐平。箭头指向更高的观景台，从此处上三级。"},
+  {id:"apron-nw", name:"西北角散水坡脚", xy:[174,137], relative:-210, siteZone:1, planZone:1,
+    area:box(168,131,28,25), siteTag:[-25,11], planSymbol:{length:69,tag:[-25,11]},
+    siteNote:"尖端指在茶室西北角散水的外缘转角，这里是散水坡脚。",
+    planNote:"散水从墙脚向外找坡。尖端指在西北外缘，而非墙脚。"},
+  {id:"apron-se", name:"东南角散水坡脚", xy:[544,357], relative:-150, siteZone:1, planZone:1,
+    area:box(531,345,17,15), siteTag:[-63,10],
+    planSymbol:{side:-1,length:60,tag:[-63,10]},
+    siteNote:"尖端指在东南角散水与铺装前场相接的外缘转角，两处齐平。",
+    planNote:"这里是东南角散水的外缘，三角形尖端所指的坡脚与前场铺装齐平。"}
+];
+function outdoorLevel(point, sheet) {
+  const {id,name,xy,relative,siteZone,planZone,area,siteTag,planSymbol,siteNote,planNote} = point;
+  const height = ((benchmark+relative)/1000).toFixed(2);
+  const offset = relative === 0 ? "±0.000" : (relative/1000).toFixed(3);
+  if (sheet === "site") {
+    const value = relative === 0 ? `${height}（${offset}）` : height;
+    return level(id,name,value,...xy,siteZone,["solid","precision"],
+      `${siteNote} 首层图同点标 ${offset} m。`,{fill:true,area,tag:siteTag});
+  }
+  const tags = ["open","direction","precision","sign"];
+  if (planSymbol.lift) tags.push("lifted");
+  return level(id,name,offset,...xy,planZone,tags,
+    `${planNote} 总平面图同点标 ${height} m。`,{area,...planSymbol});
+}
+const sheets = {
+  site:{
+    tab:"总平面图", title:"松影茶庭 · 总平面图", sub:"室外地坪高程 · 首层 ±0.000 对应 15.30 m",
+    zones:["入口与坡道","茶室与平台","水庭与花园"],
+    marks:outdoorPoints.map(point => outdoorLevel(point,"site")),
+    example:"court"
+  },
+  plan:{
+    tab:"首层平面图",title:"松影茶庭 · 首层平面图",sub:"室内外完成面 · 茶室 ±0.000 对应总平面 15.30 m",
+    zones:["室内空间","铺装与平台","水池与花园"],
+    marks:[
+      level("tea","茶室完成面","±0.000",319,256,0,["open","direction","precision","sign"],"三角形尖端落在茶室地面。以室内完成面为本例的零点，写作 ±0.000。",{area:box(206,168,212,158),tag:[4,11]}),
+      level("service","备茶间地面","±0.000",497,253,0,["open","precision","sign"],"备茶间与茶室的地面齐平，都使用 ±0.000。",{side:-1,length:61,area:box(445,171,100,108),tag:[-7,10]}),
+      level("water","水面及池底","-0.200",706,347,2,["open","direction","precision","sign","stack"],"同一平面位置，上行 -0.200 是水面，下行 -0.650 是池底。两值相减，示例水深为 0.450 m。",{values:["-0.200","-0.650"],area:box(653,305,117,53),tag:[-24,8]}),
+      ...outdoorPoints.map(point => outdoorLevel(point,"plan"))
+    ],
+    example:"tea"
+  },
+  elevation:{
+    tab:"南立面图",title:"松影茶庭 · 南立面图",sub:"茶室南立面 · 尖端对准被注线位",
+    zones:["屋面与檐口","室内与入口","花园构筑"],
+    marks:[
+      level("ridge","屋脊顶","4.500",466,200.5,0,["open","direction","precision","sign"],"尖端向下指到坡屋面的脊顶。4.500 m 是脊顶相对茶室基准的高度。",{area:box(423,186,86,42),tag:[16,-9]}),
+      level("eave","檐底","2.850",659,307.75,0,["open","direction","precision","sign"],"三角形尖端朝上，正好接到檐底线。数字 2.850 写在横线下侧，保留三位小数。",{up:true,area:box(622,300,64,34),tag:[17,-26]}),
+      level("lintel","门洞上口","2.400",465,337,1,["open","direction","precision","sign"],"尖端向上指至门洞上口，数字放在横线下。2.400 是上口标高，可和地坪标高一起用来求门洞净高。",{up:true,area:box(434,331,76,25),tag:[-37,-31]}),
+      level("floor","茶室完成面","±0.000",415,493,1,["open","direction","precision","sign"],"尖端指至玻璃门内的完成面线，该线与首层平面图的茶室零点一致。",{side:-1,area:box(342,478,69,18),tag:[-115,-3]}),
+      level("forecourt","入口前庭","-0.150",330,502.75,1,["open","lifted","direction","precision","sign"],"地坪线与室内零点靠得很近，使用折引线移开数字。尖端仍落在前庭完成面。",{lift:59,side:-1,area:box(291,497,61,22),tag:[-116,-41]}),
+      level("entry","南入口地坪","-0.600",178,532,1,["open","direction","precision","sign"],"立面图的一般标高符号指至室外地坪线。该点比茶室基准低 0.60 m。",{area:box(123,515,99,25),tag:[-12,10]}),
+      level("wall","景墙墙顶","1.200",770,415,2,["open","direction","precision","sign"],"尖端指向景墙压顶线，标高为 1.200 m。景墙从 0.300 的观景台面起算，露出高度为 0.900 m。",{area:box(735,397,77,30),tag:[0,-47]}),
+      level("terrace","花园观景台","0.300",795,473.5,2,["open","direction","precision","sign"],"尖端指向花园观景平台面，高于茶室零点 0.30 m。",{area:box(760,462,76,22),tag:[-14,11]})
+    ],
+    example:"eave"
+  }
+};
+const definitions = `<defs>
+  <pattern id="stone" width="38" height="24" patternUnits="userSpaceOnUse"><rect width="38" height="24" fill="#ece5d8"/><path d="M0 0h38M0 12h38M0 0v12m19 0v12" fill="none" stroke="#c9c2b5" stroke-width=".7"/></pattern>
+  <pattern id="gravel" width="13" height="13" patternUnits="userSpaceOnUse"><rect width="13" height="13" fill="#e7e7d7"/><path d="M2 3h1m5 4h1m-6 4h1m7-9h1" stroke="#a6aa93" opacity=".65"/></pattern>
+  <pattern id="decking" width="9" height="36" patternUnits="userSpaceOnUse"><rect width="9" height="36" fill="#d9bea0"/><path d="M0 0v36M1 18h7" stroke="#ae8f70" stroke-width=".7"/></pattern>
+  <pattern id="interior" width="25" height="19" patternUnits="userSpaceOnUse"><rect width="25" height="19" fill="#f0e9da"/><path d="M0 0h25M0 0v9.5m12.5 0V19M0 9.5h25" stroke="#dcd0ba" stroke-width=".6"/></pattern>
+  <pattern id="ribs" width="9" height="10" patternUnits="userSpaceOnUse"><rect width="9" height="10" fill="#6b786e"/><path d="M1 0v10M3 .5v9" stroke="#a7aea2" stroke-width=".65"/></pattern>
+  <pattern id="slats" width="9" height="24" patternUnits="userSpaceOnUse"><rect width="9" height="24" fill="#bf9974"/><path d="M1 0v24M3 1v20" stroke="#765840" stroke-width=".65"/></pattern>
+  <pattern id="sod" width="13" height="10" patternUnits="userSpaceOnUse"><rect width="13" height="10" fill="#dce7d1"/><path d="m1 8 2-2 1 2m4-4 2-2 1 2" fill="none" stroke="#a6b697" stroke-width=".65" opacity=".72"/></pattern>
+  <pattern id="water" width="57" height="28" patternUnits="userSpaceOnUse"><rect width="57" height="28" fill="#b9d8d1"/><path d="M2 10q5-2 12 0t13 0m11 12q4-2 8 0t8 0" fill="none" stroke="#eff6ed" stroke-width="1.1" opacity=".86"/></pattern>
+  <g id="canopy" stroke="#67816c" stroke-width="1">
+    <path class="wash" d="M-24-3Q-30-14-19-19Q-15-28-5-23Q6-32 13-21Q25-20 23-10Q32-2 25 6Q29 19 16 21Q7 30-2 24Q-13 28-18 18Q-28 17-26 7Q-31 1-24-3z" fill="#aecc9e"/>
+    <path class="wash" d="M-18-4Q-19-13-10-13Q-8-22 1-17Q8-20 12-12Q21-11 17-3Q23 6 14 9Q12 19 4 15Q-4 22-11 12Q-22 11-18-4z" fill="#c4d9ad" stroke="#89a483" stroke-width=".75"/>
+    <path d="M-19 6Q-12 .5 0 0Q4-8 11-12M0 0 14 11M0 0-9-12M0 0-5 17" fill="none" opacity=".58"/>
+    <circle r="2" fill="#667963" stroke="none"/>
+  </g>
+  <g id="tree-elevation">
+    <path d="M0 0q2-37-3-80m3 32 18-20M-1-47l-18-17" stroke="#6c6651" stroke-width="3" fill="none"/>
+    <path class="wash" d="M-33-63q-19-9-11-24-8-15 9-20 2-18 17-18 5-18 23-11 16-5 22 8 21 0 22 18 15 8 9 20 7 20-19 23-7 14-25 9-10 10-23 0-15 8-22-5z" fill="#b9cca7" stroke="#879e81" stroke-width="1.1"/>
+    <path class="wash" fill="#d4e1bc" stroke="#9aaf8e" stroke-width=".8" d="M-28-82q-17-15 3-20 2-13 17-10 1-14 15-10 18 1 16 13 19 2 11 15 12 15-11 19-7 13-21 5-16 9-24-3-16 0-6-9z"/>
+    <path d="M-27-79q12-9 24-1 10-10 30-9M-19-97q11 1 14 12m-1 10q12-14 25 0" stroke="#8ba083" fill="none" opacity=".55"/>
+  </g>
+  <g id="north"><text x="0" y="-25" text-anchor="middle" class="axis-text">N</text><path d="M0-18 5 6 0 2-5 6z" fill="#486455" stroke="#486455"/><path d="M0-18v20l5 4z" fill="#f8faf5"/><path d="M0 7v12M-5 14h10" fill="none" stroke="#486455" stroke-width=".8"/></g>
+  <g id="seat"><rect width="88" height="13" rx="2" fill="#b99575" stroke="#78644f"/><path d="M2 4h84m-84 5h84" fill="none" stroke="#e3c7a8" stroke-width=".7"/></g>
+  <g id="tea-table" stroke="#88705a" stroke-width="1" class="finish">
+    <rect x="-19" y="-10" width="38" height="20" rx="3" fill="#c3a283"/>
+    <rect x="-8" y="-24" width="16" height="10" rx="2" fill="#e0c9a7"/><rect x="-8" y="14" width="16" height="10" rx="2" fill="#e0c9a7"/>
+    <circle cx="-5" cy="0" r="2.6" fill="#e9e6d3"/><circle cx="4" cy="0" r="2.1" fill="#e9e6d3"/>
+  </g>
+</defs>`;
+const trees = (list) => list.map(([x,y,s]) => `<use href="#canopy" transform="translate(${x} ${y}) scale(${s})"/>`).join("");
+const planting = (list) => list.map(([x,y,s]) => `<path class="wash" d="M-10 0Q-13-7-6-8Q-1-17 4-8Q13-10 11-2Q16 5 7 7Q2 13-4 8Q-13 11-10 0z" fill="#bccfab" stroke="#879d7d" stroke-width=".8" transform="translate(${x} ${y}) scale(${s})"/>`).join("");
+const place = (x,y,t,anchor = "middle") => `<text x="${x}" y="${y}" class="space" text-anchor="${anchor}">${t}</text>`;
+const note = (x,y,t,anchor = "start") => `<text x="${x}" y="${y}" class="diagram-note" text-anchor="${anchor}">${t}</text>`;
+// Both plans share the site geometry. Stair arrows are laid over the finished views.
+const roofEdge = "M209 149h331l26 25v146l-26 25H209l-24-25V174z";
+function travelArrow(path, x, y, label, anchor = "start") {
+  return `<g><path class="travel-halo" d="${path}"/><path class="travel-arrow" d="${path}"/>
+    <text class="travel-label" x="${x}" y="${y}" text-anchor="${anchor}">${label}</text></g>`;
+}
+const travelDirections = (site = false) => `
+  <g aria-label="台阶及坡道上行方向">
+    ${travelArrow("M447 470v-29m-4 5 4-5 4 5",455,455,"上3级")}
+    ${travelArrow("M374 367v-19m-4 5 4-5 4 5",367,366,"上1级","end")}
+    ${travelArrow("M592 357v-36m-4 5 4-5 4 5",600,343,"上1级")}
+    ${travelArrow(site ? "M816 237v-15m-4 5 4-5 4 5" : "M816 257v-30m-4 5 4-5 4 5",808,site ? 232 : 244,"上3级","end")}
+    ${travelArrow("M336 474.5H280Q255.5 474.5 255.5 450V410Q255.5 385.5 280 385.5H291m-5-4 5 4-5 4",272,440,"上坡")}
+    ${travelArrow(site ? "M816 319v-27m-4 5 4-5 4 5" : "M816 330v-38m-4 5 4-5 4 5",809,310,"上坡","end")}
+  </g>
+`;
+const planBase = `
+  <rect x="125" y="81" width="753" height="486" rx="5" fill="#f9faf5" stroke="#c8d4c7"/>
+  <g class="shared-plan-geometry">
+    <path class="wash outline" d="M151 113H846V510H529l-16 34H380l-16-34H151z" fill="url(#sod)"/>
+    <path class="soft-line" stroke-dasharray="6 5" d="M142 104H855V519H535l-17 34H375l-17-34H142z"/>
+    <!-- The east garden path keeps a consistent width through its curved turn. -->
+    <path class="wash outline" d="M278 334H544V314H618V389H773Q798 389 798 365V250H834V365Q834 425 773 425H622Q598 425 580 412H556V444H310V398H278z" fill="url(#stone)"/>
+    <path class="wash outline" d="M375 462h142v58l-9 24H384l-9-24z" fill="url(#stone)"/>
+    <path class="wash outline" d="M375 462h-95q-12 0-12-12v-40q0-12 12-12h33v-25h-33q-37 0-37 37v40q0 37 37 37h95z" fill="url(#gravel)"/>
+    <path class="soft-line" d="M350 462v25M298 373v25M798 351h36M798 269h36"/>
+    <path class="wash outline" d="M414 444h66v18h-66z" fill="url(#stone)"/>
+    <path d="M414 450h66m-66 6h66" fill="none" stroke="#64796b" stroke-width=".9"/>
+    <!-- The coping and the water edge are two closed contours. -->
+    <rect class="wash outline" x="640" y="227" width="147" height="148" rx="17" fill="#e5e3d8"/>
+    <rect class="wash" x="649" y="236" width="129" height="130" rx="11" fill="url(#water)" stroke="#719d94" stroke-width="1.1"/>
+    <path d="M544 329h74" fill="none" stroke="#63796b" stroke-width="1.1"/>
+    <!-- The thin strip follows the exterior wall. Its outer corners are the apron toes. -->
+    <path class="wash" d="M174 137H578V243H544V171H208V326H334V357H174zM414 326H544V357H414z" fill="#e2e5dd" stroke="#7e8e80" stroke-width="1"/>
+    <path class="wash outline" d="M544 243h96v71h-96z" fill="url(#decking)"/>
+    <path class="wash outline" d="M716 154h118v76H716z" fill="url(#stone)"/>
+    <rect class="wash outline" x="735" y="154" width="86" height="12" fill="#dadfd3"/>
+    <path class="wash outline" d="M798 230h36v20h-36z" fill="url(#stone)"/>
+    <path d="M798 237h36m-36 6h36" stroke="#63796b" stroke-width="1" fill="none"/>
+    <path class="wash outline" d="M334 326h80v30h-80z" fill="url(#stone)"/>
+    <use href="#seat" x="455" y="424"/>
+    ${trees([[382,121,.62],[594,155,.86],[649,154,1.12],[172,387,.96],[199,441,1.2],[242,505,.9],[581,477,1.03],[644,493,1.16],[753,482,.98],[814,462,.8]])}
+    ${planting([[568,494,.8],[617,468,.75],[697,477,1],[794,488,.9],[659,180,.8],[674,198,1],[179,483,.9]])}
+    <use href="#north" x="900" y="130"/>
+    ${place(389,417,"铺装前场")}${place(713,281,"镜水池")}${place(195,539,"雨水花园")}${place(779,146,"景墙")}
+    ${note(447,574,"南入口","middle")}${note(150,99,"用地边界")}
+  </g>
+`;
+const sheetsArt = {
+  site:() => `
+    ${planBase}
+    <path class="wash outline" d="${roofEdge}" fill="url(#ribs)"/>
+    <path d="M185 247h381M209 149l80 98-80 98m331-196-80 98 80 98" fill="none" stroke="#46574d" stroke-width="1.55"/>
+    <path d="M289 247h171" fill="none" stroke="#344c40" stroke-width="3"/>
+    <path d="M201 163h347m-347 168h347" fill="none" stroke="#b5beaf" stroke-width=".7" opacity=".65"/>
+    ${place(368,222,"茶室屋顶")}
+    ${travelDirections(true)}
+  `,
+  plan:() => `
+    ${planBase}
+    <path d="${roofEdge}" fill="none" stroke="#799184" stroke-dasharray="8 5" stroke-width=".85"><title>屋面檐口投影线</title></path>
+    <path class="wash outline" d="M208 171h336v155H208z" fill="url(#interior)"/>
+    <g fill="none" stroke="#40574b" stroke-width="5.5">
+      <path d="M208 326v-32m0-18v-54m0-27v-24h42m69 0h43m55 0h37m44 0h46v26m0 50v79h-32m-31 0h-72m-69 0H236m-28 0h15"/>
+      <path d="M433 171v106h32m38 0h41m-111 40v9"/>
+    </g>
+    <g stroke="#5a807a" fill="#e9f2ee" stroke-width="1">
+      <rect x="250" y="168.5" width="69" height="5"/><rect x="362" y="168.5" width="55" height="5"/><rect x="454" y="168.5" width="44" height="5"/>
+      <rect x="205.5" y="195" width="5" height="27"/><rect x="205.5" y="276" width="5" height="18"/>
+      <rect x="541.5" y="197" width="5" height="50"/><rect x="223" y="323.5" width="13" height="5"/><rect x="481" y="323.5" width="31" height="5"/>
+    </g>
+    <path d="M465 277v-38A38 38 0 0 1 503 277m-70 40h40a40 40 0 0 0-40-40M340 326v-34a34 34 0 0 1 34 34 35 35 0 0 1 35-35v35" fill="none" stroke="#829286" stroke-width="1"/>
+    <path class="wash outline" d="M460 180h75v18h-75zM518 198h17v42h-17" fill="#d5b99c"/>
+    <path d="M504 182h17v13h-17zM508 185h9v7h-9z" stroke="#82796b" fill="none" stroke-width=".75"/>
+    <use href="#tea-table" x="248" y="212"/><use href="#tea-table" x="248" y="285"/><use href="#tea-table" x="366" y="213"/>
+    ${place(314,202,"茶室")}${place(475,226,"备茶间")}
+    ${travelDirections()}
+  `,
+  elevation:() => `
+    <rect x="96" y="81" width="811" height="486" rx="5" fill="#f9faf5" stroke="#c8d4c7"/>
+    <use href="#tree-elevation" transform="translate(171 530) scale(1.28)"/>
+    <use href="#tree-elevation" transform="translate(257 510) scale(.77)"/>
+    <use href="#tree-elevation" transform="translate(786 474) scale(1.12)"/>
+    <use href="#tree-elevation" transform="translate(843 475) scale(1.05)"/>
+    <path class="wash outline" d="M109 532h112l85-29.25h363v-8.75h22v-10.25h20v-10.25h140v17l31 22v34H109z" fill="url(#gravel)"/>
+    <path d="M109 532h112l85-29.25h363v-8.75h22v-10.25h20v-10.25h140v17l31 22" fill="none" stroke="#536756" stroke-width="2.2"/>
+    <path class="wash outline" d="M720 415h101v58.5H720z" fill="url(#stone)"/>
+    <rect class="wash outline" x="716" y="415" width="109" height="5" fill="#d8d6c7"/>
+    <path class="wash outline" d="M345 304h274v189H345z" fill="#c6a88d"/>
+    <path class="wash outline" d="M351 309h57v184h-57zm187 0h76v184h-76z" fill="url(#slats)"/>
+    <path class="glass outline" d="M411 337h123v156H411z" fill="#c4d9d2"/>
+    <path d="m421 395 38-39m-34 61 46-51m20 76 31-35m-37 56 43-45" stroke="#eef6ee" stroke-width="2" opacity=".83"/>
+    <path d="M411 337h123v156H411zm60 0v156m-7-67v22m15-22v22" fill="none" stroke="#516d62" stroke-width="1.8"/>
+    <path class="wash outline" d="M339 493h287v9.75H339z" fill="#dbd4c6"/>
+    <path d="M339 493h287" stroke="#536756" stroke-width="2.1"/>
+    <path class="wash outline" d="M304 300 466 200.5 662 300v7.75H304z" fill="url(#ribs)"/>
+    <path d="M304 300H662M316 300 466 208 643 300" fill="none" stroke="#394d42" stroke-width="1.05"/>
+    <path class="wash outline" d="M357 307.75h8V493h-8zm245 0h8V493h-8z" fill="#b18768"/>
+    ${place(275,537,"入园坡道")}${place(488,476,"茶室入口")}${place(758,454,"景墙")}
+  `
+};
+const frame = {width:1000,height:570};
+const view = {x:0,y:0,scale:1};
+const state = {sheet:"site",selection:"court",topic:null,explanation:"mark",revealPickedName:false};
+const plot = $("plot");
+const pointers = new Map();
+let gesture = null;
+let holdTimer;
+const tools = [
+  ["minus","缩小", () => zoomCenter(1/1.28)],
+  ["plus","放大", () => zoomCenter(1.28)],
+  ["reset","复位", resetView],
+  ["full","全屏", toggleFullscreen]
+];
+
+function symbol(mark) {
+  const {values, x, y, fill, up, lift} = mark;
+  const side = mark.side ?? 1;
+  const h = 9;
+  const length = mark.length ?? 76;
+  const base = up ? h : -h;
+  const lineY = lift ? -lift : base;
+  const line = fill ? "" : lift ? `M0 0V${lineY}H${side*length}` : `M${side*h} ${base}H${side*length}`;
+  const textX = fill ? 0 : side * (length-4);
+  const textAnchor = fill ? "middle" : side === -1 ? "start" : "end";
+  const valueY = up ? lineY + 16 : lineY - 5;
+  const tx = mark.tag?.[0] ?? 0;
+  const ty = mark.tag?.[1] ?? 10;
+  const tw = mark.name.length*12+13;
+  const hitWidth = fill ? 9+10*values[0].length : length+19;
+  const hitX = fill ? -hitWidth/2 : (side === 1 ? -14 : -length-5);
+  return `<g class="hotspot" data-mark="${mark.id}" tabindex="0" role="button" aria-label="${mark.name} ${values.join("、")}" aria-pressed="false" transform="translate(${x} ${y})">
+    <g class="dimension">
+      <circle class="pin" cx="0" cy="0" r="12"/>
+      <path d="M${-h} ${base}H${h}L0 0z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round" fill="${fill ? 'currentColor' : 'none'}"/>
+      ${line ? `<path d="${line}" stroke="currentColor" stroke-width="1.2" fill="none"/>` : ""}
+      ${values.map((n,i) => `<text class="level-value" x="${textX}" y="${valueY-16*(values.length-1-i)}" text-anchor="${textAnchor}">${n}</text>`).join("")}
+    </g>
+    <g class="tag" visibility="hidden" aria-hidden="true"><rect rx="4" x="${tx-3}" y="${ty}" width="${tw}" height="21" fill="#f7f9f1" stroke="#a9c0ad"/><text x="${tx+3}" y="${ty+14.7}">${mark.name}</text></g>
+    <rect class="hit" aria-hidden="true" x="${hitX}" y="${up ? -8 : Math.min(-15,valueY-16*values.length)}" width="${hitWidth}" height="${up ? 41 : Math.max(25,13-Math.min(-15,valueY-16*values.length))}"/>
+  </g>`;
+}
+
+function renderSheet() {
+  const sheet = sheets[state.sheet];
+  $("sheet-title").textContent = sheet.title;
+  $("sheet-subtitle").textContent = sheet.sub;
+  $("zone").innerHTML = sheet.zones.map((z,i) => `<option value="${i}">${z}</option>`).join("");
+  const hitRegions = sheet.marks.filter(m => m.area).map(m => {
+    const [x,y,w,h] = m.area;
+    return `<rect class="hit" data-mark="${m.id}" x="${x}" y="${y}" width="${w}" height="${h}" fill="transparent" style="cursor:pointer" aria-hidden="true"/>`;
+  }).join("");
+  plot.innerHTML = `${definitions}<g id="sheet-art">${sheetsArt[state.sheet]()}</g><g id="hit-regions">${hitRegions}</g><g id="marks">${sheet.marks.map(symbol).join("")}</g>`;
+  for (const tab of $("tabs").children) {
+    const selected = tab.dataset.sheet === state.sheet;
+    tab.setAttribute("aria-selected",selected);
+    tab.tabIndex = selected ? 0 : -1;
+  }
+  $("stage").setAttribute("aria-labelledby",`tab-${state.sheet}`);
+  syncLayers();
+}
+
+function syncLayers() {
+  const showLevels = $("levels").checked;
+  const showSpaces = $("spaces").checked;
+  const nameMode = $("name-mode").value;
+  const zone = Number($("zone").value);
+  $("zone-row").hidden = nameMode !== "zone";
+  plot.classList.toggle("mono",!$("finishes").checked);
+  plot.querySelectorAll(".space").forEach(el => {el.style.display = showSpaces ? "" : "none";});
+  $("marks").style.display = showLevels ? "" : "none";
+  $("hit-regions").style.display = showLevels ? "" : "none";
+  for (const mark of sheets[state.sheet].marks) {
+    const target = plot.querySelector(`.hotspot[data-mark="${mark.id}"]`);
+    const selected = mark.id === state.selection;
+    const related = !state.topic || mark.tags.includes(state.topic);
+    const showName = nameMode === "all" || (nameMode === "zone" && mark.zone === zone) ||
+      (selected && (nameMode === "selected" || state.revealPickedName));
+    target.classList.toggle("active",selected);
+    target.classList.toggle("dim",!related);
+    target.setAttribute("aria-pressed",String(selected));
+    target.querySelector(".tag").setAttribute("visibility",showName ? "visible" : "hidden");
+  }
+}
+
+function revealExplanation() {
+  $("explainer").classList.remove("is-collapsed");
+  const button = $("explanation-toggle");
+  button.setAttribute("aria-expanded","true");
+  button.setAttribute("aria-label","折叠知识点解释");
+  button.textContent = "−";
+}
+
+function updateExplanation() {
+  const mark = sheets[state.sheet].marks.find(m => m.id === state.selection);
+  const lesson = lessons[state.topic];
+  if (state.explanation === "topic") {
+    $("explanation").innerHTML = `<h2>${lesson.name}</h2><p>${lesson.text}</p><p class="ref">第 ${lesson.ref} 条 · 图中高亮为对应示例</p>`;
+  } else if (mark) {
+    const primary = mark.tags.includes("stack") ? "stack" : mark.lift ? "lifted" : mark.up ? "direction" : mark.tags[0];
+    const refs = [state.topic,primary,...mark.tags].filter(k => k && k !== "precision").map(k => lessons[k].ref);
+    $("explanation").innerHTML = `<h2>${mark.name}<code>${mark.values.join(" / ")}</code></h2><p>${mark.description}</p><p class="ref">第 ${[...new Set(refs)].slice(0,3).join("、")} 条${mark.tags.includes("stack") ? " · 同点叠注" : ""}</p>`;
+  }
+  for (const button of $("topics").children) button.setAttribute("aria-pressed",String(button.dataset.topic === state.topic));
+}
+
+function changeSheet(key) {
+  const fromPlan = state.sheet === "site" || state.sheet === "plan";
+  const toPlan = key === "site" || key === "plan";
+  const samePlanBase = fromPlan && toPlan;
+  const samePoint = samePlanBase && outdoorPoints.some(point => point.id === state.selection);
+  state.sheet = key;
+  if (!samePoint) state.selection = sheets[key].example;
+  state.topic = null;
+  state.revealPickedName = samePoint;
+  state.explanation = "mark";
+  if (!samePlanBase) resetView();
+  renderSheet();
+  updateExplanation();
+}
+
+function selectTopic(key) {
+  const lesson = lessons[key];
+  const relevant = (m) => m.tags.includes(key);
+  const before = state.sheet;
+  if (!sheets[before].marks.some(relevant) || key === "direction") state.sheet = lesson.sample;
+  const matches = sheets[state.sheet].marks.filter(relevant);
+  const preferred = {open:"tea",lifted:"court",solid:"court",direction:"eave",precision:"court",sign:"tea",stack:"water"};
+  const example = matches.find(m => m.id === preferred[key]) || matches[0];
+  state.selection = example.id;
+  state.topic = key;
+  state.explanation = "topic";
+  state.revealPickedName = true;
+  $("levels").checked = true;
+  resetView();
+  if (before !== state.sheet) renderSheet(); else syncLayers();
+  revealExplanation();
+  updateExplanation();
+}
+
+function selectMark(id) {
+  if (!sheets[state.sheet].marks.some(m => m.id === id) || !$("levels").checked) return;
+  state.selection = id;
+  state.revealPickedName = true;
+  if (state.topic && !sheets[state.sheet].marks.find(m => m.id === id).tags.includes(state.topic)) state.topic = null;
+  state.explanation = "mark";
+  revealExplanation();
+  syncLayers();
+  updateExplanation();
+}
+
+function updateView() {
+  const w = frame.width/view.scale;
+  const h = frame.height/view.scale;
+  plot.setAttribute("viewBox",`${view.x} ${view.y} ${w} ${h}`);
+}
+
+function resetView() {
+  Object.assign(view,{x:0,y:37,scale:1});
+  updateView();
+}
+
+function pointAt(x,y) {
+  const p = plot.createSVGPoint();
+  p.x = x;
+  p.y = y;
+  return p.matrixTransform(plot.getScreenCTM().inverse());
+}
+
+function zoomAt(x,y,factor) {
+  const from = pointAt(x,y);
+  view.scale = Math.min(5,Math.max(.8,view.scale*factor));
+  updateView();
+  const to = pointAt(x,y);
+  view.x += from.x-to.x;
+  view.y += from.y-to.y;
+  updateView();
+}
+
+function zoomCenter(factor) {
+  const r = plot.getBoundingClientRect();
+  zoomAt(r.x+r.width/2,r.y+r.height/2,factor);
+}
+
+async function toggleFullscreen() {
+  try {
+    if (document.fullscreenElement) await document.exitFullscreen();
+    else await $("viewer").requestFullscreen();
+  } catch {
+    $("view-status").textContent = "浏览器未允许全屏。";
+  }
+}
+
+function pinch() {
+  const [a,b] = pointers.values();
+  return {x:(a.x+b.x)/2,y:(a.y+b.y)/2,d:Math.max(1,Math.hypot(a.x-b.x,a.y-b.y))};
+}
+
+plot.addEventListener("wheel",e => {
+  e.preventDefault();
+  zoomAt(e.clientX,e.clientY,e.deltaY < 0 ? 1.14 : 1/1.14);
+},{passive:false});
+plot.addEventListener("contextmenu",e=>{if(e.target.closest("[data-mark]")) e.preventDefault();});
+plot.addEventListener("pointerdown",e => {
+  if (e.pointerType === "mouse" && e.button !== 0) return;
+  const hit = e.target.closest("[data-mark]");
+  pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  plot.setPointerCapture(e.pointerId);
+  if (pointers.size > 1) {
+    clearTimeout(holdTimer);
+    gesture = {moved:true,pinch:pinch()};
+    return;
+  }
+  gesture = {x:e.clientX,y:e.clientY,mark:hit?.dataset.mark,moved:false,held:false};
+  if (gesture.mark) {
+    const initialGesture = gesture;
+    holdTimer = setTimeout(() => {
+      if (gesture !== initialGesture || gesture.moved) return;
+      gesture.held = true;
+      selectMark(gesture.mark);
+    },450);
+  }
+});
+
+plot.addEventListener("pointermove",e => {
+  if (!pointers.has(e.pointerId) || !gesture) return;
+  const last = pointers.get(e.pointerId);
+  pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  if (pointers.size > 1) {
+    const next = pinch();
+    const prev = gesture.pinch;
+    if (prev) {
+      const before = pointAt(prev.x,prev.y);
+      zoomAt(next.x,next.y,next.d/prev.d);
+      const after = pointAt(next.x,next.y);
+      view.x += before.x-after.x;
+      view.y += before.y-after.y;
+      updateView();
+    }
+    gesture.pinch = next;
+    return;
+  }
+  if (gesture.held) return;
+  if (!gesture.moved && Math.hypot(e.clientX-gesture.x,e.clientY-gesture.y)<7) return;
+  clearTimeout(holdTimer);
+  const start = pointAt(gesture.moved ? last.x : gesture.x,gesture.moved ? last.y : gesture.y);
+  const end = pointAt(e.clientX,e.clientY);
+  gesture.moved = true;
+  plot.classList.add("panning");
+  view.x += start.x-end.x;
+  view.y += start.y-end.y;
+  updateView();
+});
+
+function endGesture(e) {
+  if (!pointers.has(e.pointerId)) return;
+  clearTimeout(holdTimer);
+  pointers.delete(e.pointerId);
+  if (gesture && e.type === "pointerup" && !gesture.moved && !gesture.held && gesture.mark) selectMark(gesture.mark);
+  if (pointers.size < 2 && gesture) gesture.pinch = null;
+  if (!pointers.size) {
+    gesture = null;
+    plot.classList.remove("panning");
+  }
+}
+
+for (const ev of ["pointerup","pointercancel","lostpointercapture"]) plot.addEventListener(ev,endGesture);
+plot.addEventListener("keydown",e => {
+  const mark = e.target.closest(".hotspot");
+  if (mark && ["Enter"," "].includes(e.key)) {
+    e.preventDefault();
+    selectMark(mark.dataset.mark);
+  }
+});
+
+$("tabs").innerHTML = Object.entries(sheets).map(([key,s]) => `<button class="tab" id="tab-${key}" data-sheet="${key}" type="button" role="tab" aria-controls="stage">${s.tab}</button>`).join("");
+$("tabs").addEventListener("click",e => {
+  const tab = e.target.closest("button");
+  if (tab) changeSheet(tab.dataset.sheet);
+});
+$("tabs").addEventListener("keydown",e => {
+  const order = Object.keys(sheets);
+  const selected = order.indexOf(state.sheet);
+  const keys = {ArrowRight:order[(selected+1)%order.length],ArrowLeft:order[(selected+order.length-1)%order.length],Home:order[0],End:order.at(-1)};
+  if (!keys[e.key]) return;
+  e.preventDefault();
+  changeSheet(keys[e.key]);
+  $(`tab-${state.sheet}`).focus();
+});
+$("topics").innerHTML = Object.entries(lessons).map(([key,l]) => `<button type="button" data-topic="${key}" class="topic" aria-pressed="false"><span class="topic-icon" aria-hidden="true">${l.art}</span><span class="topic-title">${l.name}</span><span class="topic-ref">${l.ref}</span></button>`).join("");
+$("topics").addEventListener("click",e => {
+  const b = e.target.closest("[data-topic]");
+  if (b) selectTopic(b.dataset.topic);
+});
+
+for (const id of ["name-mode","zone"]) $(id).addEventListener("change",() => {
+  state.revealPickedName = false;
+  syncLayers();
+});
+for (const id of ["levels","spaces","finishes"]) $(id).addEventListener("change",syncLayers);
+$("explanation-toggle").addEventListener("click",() => {
+  const closing = $("explainer").classList.toggle("is-collapsed");
+  $("explanation-toggle").setAttribute("aria-expanded",String(!closing));
+  $("explanation-toggle").setAttribute("aria-label",closing ? "展开知识点解释" : "折叠知识点解释");
+  $("explanation-toggle").textContent = closing ? "+" : "−";
+});
+for (const name of ["book","layers","tools"]) $(`icon-${name}`).innerHTML = icon(name);
+$("quick-tools").innerHTML = tools.map(([key,title]) => `<button type="button" class="icon-btn" data-tool="${key}" title="${title}" aria-label="${title}">${icon(key)}</button>`).join("");
+$("actions").innerHTML = tools.map(([key,title]) => `<button type="button" class="action" data-tool="${key}">${icon(key)}${title}</button>`).join("")+'<span id="view-status" class="sr-only" aria-live="polite"></span>';
+for (const button of document.querySelectorAll("[data-tool]")) button.addEventListener("click",() => tools.find(([key])=>key===button.dataset.tool)[2]());
+document.addEventListener("fullscreenchange",() => {
+  const label = document.fullscreenElement ? "退出全屏" : "全屏";
+  const button = $("quick-tools").querySelector('[data-tool="full"]');
+  button.title = label;
+  button.setAttribute("aria-label",label);
+});
+resetView();
+renderSheet();
+updateExplanation();
+</script>
+</body>
+</html>
